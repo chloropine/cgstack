@@ -21,6 +21,60 @@ The port includes Codex skill generation, `~/.codex/skills/` installation,
 `AGENTS.md` project guidance, Codex CLI invocation paths, and a Codex-focused
 browser/terminal integration.
 
+## Why cgstack?
+
+Codex is strong at implementation, but real software work needs more than raw
+code generation. cgstack gives Codex a repeatable operating system for product
+thinking, planning, review, QA, release, documentation, and post-ship learning.
+
+- **Role-based workflows**: specialized skills act like a CEO, designer, eng
+  manager, QA lead, release manager, security reviewer, and docs engineer.
+- **Codex-native runtime**: no Claude Code compatibility layer, no multi-host
+  adapter surface, and no legacy invocation paths.
+- **Real browser tooling**: browser QA, screenshots, cookie setup, scraping,
+  and live app inspection run through the bundled Chromium tooling.
+- **Project memory and handoff**: context, learnings, plans, retros, and
+  release notes can be saved and restored across sessions.
+- **Opinionated defaults**: the skills push for better plans, clearer tradeoffs,
+  stronger tests, and production-focused review before code lands.
+
+## Demo Workflow
+
+After installing cgstack, open Codex in a project repo and use the skills as a
+software delivery loop:
+
+```text
+/office-hours I want to build a small billing dashboard for usage-based pricing.
+```
+
+Use the result to sharpen the product direction, then ask for planning review:
+
+```text
+/plan-ceo-review docs/designs/billing-dashboard.md
+/plan-eng-review docs/designs/billing-dashboard.md
+/plan-design-review docs/designs/billing-dashboard.md
+```
+
+Implement the plan with Codex, then run review and browser QA:
+
+```text
+/review
+/qa
+```
+
+When the branch is ready:
+
+```text
+/document-release
+/ship
+```
+
+For live browser work, launch the visible browser integration:
+
+```text
+/open-cgstack-browser
+```
+
 ## Install
 
 Requirements: OpenAI Codex CLI, Git, Bun v1.0+, and Node.js on Windows.
