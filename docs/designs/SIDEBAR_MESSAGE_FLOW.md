@@ -6,9 +6,7 @@ sidebar-related server endpoints.
 
 The sidebar has one primary surface — the **Terminal** pane, an interactive
 `codex` PTY. Activity / Refs / Inspector survive as debug overlays behind
-the `debug` toggle in the footer. The chat queue path (one-shot `codex -p`,
-sidebar-agent.ts) was ripped once the PTY proved out — the Terminal pane is
-strictly more capable.
+the `debug` toggle in the footer.
 
 ## Components
 

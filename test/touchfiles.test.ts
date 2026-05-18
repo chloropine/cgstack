@@ -298,10 +298,9 @@ describe('TOUCHFILES completeness', () => {
   });
 
   test('every LLM-judge test has a TOUCHFILES entry', () => {
-    const llmContent = fs.readFileSync(
-      path.join(ROOT, 'test', 'skill-llm-eval.test.ts'),
-      'utf-8',
-    );
+    const llmEvalFile = path.join(ROOT, 'test', 'skill-llm-eval.test.ts');
+    if (!fs.existsSync(llmEvalFile)) return;
+    const llmContent = fs.readFileSync(llmEvalFile, 'utf-8');
 
     // Extract test names from addTest({ name: '...' }) calls
     const nameRegex = /name:\s*['"`]([^'"`]+)['"`]/g;

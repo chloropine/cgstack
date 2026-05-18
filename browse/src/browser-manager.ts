@@ -40,6 +40,26 @@ export function isCustomChromium(): boolean {
   return p.includes('GBrowser') || p.includes('gbrowser');
 }
 
+function readProcFlag(file: string): string | null {
+  try {
+    const fs = require('fs');
+    return fs.readFileSync(file, 'utf-8').trim();
+  } catch {
+    return null;
+  }
+}
+
+function shouldDisableChromiumSandbox(): boolean {
+  if (process.env.CGSTACK_CHROMIUM_SANDBOX === '1') return false;
+  if (process.env.CGSTACK_CHROMIUM_NO_SANDBOX === '1') return true;
+  const isRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+  if (process.env.CI || process.env.CONTAINER || isRoot || process.platform === 'win32') return true;
+  if (process.platform !== 'linux') return false;
+  if (readProcFlag('/proc/sys/kernel/unprivileged_userns_clone') === '0') return true;
+  if (readProcFlag('/proc/sys/kernel/apparmor_restrict_unprivileged_userns') === '1') return true;
+  return false;
+}
+
 export type { RefEntry };
 
 // Re-export TabSession for consumers
@@ -119,7 +139,7 @@ export class BrowserManager {
 
   // Called when the headed browser disconnects without intentional teardown
   // (user closed the window). Wired up by server.ts to run full cleanup
-  // (sidebar-agent, state file, profile locks) before exiting with code 2.
+  // before exiting with code 2.
   // Returns void or a Promise; rejections are caught and fall back to exit(2).
   public onDisconnect: (() => void | Promise<void>) | null = null;
 
@@ -217,11 +237,8 @@ export class BrowserManager {
     const launchArgs: string[] = [...STEALTH_LAUNCH_ARGS];
     let useHeadless = true;
 
-    // Docker/CI/root: Chromium sandbox requires unprivileged user namespaces which
-    // are typically disabled in containers and are never available for the root
-    // user on Linux. Detect all three cases and add --no-sandbox automatically.
-    const isRoot = typeof process.getuid === 'function' && process.getuid() === 0;
-    if (process.env.CI || process.env.CONTAINER || isRoot) {
+    const disableSandbox = shouldDisableChromiumSandbox();
+    if (disableSandbox) {
       launchArgs.push('--no-sandbox');
     }
 
@@ -238,10 +255,7 @@ export class BrowserManager {
 
     this.browser = await chromium.launch({
       headless: useHeadless,
-      // On Windows, Chromium's sandbox fails when the server is spawned through
-      // the Bun→Node process chain (GitHub #276). Disable it — local daemon
-      // browsing user-specified URLs has marginal sandbox benefit.
-      chromiumSandbox: process.platform !== 'win32',
+      chromiumSandbox: !disableSandbox,
       ...(launchArgs.length > 0 ? { args: launchArgs } : {}),
       ...(this.proxyConfig ? { proxy: this.proxyConfig } : {}),
     });
@@ -301,6 +315,8 @@ export class BrowserManager {
       // Sites like Google and NYTimes check this to block automation browsers.
       '--disable-blink-features=AutomationControlled',
     ];
+    const disableSandbox = shouldDisableChromiumSandbox();
+    if (disableSandbox) launchArgs.push('--no-sandbox');
     if (extensionPath) {
       // Skip --load-extension when running against a custom Chromium build
       // that already bakes the extension in as a component extension
@@ -420,6 +436,7 @@ export class BrowserManager {
       userAgent: this.customUserAgent || customUA,
       ...(executablePath ? { executablePath } : {}),
       ...(this.proxyConfig ? { proxy: this.proxyConfig } : {}),
+      chromiumSandbox: !disableSandbox,
       // Playwright adds flags that block extension loading
       ignoreDefaultArgs: [
         '--disable-extensions',
@@ -543,8 +560,8 @@ export class BrowserManager {
     }
 
     // Browser disconnect handler — exit code 2 distinguishes from crashes (1).
-    // Calls onDisconnect() to trigger full shutdown (kill sidebar-agent, save
-    // session, clean profile locks + state file) before exit. Falls back to
+    // Calls onDisconnect() to trigger full shutdown (save session, clean
+    // profile locks + state file) before exit. Falls back to
     // direct process.exit(2) if no callback is wired up, or if the callback
     // throws/rejects — never leave the process running with a dead browser.
     if (this.browser) {
@@ -683,8 +700,7 @@ export class BrowserManager {
 
   /**
    * Sync activeTabId to match the tab whose URL matches the Chrome extension's
-   * active tab. Called on every /sidebar-tabs poll so manual tab switches in
-   * the browser are detected within ~2s.
+   * active tab. Used by headed-mode integrations before dispatching commands.
    */
   syncActiveTabByUrl(activeUrl: string): void {
     if (!activeUrl || this.pages.size <= 1) return;
@@ -747,7 +763,7 @@ export class BrowserManager {
    *
    *   - **own-only (pair-agent over tunnel):** the strict mode. Token must own
    *     the target tab for any access (reads or writes). Unowned user tabs
-   *     and tabs owned by other clients are off-limits. Remote agents must
+   *     and tabs owned by other clients are off-limits. Paired Codex sessions must
    *     `newtab` first to get a tab they can drive.
    *
    *   - **shared (local skill spawns, default scoped tokens):** permissive on

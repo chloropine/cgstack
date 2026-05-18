@@ -11,7 +11,7 @@
  *
  * Gate tier: this is the classifier-quality gate. Fails CI if the
  * threshold regresses. Skipped gracefully if the model cache is absent
- * (first-run CI) — prime via the sidebar-agent warmup.
+ * (first-run CI) — prime via the classifier warmup.
  *
  * Dataset cache: ~/.cgstack/cache/browsesafe-bench-smoke/test-rows.json
  * (hermetic after first run — no HF network traffic on subsequent CI).

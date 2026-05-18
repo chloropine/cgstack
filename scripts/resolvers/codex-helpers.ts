@@ -61,12 +61,10 @@ policy:
 `;
 }
 
-/** Compute skill name for external hosts (Codex, Codex, etc.) */
+/** Compute skill name for Codex installs. */
 export function externalSkillName(skillDir: string): string {
   if (skillDir === '.' || skillDir === '') return 'cgstack';
-  // Don't double-prefix: cgstack-upgrade → cgstack-upgrade (not cgstack-cgstack-upgrade)
-  if (skillDir.startsWith('cgstack-')) return skillDir;
-  return `cgstack-${skillDir}`;
+  return skillDir;
 }
 
 /**

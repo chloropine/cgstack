@@ -107,11 +107,10 @@ describe('domain-skills: state machine (T6)', () => {
     ).rejects.toThrow(/classifier flagged/);
   });
 
-  // domain-skill-commands.ts:140 (handleSave) writes classifier_score=0 with
-  // the comment "L4 deferred to load-time" — but sidebar-agent (the deferred
-  // scanner) was ripped per AGENTS.md "Sidebar architecture." Without an
-  // explicit gate, three benign uses promote any quarantined skill, including
-  // one authored under a poisoned page, into prompt context permanently.
+  // handleSave writes classifier_score=0 because the optional native L4
+  // classifier is not loaded in the compiled daemon. Without an explicit
+  // gate, three benign uses promote any quarantined skill, including one
+  // authored under a poisoned page, into prompt context permanently.
   it('does NOT auto-promote when classifier_score is 0 (production handleSave shape)', async () => {
     const m = await freshImport();
     await m.writeSkill({

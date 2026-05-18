@@ -7,34 +7,35 @@ import * as os from 'os';
 const ROOT = path.resolve(import.meta.dir, '..');
 const SETUP_SCRIPT = path.join(ROOT, 'setup');
 
-describe('setup: Conductor worktree guard', () => {
-  test('setup contains the real-dir guard before the symlink-or-copy into ~/.codex/skills/', () => {
+describe('setup: Codex skill install layout', () => {
+  test('direct ~/.codex/skills/cgstack installs are migrated before runtime root creation', () => {
     const content = fs.readFileSync(SETUP_SCRIPT, 'utf-8');
-    const guardIdx = content.indexOf('_SKIP_CODEX_REGISTER=0');
-    // v1.36.0.0: symlink work routes through _link_or_copy helper for Windows fallback.
-    const lnIdx = content.indexOf('_link_or_copy "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK_LINK"');
-    expect(guardIdx).toBeGreaterThan(-1);
-    expect(lnIdx).toBeGreaterThan(-1);
-    expect(guardIdx).toBeLessThan(lnIdx);
+    const migrateDef = content.indexOf('migrate_direct_codex_install()');
+    const migrateCall = content.indexOf('migrate_direct_codex_install "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK"');
+    const rootCall = content.indexOf('create_codex_runtime_root "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK"');
+    expect(migrateDef).toBeGreaterThan(-1);
+    expect(migrateCall).toBeGreaterThan(migrateDef);
+    expect(rootCall).toBeGreaterThan(migrateCall);
   });
 
-  test('guard resolves the existing real dir with `pwd -P` and compares against source', () => {
+  test('runtime root is rebuilt before links are created', () => {
     const content = fs.readFileSync(SETUP_SCRIPT, 'utf-8');
-    expect(content).toContain('[ -d "$CODEX_CGSTACK_LINK" ] && [ ! -L "$CODEX_CGSTACK_LINK" ]');
-    expect(content).toContain('cd "$CODEX_CGSTACK_LINK" 2>/dev/null && pwd -P');
-    expect(content).toContain('"$_EXISTING_REAL" != "$SOURCE_CGSTACK_DIR"');
+    expect(content).toContain('if [ -L "$codex_cgstack" ]; then');
+    expect(content).toContain('rm -f "$codex_cgstack"');
+    expect(content).toContain('elif [ -d "$codex_cgstack" ] && [ "$codex_cgstack" != "$cgstack_dir" ]; then');
+    expect(content).toContain('rm -rf "$codex_cgstack"');
   });
 
-  test('skip branch prints "registration skipped" + remediation hint', () => {
+  test('flat skill linking preserves user-owned real directories and cleans managed prefixed aliases', () => {
     const content = fs.readFileSync(SETUP_SCRIPT, 'utf-8');
-    expect(content).toContain('Skipping Codex skill registration');
-    expect(content).toContain('codex registration skipped');
-    expect(content).toContain('rm -rf $CODEX_CGSTACK_LINK');
+    expect(content).toContain('_cleanup_skill_entry "$skills_dir/cgstack-$skill_name"');
+    expect(content).toContain('if [ -L "$target" ] || [ ! -e "$target" ]; then');
+    expect(content).toContain('_link_or_copy "$skill_dir" "$target"');
   });
 
-  // Reproduce the BSD/macOS `ln -snf` behavior that caused the bug, then
-  // confirm the guard avoids it. This is a behavioral test of the guard logic
-  // running in an isolated tmpdir — not the full setup script.
+  // Reproduce the BSD/macOS `ln -snf` behavior that caused the original
+  // install bug, then verify the current flat-link guard avoids calling ln
+  // for existing real user-owned skill directories.
   test('BSD ln -snf into an existing real dir creates a child symlink (bug reproduces)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-setup-guard-'));
     try {
@@ -42,15 +43,12 @@ describe('setup: Conductor worktree guard', () => {
       const dest = path.join(tmp, 'dest-real-dir');
       fs.mkdirSync(source);
       fs.mkdirSync(dest);
-      // The buggy invocation: target dest is an existing real dir.
       const result = spawnSync('ln', ['-snf', source, dest], { encoding: 'utf-8' });
       expect(result.status).toBe(0);
-      // Child symlink leaked inside dest.
       const leaked = path.join(dest, path.basename(source));
       expect(fs.existsSync(leaked)).toBe(true);
       expect(fs.lstatSync(leaked).isSymbolicLink()).toBe(true);
       expect(fs.readlinkSync(leaked)).toBe(source);
-      // dest itself stayed a real directory (not replaced).
       expect(fs.lstatSync(dest).isSymbolicLink()).toBe(false);
       expect(fs.lstatSync(dest).isDirectory()).toBe(true);
     } finally {
@@ -58,142 +56,58 @@ describe('setup: Conductor worktree guard', () => {
     }
   });
 
-  test('guard logic refuses to ln when dest is a real dir pointing elsewhere', () => {
+  test('flat skill guard skips an existing real directory', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-setup-guard-'));
     try {
-      const source = path.join(tmp, 'source-worktree');
-      const dest = path.join(tmp, 'dest-real-dir');
+      const source = path.join(tmp, 'source-skill');
+      const target = path.join(tmp, 'user-skill-dir');
       fs.mkdirSync(source);
-      fs.mkdirSync(dest);
-      // Inline the guard logic from setup. If it triggers, $_SKIP=1 is echoed
-      // and no ln is performed; otherwise ln runs and we'd see the leak.
+      fs.mkdirSync(target);
       const script = `
         set -e
-        SOURCE_CGSTACK_DIR='${source}'
-        CODEX_CGSTACK_LINK='${dest}'
-        _SKIP_CODEX_REGISTER=0
-        if [ -d "$CODEX_CGSTACK_LINK" ] && [ ! -L "$CODEX_CGSTACK_LINK" ]; then
-          _EXISTING_REAL=$(cd "$CODEX_CGSTACK_LINK" 2>/dev/null && pwd -P || echo "")
-          if [ -n "$_EXISTING_REAL" ] && [ "$_EXISTING_REAL" != "$SOURCE_CGSTACK_DIR" ]; then
-            _SKIP_CODEX_REGISTER=1
-          fi
-        fi
-        if [ "$_SKIP_CODEX_REGISTER" -eq 1 ]; then
-          echo "SKIP"
-        else
-          ln -snf "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK_LINK"
+        skill_dir='${source}'
+        target='${target}'
+        if [ -L "$target" ] || [ ! -e "$target" ]; then
+          ln -snf "$skill_dir" "$target"
           echo "LINKED"
+        else
+          echo "SKIP"
         fi
       `;
       const result = spawnSync('bash', ['-c', script], { encoding: 'utf-8' });
       expect(result.status).toBe(0);
       expect(result.stdout.trim()).toBe('SKIP');
-      // No child symlink leaked.
-      const leaked = path.join(dest, path.basename(source));
+      const leaked = path.join(target, path.basename(source));
       expect(fs.existsSync(leaked)).toBe(false);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 
-  test('guard allows ln when dest does not exist (fresh install path)', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-setup-guard-'));
-    try {
-      const source = path.join(tmp, 'source-worktree');
-      const dest = path.join(tmp, 'fresh-dest');
-      fs.mkdirSync(source);
-      const script = `
-        set -e
-        SOURCE_CGSTACK_DIR='${source}'
-        CODEX_CGSTACK_LINK='${dest}'
-        _SKIP_CODEX_REGISTER=0
-        if [ -d "$CODEX_CGSTACK_LINK" ] && [ ! -L "$CODEX_CGSTACK_LINK" ]; then
-          _EXISTING_REAL=$(cd "$CODEX_CGSTACK_LINK" 2>/dev/null && pwd -P || echo "")
-          if [ -n "$_EXISTING_REAL" ] && [ "$_EXISTING_REAL" != "$SOURCE_CGSTACK_DIR" ]; then
-            _SKIP_CODEX_REGISTER=1
-          fi
-        fi
-        if [ "$_SKIP_CODEX_REGISTER" -eq 1 ]; then
-          echo "SKIP"
-        else
-          ln -snf "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK_LINK"
-          echo "LINKED"
-        fi
-      `;
-      const result = spawnSync('bash', ['-c', script], { encoding: 'utf-8' });
-      expect(result.status).toBe(0);
-      expect(result.stdout.trim()).toBe('LINKED');
-      expect(fs.lstatSync(dest).isSymbolicLink()).toBe(true);
-      expect(fs.readlinkSync(dest)).toBe(source);
-    } finally {
-      fs.rmSync(tmp, { recursive: true, force: true });
-    }
-  });
-
-  test('guard allows ln when dest is an existing symlink (upgrade-in-place path)', () => {
+  test('flat skill guard links fresh targets and retargets symlinks', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'new-source');
       const oldSource = path.join(tmp, 'old-source');
-      const dest = path.join(tmp, 'dest-symlink');
+      const freshTarget = path.join(tmp, 'fresh-target');
+      const symlinkTarget = path.join(tmp, 'symlink-target');
       fs.mkdirSync(source);
       fs.mkdirSync(oldSource);
-      fs.symlinkSync(oldSource, dest);
-      // Existing symlink: -L is true, so the guard does NOT trigger. ln -snf
-      // should atomically retarget the symlink to the new source.
+      fs.symlinkSync(oldSource, symlinkTarget);
       const script = `
         set -e
-        SOURCE_CGSTACK_DIR='${source}'
-        CODEX_CGSTACK_LINK='${dest}'
-        _SKIP_CODEX_REGISTER=0
-        if [ -d "$CODEX_CGSTACK_LINK" ] && [ ! -L "$CODEX_CGSTACK_LINK" ]; then
-          _EXISTING_REAL=$(cd "$CODEX_CGSTACK_LINK" 2>/dev/null && pwd -P || echo "")
-          if [ -n "$_EXISTING_REAL" ] && [ "$_EXISTING_REAL" != "$SOURCE_CGSTACK_DIR" ]; then
-            _SKIP_CODEX_REGISTER=1
+        for target in '${freshTarget}' '${symlinkTarget}'; do
+          skill_dir='${source}'
+          if [ -L "$target" ] || [ ! -e "$target" ]; then
+            ln -snf "$skill_dir" "$target"
           fi
-        fi
-        if [ "$_SKIP_CODEX_REGISTER" -eq 1 ]; then
-          echo "SKIP"
-        else
-          ln -snf "$SOURCE_CGSTACK_DIR" "$CODEX_CGSTACK_LINK"
-          echo "LINKED"
-        fi
+        done
       `;
       const result = spawnSync('bash', ['-c', script], { encoding: 'utf-8' });
       expect(result.status).toBe(0);
-      expect(result.stdout.trim()).toBe('LINKED');
-      expect(fs.readlinkSync(dest)).toBe(source);
-    } finally {
-      fs.rmSync(tmp, { recursive: true, force: true });
-    }
-  });
-
-  test('guard allows ln when dest is a real dir already pointing to source (self-rerun)', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-setup-guard-'));
-    try {
-      const source = path.join(tmp, 'source-worktree');
-      fs.mkdirSync(source);
-      // Mirror setup's SOURCE_CGSTACK_DIR resolution (`pwd -P`) so the comparison
-      // is fair on macOS where /tmp itself is a symlink to /private/tmp.
-      const resolvedSource = fs.realpathSync(source);
-      // Degenerate case: existing real dir IS the source.
-      const dest = source;
-      const script = `
-        set -e
-        SOURCE_CGSTACK_DIR='${resolvedSource}'
-        CODEX_CGSTACK_LINK='${dest}'
-        _SKIP_CODEX_REGISTER=0
-        if [ -d "$CODEX_CGSTACK_LINK" ] && [ ! -L "$CODEX_CGSTACK_LINK" ]; then
-          _EXISTING_REAL=$(cd "$CODEX_CGSTACK_LINK" 2>/dev/null && pwd -P || echo "")
-          if [ -n "$_EXISTING_REAL" ] && [ "$_EXISTING_REAL" != "$SOURCE_CGSTACK_DIR" ]; then
-            _SKIP_CODEX_REGISTER=1
-          fi
-        fi
-        echo "skip=$_SKIP_CODEX_REGISTER"
-      `;
-      const result = spawnSync('bash', ['-c', script], { encoding: 'utf-8' });
-      expect(result.status).toBe(0);
-      expect(result.stdout.trim()).toBe('skip=0');
+      expect(fs.lstatSync(freshTarget).isSymbolicLink()).toBe(true);
+      expect(fs.readlinkSync(freshTarget)).toBe(source);
+      expect(fs.readlinkSync(symlinkTarget)).toBe(source);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }

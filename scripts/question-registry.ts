@@ -227,8 +227,8 @@ export const QUESTIONS = {
     options: ['accept', 'reject'],
     description: "Premise check — agree or disagree?",
   },
-  'office-hours-independent Codex-run': {
-    id: 'office-hours-independent Codex-run',
+  'office-hours-independent-codex-run': {
+    id: 'office-hours-independent-codex-run',
     skill: 'office-hours',
     category: 'approval',
     door_type: 'two-way',

@@ -260,7 +260,7 @@ describe('cgstack-team-init', () => {
 
   test('removes vendored copy when present', () => {
     // Create a fake vendored cgstack with VERSION file
-    const vendoredDir = path.join(tmpDir, '.codex', 'skills', 'cgstack');
+    const vendoredDir = path.join(tmpDir, '.agents', 'skills', 'cgstack');
     fs.mkdirSync(vendoredDir, { recursive: true });
     fs.writeFileSync(path.join(vendoredDir, 'VERSION'), '0.14.0.0');
     fs.writeFileSync(path.join(vendoredDir, 'README.md'), 'vendored');
@@ -287,7 +287,7 @@ describe('cgstack-team-init', () => {
 
   test('skips when .agents/skills/cgstack is a symlink', () => {
     // Create a symlink (not a real vendored copy)
-    const skillsDir = path.join(tmpDir, '.codex', 'skills');
+    const skillsDir = path.join(tmpDir, '.agents', 'skills');
     fs.mkdirSync(skillsDir, { recursive: true });
     const targetDir = mkTmpDir();
     fs.writeFileSync(path.join(targetDir, 'VERSION'), '0.14.0.0');
@@ -303,7 +303,7 @@ describe('cgstack-team-init', () => {
 
   test('does not duplicate .gitignore entry on re-run', () => {
     // Create vendored copy
-    const vendoredDir = path.join(tmpDir, '.codex', 'skills', 'cgstack');
+    const vendoredDir = path.join(tmpDir, '.agents', 'skills', 'cgstack');
     fs.mkdirSync(vendoredDir, { recursive: true });
     fs.writeFileSync(path.join(vendoredDir, 'VERSION'), '0.14.0.0');
     execSync('git add .agents/skills/cgstack/', { cwd: tmpDir });
@@ -317,7 +317,7 @@ describe('cgstack-team-init', () => {
     run(`${TEAM_INIT} optional`, { cwd: tmpDir });
 
     const gitignore = fs.readFileSync(path.join(tmpDir, '.gitignore'), 'utf-8');
-    const matches = gitignore.match(/\.codex\/skills\/cgstack\//g);
+    const matches = gitignore.match(/\.agents\/skills\/cgstack\//g);
     expect(matches).toHaveLength(1);
   });
 });
@@ -339,11 +339,12 @@ describe('setup --team / --no-team / -q', () => {
   );
 
   test(
-    'setup --local prints deprecation warning',
+    'setup --local is rejected as an old multi-host option',
     () => {
       // stderr capture: run via bash redirect so we can capture stderr
       const result = run(`bash -c '${path.join(ROOT, 'setup')} --local -q 2>&1'`, { cwd: ROOT });
-      expect(result.stdout).toContain('deprecated');
+      expect(result.exitCode).not.toBe(0);
+      expect(result.stdout).toContain('not supported in Codex-only cgstack');
     },
     180_000,
   );

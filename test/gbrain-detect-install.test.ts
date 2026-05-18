@@ -20,12 +20,13 @@ import { spawnSync } from 'child_process';
 const ROOT = path.resolve(import.meta.dir, '..');
 const DETECT = path.join(ROOT, 'bin', 'cgstack-gbrain-detect');
 const INSTALL = path.join(ROOT, 'bin', 'cgstack-gbrain-install');
+const BUN_DIR = path.dirname(Bun.which('bun') || process.execPath);
 
 // Minimal PATH with POSIX tools + homebrew (for jq/git/curl) but no user-bin
 // dirs — this keeps `gbrain` out of PATH deterministically across dev machines
 // while still finding jq, git, curl, sed, cat, etc. Each test can prepend a
 // fake-gbrain dir when it wants to simulate presence.
-const SAFE_PATH = '/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin';
+const SAFE_PATH = `${BUN_DIR}:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin`;
 
 let tmpHome: string;
 let tmpHomeReal: string;

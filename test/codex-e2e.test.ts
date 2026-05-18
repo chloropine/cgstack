@@ -55,7 +55,7 @@ if (!evalsEnabled) {
 // Codex E2E touchfiles — keyed by test name, same pattern as E2E_TOUCHFILES
 const CODEX_E2E_TOUCHFILES: Record<string, string[]> = {
   'codex-discover-skill':    ['.agents/skills/**', 'test/helpers/codex-session-runner.ts'],
-  'codex-review-findings':   ['review/**', '.agents/skills/cgstack-review/**', 'test/helpers/codex-session-runner.ts'],
+  'codex-review-findings':   ['review/**', '.agents/skills/review/**', 'test/helpers/codex-session-runner.ts'],
 };
 
 let selectedTests: string[] | null = null; // null = run all
@@ -130,15 +130,15 @@ describeCodex('Codex E2E', () => {
   });
 
   testIfSelected('codex-discover-skill', async () => {
-    // Install cgstack-review skill to a temp HOME and ask Codex to list skills
-    const skillDir = path.join(testWorktree, '.agents', 'skills', 'cgstack-review');
+    // Install review skill to a temp HOME and ask Codex to list skills
+    const skillDir = path.join(testWorktree, '.agents', 'skills', 'review');
 
     const result = await runCodexSkill({
       skillDir,
       prompt: 'List any skills or instructions you have available. Just list the names.',
       timeoutMs: 60_000,
       cwd: testWorktree,
-      skillName: 'cgstack-review',
+      skillName: 'review',
     });
 
     logCodexCost('codex-discover-skill', result);
@@ -159,19 +159,19 @@ describeCodex('Codex E2E', () => {
     ).toBe(true);
   }, 120_000);
 
-  // Validates that Codex can invoke the cgstack-review skill, run a diff-based
+  // Validates that Codex can invoke the review skill, run a diff-based
   // code review, and produce structured review output with findings/issues.
   // Accepts Codex timeout (exit 124/137) as non-failure since this is a Codex perf issue.
   testIfSelected('codex-review-findings', async () => {
-    // Install cgstack-review skill and ask Codex to review the worktree
-    const skillDir = path.join(testWorktree, '.agents', 'skills', 'cgstack-review');
+    // Install review skill and ask Codex to review the worktree
+    const skillDir = path.join(testWorktree, '.agents', 'skills', 'review');
 
     const result = await runCodexSkill({
       skillDir,
-      prompt: 'Run the cgstack-review skill on this repository. Review the current branch diff and report your findings.',
+      prompt: 'Run the review skill on this repository. Review the current branch diff and report your findings.',
       timeoutMs: 540_000,
       cwd: testWorktree,
-      skillName: 'cgstack-review',
+      skillName: 'review',
     });
 
     logCodexCost('codex-review-findings', result);

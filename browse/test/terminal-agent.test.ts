@@ -185,21 +185,14 @@ describe('Source-level guard: terminal-agent', () => {
     expect(fn).toContain("startsWith('chrome-extension://')");
   });
 
-  test('codex is spawned with --append-system-prompt tab-awareness hint', () => {
-    expect(AGENT_SRC).toContain('function buildTabAwarenessHint');
-    const hint = AGENT_SRC.slice(AGENT_SRC.indexOf('function buildTabAwarenessHint'));
-    // The hint must mention the live state files and the fanout command —
-    // those are the two affordances that distinguish a cgstack-PTY codex
-    // from a plain `codex` session.
-    expect(hint).toContain('tabs.json');
-    expect(hint).toContain('active-tab.json');
-    expect(hint).toContain('tab-each');
-    // And it must be passed via --append-system-prompt at spawn time
-    // (NOT written into the PTY as user input — that would pollute the
-    // visible transcript).
+  test('codex is spawned as the user-configured interactive CLI with browse env', () => {
     const spawn = AGENT_SRC.slice(AGENT_SRC.indexOf('function spawnCodex'));
-    expect(spawn).toContain("'--append-system-prompt'");
-    expect(spawn).toContain('tabHint');
+    expect(spawn).toContain('[codexPath]');
+    expect(spawn).toContain('BROWSE_PORT');
+    expect(spawn).toContain('BROWSE_STATE_FILE');
+    expect(spawn).toContain('BROWSE_NO_AUTOSTART');
+    expect(spawn).toContain('BROWSE_HEADED');
+    expect(spawn).not.toContain('--append-system-prompt');
   });
 });
 

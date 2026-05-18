@@ -97,20 +97,20 @@ Add a new /greet skill that prints a welcome message.
         .join('\n');
       const out = (result.output ?? '') + '\n' + executionContent;
 
-      // Codex voice: require evidence of a dispatched Agent subagent, not
+      // Codex subagent voice: require evidence of a dispatched Agent subagent, not
       // merely the literal string "Agent(" (which could appear in any text).
       // Task/Agent tool_use entries have name:"Agent" or subagent_type:"..."
-      const codexVoiceFired = /"name":\s*"Agent"|"subagent_type":\s*"[^"]/.test(out) ||
-                               /Codex\s+(CEO|subagent)\s+(review|complete|finished)|codex-subagent\s/i.test(out);
-      // Codex voice: require evidence of codex invocation (command string in
+      const codexSubagentVoiceFired = /"name":\s*"Agent"|"subagent_type":\s*"[^"]/.test(out) ||
+                                      /Codex\s+(CEO|subagent)\s+(review|complete|finished)|codex-subagent\s/i.test(out);
+      // Codex CLI voice: require evidence of codex invocation (command string in
       // a Bash tool_use), not prompt-text mentions.
-      const codexVoiceFired = /"command":\s*"[^"]*codex\s+(exec|review)/.test(out) ||
-                              /CODEX SAYS\s*\(/i.test(out);
+      const codexCliVoiceFired = /"command":\s*"[^"]*codex\s+(exec|review)/.test(out) ||
+                                  /CODEX SAYS\s*\(/i.test(out);
       // Unavailable markers: explicit probe-failure strings emitted by the skill.
       const codexUnavailable = /\[codex-unavailable\]|AUTH_FAILED\b|CODEX_NOT_AVAILABLE\b|codex_cli_missing|Codex CLI not found/i.test(out);
 
-      expect(codexVoiceFired).toBe(true);
-      expect(codexVoiceFired || codexUnavailable).toBe(true);
+      expect(codexSubagentVoiceFired).toBe(true);
+      expect(codexCliVoiceFired || codexUnavailable).toBe(true);
 
       // Hang protection: require phase completion evidence, not name mentions.
       // "Phase 1 complete" or a phase-transition marker, not "plan-ceo-review"
@@ -120,7 +120,7 @@ Add a new /greet skill that prints a welcome message.
 
       logCost('autoplan-dual-voice', result);
       recordE2E(evalCollector, 'autoplan-dual-voice', 'Autoplan dual-voice E2E', result, {
-        passed: codexVoiceFired && (codexVoiceFired || codexUnavailable) && reachedPhase1,
+        passed: codexSubagentVoiceFired && (codexCliVoiceFired || codexUnavailable) && reachedPhase1,
       });
     },
     330_000, // per-test timeout slightly > spawn timeout so cleanup can run

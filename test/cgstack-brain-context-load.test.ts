@@ -2,8 +2,8 @@
  * Unit tests for bin/cgstack-brain-context-load.ts (Lane C).
  *
  * Tests CLI surface, template var substitution, manifest vs default-fallback
- * routing, datamark envelope wrapping, and graceful degradation when gbrain
- */CLI is missing. Full E2E (real gbrain MCP calls) lives in Lane F.
+ * routing, datamark envelope wrapping, and graceful degradation when the
+ * gbrain CLI is missing. Full E2E (real gbrain MCP calls) lives in Lane F.
  */
 
 import { describe, it, expect } from "bun:test";

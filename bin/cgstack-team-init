@@ -27,6 +27,67 @@ fi
 REPO_ROOT=$(git rev-parse --show-toplevel)
 AGENTS_MD="$REPO_ROOT/AGENTS.md"
 GENERATED=()
+VENDORED_DIR="$REPO_ROOT/.agents/skills/cgstack"
+
+remove_vendored_copy() {
+  [ -e "$VENDORED_DIR" ] || return 0
+  [ -L "$VENDORED_DIR" ] && return 0
+  [ -f "$VENDORED_DIR/VERSION" ] || [ -d "$VENDORED_DIR/.git" ] || return 0
+
+  echo "Found vendored cgstack copy at .agents/skills/cgstack"
+  rm -rf "$VENDORED_DIR"
+  mkdir -p "$REPO_ROOT/.agents/skills"
+  touch "$REPO_ROOT/.agents/skills/.gitkeep"
+  if [ -f "$REPO_ROOT/.gitignore" ]; then
+    if ! grep -qxF ".agents/skills/cgstack/" "$REPO_ROOT/.gitignore"; then
+      printf '\n.agents/skills/cgstack/\n' >> "$REPO_ROOT/.gitignore"
+    fi
+  else
+    printf '.agents/skills/cgstack/\n' > "$REPO_ROOT/.gitignore"
+  fi
+  GENERATED+=(".gitignore")
+  echo "Removed vendored copy"
+}
+
+create_required_codex_hook() {
+  [ "$MODE" = "required" ] || return 0
+  local hooks_dir="$REPO_ROOT/.codex/hooks"
+  local hook_path="$hooks_dir/check-cgstack.sh"
+  local settings_path="$REPO_ROOT/.codex/settings.json"
+  mkdir -p "$hooks_dir"
+  cat > "$hook_path" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ ! -d "$HOME/.codex/skills/cgstack/bin" ]; then
+  echo "BLOCKED: cgstack is not installed. Run: git clone --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/cgstack && cd ~/.cgstack/repos/cgstack && ./setup --team" >&2
+  exit 2
+fi
+exit 0
+EOF
+  chmod +x "$hook_path"
+  cat > "$settings_path" <<EOF
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$hook_path"
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+  GENERATED+=(".codex/hooks/check-cgstack.sh" ".codex/settings.json")
+  echo "  + .codex/hooks/check-cgstack.sh — added required cgstack gate"
+  echo "  + .codex/settings.json — wired required cgstack gate"
+}
+
+remove_vendored_copy
 
 if [ "$MODE" = "optional" ]; then
   SNIPPET='## cgstack (recommended)
@@ -78,6 +139,8 @@ else
   GENERATED+=("AGENTS.md")
   echo "  + AGENTS.md — added cgstack $MODE section"
 fi
+
+create_required_codex_hook
 
 echo ""
 echo "Team mode ($MODE) initialized."

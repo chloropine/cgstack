@@ -47,8 +47,8 @@ export function resolveHostArg(arg: string): string {
 }
 
 /**
- * Compatibility helper for older tests/scripts. cgstack is the Codex-only
- * gstack fork, so there are no external hosts.
+ * Compatibility helper for older tests/scripts. cgstack is Codex-only, so
+ * there are no external hosts.
  */
 export function getExternalHosts(): HostConfig[] {
   return [];

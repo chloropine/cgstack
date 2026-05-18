@@ -4,6 +4,7 @@ dist/
 browse/dist/
 design/dist/
 make-pdf/dist/
+bin/cgstack-global-discover
 .codex/config.toml
 .agents/
 .gbrain/
@@ -25,3 +26,4 @@ supabase/.temp/
 
 # Throughput analysis — local-only, regenerate via scripts/garry-output-comparison.ts
 docs/throughput-*.json
+.cgstack/

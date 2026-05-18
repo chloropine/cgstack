@@ -19,10 +19,9 @@ import { PAGE_CONTENT_COMMANDS } from '../src/commands';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
-// canary stream-chunk split detection — tested detectCanaryLeak inside
-// sidebar-agent.ts. Both the chat-stream pipeline and the function are
-// gone (Terminal pane uses an interactive PTY; user keystrokes are the
-// trust source, no chunked LLM stream to canary-scan).
+// canary stream-chunk split detection is covered by the pure structure
+// scanner. Terminal mode uses an interactive PTY; user keystrokes are the
+// trust source.
 
 describe('tool-output ensemble rule (single-layer BLOCK)', () => {
   test('user-input context: single layer at BLOCK degrades to WARN', () => {
@@ -96,10 +95,8 @@ describe('transcript classifier tool_output parameter', () => {
     expect(src).toContain('tool_output');
   });
 
-  // sidebar-agent passed tool text to the transcript classifier on
-  // tool-result scans. That whole pipeline is gone — Terminal pane has
-  // no LLM stream to scan, and security-classifier.ts is dead code with
-  // no production caller (a separate v1.1+ cleanup TODO).
+  // Terminal pane has no streamed tool-result channel here; this pins the
+  // classifier API shape for optional harnesses.
 });
 
 describe('CGSTACK_SECURITY_OFF kill switch', () => {

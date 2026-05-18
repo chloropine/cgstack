@@ -63,6 +63,6 @@ describe('security-classifier: missing codex CLI degraded path', () => {
     expect(serialized).toContain('"degraded":true');
     // Reason must indicate the CLI was missing or the spawn failed — proves the
     // early-return / spawn-path returned a structured signal without throwing.
-    expect(serialized).toMatch(/"reason":"(codex_cli_not_found|spawn_error|exit_)/);
+    expect(serialized).toMatch(/"reason":"(codex_only_disabled|codex_cli_not_found|spawn_error|exit_)/);
   });
 });

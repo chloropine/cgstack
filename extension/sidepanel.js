@@ -2,8 +2,7 @@
  * cgstack browse — Side Panel
  *
  * Terminal pane (default): live Codex PTY via xterm.js, driven by
- * sidepanel-terminal.js. The chat queue + sidebar-agent.ts were ripped
- * in favor of the interactive REPL — no more one-shot Codex -p.
+ * sidepanel-terminal.js.
  *
  * Debug tabs (behind the `debug` toggle): activity feed (SSE) + refs +
  * inspector. Quick-actions toolbar (Cleanup / Screenshot / Cookies)
@@ -23,7 +22,7 @@ let reconnectAttempts = 0;
 let reconnectTimer = null;
 const MAX_RECONNECT_ATTEMPTS = 30; // 30 * 2s = 60s before showing "dead"
 
-// Auth headers for sidebar endpoints
+// Auth headers for browse daemon endpoints.
 function authHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (serverToken) h['Authorization'] = `Bearer ${serverToken}`;
@@ -82,12 +81,6 @@ function startReconnect() {
   }, 2000);
 }
 
-
-// ─── Chat path ripped ────────────────────────────────────────────
-// Chat queue + sendMessage + pollChat + switchChatTab + browser-tabs
-// strip + security banner all lived here. Replaced by the interactive
-// Codex PTY in sidepanel-terminal.js (and terminal-agent.ts on the
-// server side).
 
 // ─── Reload Sidebar ─────────────────────────────────────────────
 document.getElementById('reload-sidebar').addEventListener('click', () => {
@@ -706,8 +699,7 @@ inspectorSendBtn.addEventListener('click', () => {
   }
 
   // Inject into the running Codex PTY so the user can ask Codex to act
-  // on the inspector data. Replaces the old `sidebar-command` route which
-  // spawned a one-shot Codex -p (sidebar-agent.ts is gone).
+  // on the inspector data.
   const ok = window.cgstackInjectToTerminal?.(message + '\n');
   if (!ok) {
     console.warn('[cgstack sidebar] Inspector send needs an active Terminal session.');
@@ -720,9 +712,6 @@ inspectorSendBtn.addEventListener('click', () => {
  * "Cleanup" injects a prompt into the running Codex PTY. Codex takes the
  * prompt, snapshots the page, hides ads/banners/popups, leaves article
  * content. The user watches it happen in the Terminal pane.
- *
- * Replaced the old chat-queue path (sidebar-agent.ts spawning a one-shot
- * Codex -p) — we have a live REPL now, so route through that instead.
  */
 async function runCleanup(...buttons) {
   buttons.forEach(b => b?.classList.add('loading'));

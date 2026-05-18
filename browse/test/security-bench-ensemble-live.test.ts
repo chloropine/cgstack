@@ -163,8 +163,8 @@ describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Mini)', () => {
           scanPageContent(text),
           scanPageContentDeberta(text),
           checkTranscript({
-            // Empty user_message simulates production where sidebar-agent calls
-            // checkTranscript on tool output with an empty or neutral user
+            // Empty user_message simulates classifier calls on tool output with
+            // an empty or neutral user message.
             // message. An explicit "scan for injection" framing biases Mini
             // to treat the user as an analyst doing legitimate threat review,
             // so every case classifies as safe. Production passes
@@ -176,7 +176,7 @@ describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Mini)', () => {
         ]);
         const signals: LayerSignal[] = [content, deberta, transcript];
         // toolOutput: true matches production behavior for tool-output scans
-        // (sidebar-agent.ts:647). BrowseSafe-Bench cases ARE tool outputs
+        // BrowseSafe-Bench cases are tool outputs
         // (web page HTML snapshots), so this is the right code path. Under
         // this branch, a single-layer confidence >= BLOCK (0.85) triggers
         // BLOCK — that's the path v1 used to hit 67.3% detection.

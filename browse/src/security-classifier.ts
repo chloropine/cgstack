@@ -1,7 +1,7 @@
 /**
  * Security classifier — ML prompt injection detection.
  *
- * This module is IMPORTED ONLY BY sidebar-agent.ts (non-compiled bun script).
+ * This module is optional and must stay out of the compiled browse binary.
  * It CANNOT be imported by server.ts or any other module that ends up in the
  * compiled browse binary, because @huggingface/transformers requires
  * onnxruntime-node at runtime and that native module fails to dlopen from
@@ -18,9 +18,8 @@
  *                                layer reports a degraded no-op signal.
  *
  * Both classifiers degrade gracefully — if the model fails to load, the layer
- * reports status 'degraded' and returns verdict 'safe' (fail-open). The sidebar
- * stays functional; only the extra ML defense disappears. The shield icon
- * reflects this via getStatus() in security.ts.
+ * reports status 'degraded' and returns verdict 'safe' (fail-open). Browsing
+ * stays functional; only the extra ML defense disappears.
  */
 
 import * as fs from 'fs';
@@ -165,7 +164,7 @@ async function ensureTestsavantStaged(onProgress?: (msg: string) => void): Promi
  * Load the TestSavantAI classifier. Idempotent — concurrent calls share the
  * same in-flight promise. Sets state to 'loaded' on success or 'failed' on error.
  *
- * Call this at sidebar-agent startup to warm up. First call triggers the model
+ * Call this at startup to warm up. First call triggers the model
  * download (~112MB from HuggingFace). Subsequent calls reuse the cached instance.
  */
 let loadPromise: Promise<void> | null = null;

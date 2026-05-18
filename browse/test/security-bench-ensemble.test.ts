@@ -181,8 +181,8 @@ describe('BrowseSafe-Bench ensemble gate (fixture replay)', () => {
 
     let tp = 0, fn = 0, fp = 0, tn = 0;
     for (const row of fixture!.cases) {
-      // toolOutput: true matches the production sidebar-agent.ts path for
-      // tool-output scans (sidebar-agent.ts:647) and matches how the live
+      // toolOutput: true matches the production path for tool-output scans
+      // and matches how the live
       // bench captured signals. Without this, the replay runs the stricter
       // user-input 2-of-N rule and drastically under-reports detection.
       const result = combineVerdict(row.signals, { toolOutput: true });

@@ -10,6 +10,7 @@ CGSTACK_ROOT="$HOME/${hostConfig.globalRoot}"
 CGSTACK_BIN="$CGSTACK_ROOT/bin"
 CGSTACK_BROWSE="$CGSTACK_ROOT/browse/dist"
 CGSTACK_DESIGN="$CGSTACK_ROOT/design/dist"
+CGSTACK_MAKE_PDF="$CGSTACK_ROOT/make-pdf/dist"
 `
     : '';
 
@@ -99,6 +100,6 @@ if command -v gbrain &>/dev/null; then
   if [ "\${_BRAIN_SCORE:-100}" -lt 50 ] 2>/dev/null; then
     echo "$_BRAIN_JSON" | grep -o '"name":"[^"]*","status":"[^"]*","message":"[^"]*"' || true
   fi
-fi` : ''}
+fi
 \`\`\``;
 }

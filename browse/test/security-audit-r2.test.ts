@@ -15,13 +15,6 @@ import * as os from 'os';
 const META_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/meta-commands.ts'), 'utf-8');
 const WRITE_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/write-commands.ts'), 'utf-8');
 const SERVER_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/server.ts'), 'utf-8');
-// sidebar-agent.ts was ripped (chat queue replaced by interactive PTY).
-// AGENT_SRC kept as empty string so the legacy describe block below skips
-// without crashing module load on a missing file.
-const AGENT_SRC = (() => {
-  try { return fs.readFileSync(path.join(import.meta.dir, '../src/sidebar-agent.ts'), 'utf-8'); }
-  catch { return ''; }
-})();
 const SNAPSHOT_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/snapshot.ts'), 'utf-8');
 const PATH_SECURITY_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/path-security.ts'), 'utf-8');
 
@@ -57,12 +50,7 @@ function extractFunction(src: string, name: string): string {
   return src.slice(start);
 }
 
-// ─── Agent queue security ──────────────────────────────────────────────────
-// Original block validated the chat queue's filesystem permissions and
-// schema validator on sidebar-agent.ts. Both are gone (chat queue ripped
-// in favor of the interactive Terminal PTY). The remaining 0o700 / 0o600
-// invariants on extension queue paths are now covered by terminal-agent
-// integration tests and the sidebar-tabs regression suite.
+// ─── Terminal security ─────────────────────────────────────────────────────
 
 // ─── Shared source reads for CSS validator tests ────────────────────────────
 const CDP_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/cdp-inspector.ts'), 'utf-8');
@@ -291,12 +279,9 @@ describe('Round-2 finding 2: snapshot.ts annotated path uses realpathSync', () =
 });
 
 // ─── Round-2 finding 3: stateFile path traversal check ─────────────────────
-// Tested isValidQueueEntry's stateFile validator on sidebar-agent.ts. Both
-// the function and the file are gone (chat queue ripped). The terminal-agent
-// PTY path no longer takes a queue entry — it accepts WebSocket frames
-// gated on Origin + session token, no on-disk queue to traverse. Path
-// traversal in browse-server's tab-state writer is covered by
-// browse/test/terminal-agent.test.ts (handleTabState atomic-write tests).
+// The Terminal PTY accepts WebSocket frames gated on Origin + session token,
+// with no on-disk command queue to traverse. Path traversal in the tab-state
+// writer is covered by browse/test/terminal-agent.test.ts.
 
 // ─── Task 5: /health endpoint must not expose sensitive fields ───────────────
 
@@ -369,11 +354,8 @@ describe('cookie-import domain validation', () => {
   });
 });
 
-// loadSession session ID validation — loadSession lived inside the chat
-// agent state block (sidebar-agent.ts session persistence). Chat queue
-// is gone, so the function and its session-ID validator are gone. The
-// terminal-agent's PTY session has no on-disk session ID — the WebSocket
-// holds the session for its lifetime.
+// Terminal PTY sessions have no on-disk session ID: the WebSocket holds the
+// session for its lifetime.
 
 // ─── Task 10: Responsive screenshot path validation ──────────────────────────
 
@@ -455,11 +437,9 @@ describe('Task 11: state load cookie validation', () => {
   });
 });
 
-// activeTabUrl sanitized before syncActiveTabByUrl — tested URL sanitization
-// on the now-deleted /sidebar-tabs and /sidebar-command routes. The
-// terminal-agent reads tab URLs from the live tabs.json file (atomic write
-// from background.js), and chrome:// / chrome-extension:// pages are
-// filtered server-side in handleTabState — see browse/test/terminal-agent.test.ts.
+// The terminal-agent reads tab URLs from the live tabs.json file (atomic write
+// from background.js), and chrome:// / chrome-extension:// pages are filtered
+// server-side in handleTabState — see browse/test/terminal-agent.test.ts.
 
 // ─── Task 13: Inbox output wrapped as untrusted ──────────────────────────────
 
@@ -487,17 +467,9 @@ describe('Task 13: inbox output wrapped as untrusted content', () => {
   });
 });
 
-// switchChatTab DocumentFragment + pollChat reentrancy guard tests targeted
-// now-deleted chat-tab DOM logic and chat-polling reentrancy. Both are gone
-// (Terminal pane is the sole sidebar surface; xterm.js owns its own DOM
-// lifecycle, and the WebSocket has no reentrancy hazard).
-
 // ─── Task 16: SIGKILL escalation ────────────────────────────────────────────
-// Originally tested sidebar-agent's SIDEBAR_AGENT_TIMEOUT block. The chat
-// queue and its watchdog are gone. terminal-agent.ts disposes codex with
-// the same SIGINT-then-SIGKILL-after-3s pattern; that's covered by
-// browse/test/terminal-agent.test.ts ("cleanup escalates SIGINT to SIGKILL
-// after 3s on close").
+// terminal-agent.ts disposes Codex with a SIGINT-then-SIGKILL-after-3s
+// pattern; that's covered by browse/test/terminal-agent.test.ts.
 
 // ─── Task 17: viewport and wait bounds clamping ──────────────────────────────
 

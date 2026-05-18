@@ -78,7 +78,7 @@ describe('setup-gbrain Path 4 (Remote MCP) — structural contract', () => {
 
   test('Step 8 explicitly says the bearer is never written to AGENTS.md', () => {
     // Token-leak regression guard. AGENTS.md is committed in many projects.
-    expect(tmpl).toMatch(/bearer token is \*\*never\*\* written to CODEX\.md/);
+    expect(tmpl).toMatch(/bearer token is \*\*never\*\* written to AGENTS\.md/);
   });
 
   test('Step 9 smoke test on Path 4 prints a placeholder, never the real token', () => {

@@ -22,24 +22,21 @@ describe('locateBinary', () => {
     }
   });
 
-  test('priority chain checks .codex, .agents, .codex markers', () => {
+  test('priority chain checks .codex before .agents markers', () => {
     // Verify the source code implements the correct priority order.
     // We read the function source to confirm the markers array order.
     const src = require('fs').readFileSync(require('path').join(__dirname, '../src/find-browse.ts'), 'utf-8');
-    // The markers array should list .codex first, then .agents, then .codex
+    // The markers array should list .codex first, then .agents.
     const markersMatch = src.match(/const markers = \[([^\]]+)\]/);
     expect(markersMatch).not.toBeNull();
     const markers = markersMatch![1];
     const codexIdx = markers.indexOf('.codex');
     const agentsIdx = markers.indexOf('.agents');
-    const codexIdx = markers.indexOf('.codex');
-    // All three must be present
+    // Both markers must be present.
     expect(codexIdx).toBeGreaterThanOrEqual(0);
     expect(agentsIdx).toBeGreaterThanOrEqual(0);
-    expect(codexIdx).toBeGreaterThanOrEqual(0);
-    // .codex before .agents before .codex
+    // .codex before .agents.
     expect(codexIdx).toBeLessThan(agentsIdx);
-    expect(agentsIdx).toBeLessThan(codexIdx);
   });
 
   test('function signature accepts no arguments', () => {

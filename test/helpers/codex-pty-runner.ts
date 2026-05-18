@@ -1,9 +1,8 @@
 /**
  * Lightweight Codex PTY helpers used by the paid E2E harness.
  *
- * The historical PTY runner belonged to a different host. cgstack is now
- * Codex-only, so this module exposes the same test-facing primitives around a
- * Codex subprocess and keeps the free helper tests importable.
+ * cgstack is Codex-only, so this module exposes the test-facing primitives
+ * around a Codex subprocess and keeps the free helper tests importable.
  */
 
 import * as fs from 'fs';
@@ -269,6 +268,7 @@ export interface AskUserQuestionFingerprint {
   signature: string;
   promptSnippet: string;
   preReview: boolean;
+  options: Array<{ index: number; label: string }>;
 }
 
 export interface PlanSkillCountingResult {
@@ -299,7 +299,7 @@ export async function runPlanSkillCounting(opts: {
   });
   const options = parseNumberedOptions(obs.evidence);
   const fingerprint = options.length
-    ? [{ signature: optionsSignature(options), promptSnippet: options.map((o) => o.label).join(' / '), preReview: true }]
+    ? [{ signature: optionsSignature(options), promptSnippet: options.map((o) => o.label).join(' / '), preReview: true, options }]
     : [];
   return {
     outcome: obs.outcome === 'asked' ? 'completion_summary' : obs.outcome === 'plan_ready' ? 'plan_ready' : 'timeout',
@@ -309,6 +309,39 @@ export async function runPlanSkillCounting(opts: {
     elapsedMs: obs.elapsedMs,
     evidence: obs.evidence,
   };
+}
+
+export function ceoStep0Boundary(fingerprint: AskUserQuestionFingerprint): boolean {
+  return /skip\s+interview|branch\s+diff|describe.*inline|scope/i.test(fingerprint.promptSnippet);
+}
+
+export function engStep0Boundary(fingerprint: AskUserQuestionFingerprint): boolean {
+  return /architecture|data\s+flow|edge\s+cases|tests|plan/i.test(fingerprint.promptSnippet);
+}
+
+export function designStep0Boundary(fingerprint: AskUserQuestionFingerprint): boolean {
+  return /visual|hierarchy|spacing|color|typography|motion|design/i.test(fingerprint.promptSnippet);
+}
+
+export function devexStep0Boundary(fingerprint: AskUserQuestionFingerprint): boolean {
+  return /persona|hello\s+world|friction|magical|developer/i.test(fingerprint.promptSnippet);
+}
+
+export function assertReviewReportAtBottom(content: string): {
+  ok: boolean;
+  reason?: string;
+  trailingHeadings?: string[];
+} {
+  const marker = content.lastIndexOf('## CGSTACK REVIEW REPORT');
+  if (marker < 0) return { ok: false, reason: 'is missing CGSTACK REVIEW REPORT' };
+  const trailing = content
+    .slice(marker + '## CGSTACK REVIEW REPORT'.length)
+    .split('\n')
+    .filter((line) => /^#{1,2}\s+/.test(line.trim()));
+  if (trailing.length > 0) {
+    return { ok: false, reason: 'has headings after CGSTACK REVIEW REPORT', trailingHeadings: trailing };
+  }
+  return { ok: true };
 }
 
 export interface PlanSkillFloorResult {

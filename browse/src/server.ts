@@ -263,12 +263,11 @@ export function resolveConfigFromEnv(): Omit<ServerConfig, 'browserManager' | 's
 const TUNNEL_PATHS = new Set<string>([
   '/connect',
   '/command',
-  '/sidebar-chat',
 ]);
 
 /**
  * Commands reachable via POST /command over the tunnel surface. A paired
- * remote agent can drive the browser (goto, click, text, etc.) but cannot
+ * Codex session can drive the browser (goto, click, text, etc.) but cannot
  * configure the daemon, bootstrap new sessions, import cookies, or reach
  * extension-inspector state. This allowlist maps to the eng-review decision
  * logged in the CEO plan for sec-wave v1.6.0.0.
@@ -490,16 +489,6 @@ function tmpStatePath(): string {
 }
 
 
-// ─── Sidebar agent / chat state ripped ──────────────────────────────
-// ChatEntry, SidebarSession, TabAgentState interfaces; chatBuffer,
-// chatBuffers, sidebarSession, agentProcess, agentStatus, agentStartTime,
-// agentTabId, messageQueue, currentMessage, tabAgents; addChatEntry,
-// loadSession, createSession, persistSession, processAgentEvent,
-// killAgent, listSessions, getTabAgent, getTabAgentStatus, and the
-// agentHealthInterval all lived here. Replaced by the live PTY in
-// terminal-agent.ts; chat queue + per-tab agent multiplexing are no
-// longer needed.
-
 let lastConsoleFlushed = 0;
 let lastNetworkFlushed = 0;
 let lastDialogFlushed = 0;
@@ -563,7 +552,7 @@ const idleCheckInterval = setInterval(() => {
   // Headed mode: the user is looking at the browser. Never auto-die.
   // Only shut down when the user explicitly disconnects or closes the window.
   if (browserManager.getConnectionMode() === 'headed') return;
-  // Tunnel mode: remote agents may send commands sporadically. Never auto-die.
+  // Tunnel mode: paired Codex sessions may send commands sporadically. Never auto-die.
   if (tunnelActive) return;
   if (Date.now() - lastActivity > IDLE_TIMEOUT_MS) {
     console.log(`[browse] Idle for ${IDLE_TIMEOUT_MS / 1000}s, shutting down`);
@@ -647,9 +636,8 @@ function emitInspectorEvent(event: any): void {
 
 // ─── Server ────────────────────────────────────────────────────
 const browserManager = new BrowserManager();
-// When the user closes the headed browser window, run full cleanup
-// (kill sidebar-agent, save session, remove profile locks, delete state file)
-// before exiting with code 2. Exit code 2 distinguishes user-close from crashes (1).
+// When the user closes the headed browser window, run full cleanup before
+// exiting with code 2. Exit code 2 distinguishes user-close from crashes (1).
 browserManager.onDisconnect = () => activeShutdown?.(2);
 let isShuttingDown = false;
 
@@ -1340,7 +1328,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         logTunnelDenial(req, url, 'root_token_on_tunnel');
         return new Response(JSON.stringify({
           error: 'Root token rejected on tunnel surface',
-          hint: 'Remote agents must pair via /connect to receive a scoped token.',
+          hint: 'Paired Codex sessions must pair via /connect to receive a scoped token.',
         }), { status: 403, headers: { 'Content-Type': 'application/json' } });
       }
       if (url.pathname !== '/connect' && !getTokenInfo(req)) {
@@ -1442,15 +1430,9 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
           ...(browserManager.getConnectionMode() === 'headed' ||
               req.headers.get('origin')?.startsWith('chrome-extension://')
               ? { token: authToken } : {}),
-          // The chat queue is gone — Terminal pane is the sole sidebar
-          // surface. Keep `chatEnabled: false` so any older extension
-          // build still treats the chat input as disabled.
           chatEnabled: false,
           // Security module status — drives the shield icon in the sidepanel.
           // Returns {status: 'protected'|'degraded'|'inactive', layers: {...}}.
-          // The chat-path classifier no longer feeds this since
-          // sidebar-agent.ts was ripped; only the page-content side
-          // (canary, content-security) keeps reporting in.
           security: getSecurityStatus(),
           // Terminal-agent discovery. ONLY a port number — never a token.
           // Tokens flow via the /pty-session HttpOnly cookie path. See
@@ -1539,7 +1521,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
               error: 'Invalid, expired, or already-used setup key',
             }), { status: 401, headers: { 'Content-Type': 'application/json' } });
           }
-          console.log(`[browse] Remote agent connected: ${session.clientId} (scopes: ${session.scopes.join(',')})`);
+          console.log(`[browse] Paired Codex connected: ${session.clientId} (scopes: ${session.scopes.join(',')})`);
           return new Response(JSON.stringify({
             token: session.token,
             expires: session.expiresAt,
@@ -1927,20 +1909,10 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         });
       }
 
-
-      // ─── Sidebar chat endpoints ripped ──────────────────────────────
-      // /sidebar-tabs, /sidebar-tabs/switch, /sidebar-chat[/clear],
-      // /sidebar-command, /sidebar-agent/{event,kill,stop},
-      // /sidebar-queue/dismiss, /sidebar-session{,/new,/list} all lived
-      // here. They drove the one-shot codex -p chat queue. Replaced by
-      // the interactive PTY in terminal-agent.ts; the queue + browser-tab
-      // multiplexing are no longer needed.
-
-
       // ─── Batch endpoint — N commands, 1 HTTP round-trip ─────────────
       // Accepts both root AND scoped tokens (same as /command).
       // Executes commands sequentially through the full security pipeline.
-      // Designed for remote agents where tunnel latency dominates.
+      // Designed for paired Codex sessions where tunnel latency dominates.
       if (url.pathname === '/batch' && req.method === 'POST') {
         const tokenInfo = getTokenInfo(req);
         if (!tokenInfo) {
@@ -2036,7 +2008,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         });
       }
 
-      // ─── File serving endpoint (for remote agents to retrieve downloaded files) ────
+      // ─── File serving endpoint (for paired Codex sessions to retrieve downloaded files) ────
       if (url.pathname === '/file' && req.method === 'GET') {
         const tokenInfo = getTokenInfo(req);
         if (!tokenInfo) {
@@ -2104,7 +2076,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         resetIdleTimer();
         const body = await req.json() as any;
         // Tunnel surface: only commands in TUNNEL_COMMANDS are allowed.
-        // Paired remote agents drive the browser but cannot configure the
+        // Paired Codex sessions drive the browser but cannot configure the
         // daemon, launch new browsers, import cookies, or rotate tokens.
         if (surface === 'tunnel') {
           if (!canDispatchOverTunnel(body?.command)) {
@@ -2494,12 +2466,6 @@ export async function start() {
   console.log(`[browse] Server running on http://127.0.0.1:${port} (PID: ${process.pid})`);
   console.log(`[browse] State file: ${config.stateFile}`);
   console.log(`[browse] Idle timeout: ${IDLE_TIMEOUT_MS / 1000}s`);
-
-  // initSidebarSession() ripped alongside the chat queue (it loaded
-  // chat.jsonl into memory and started the agent-health watchdog —
-  // both functions are gone). The Terminal pane manages its own state
-  // directly via terminal-agent.ts.
-
   // ─── Tunnel startup (optional) ────────────────────────────────
   // Start ngrok tunnel if BROWSE_TUNNEL=1 is set.  Uses the dual-listener
   // pattern: bind a dedicated tunnel listener on an ephemeral port and

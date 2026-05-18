@@ -1,7 +1,7 @@
 /**
  * Unit-test the pure tunnel-gate function extracted from the /command handler.
  *
- * The gate decides whether a paired remote agent's request to `/command` over
+ * The gate decides whether a paired Codex request to `/command` over
  * the tunnel surface is allowed (returns true) or 403'd (returns false). Pure,
  * synchronous, no HTTP — testable without standing up a Bun.serve listener.
  *

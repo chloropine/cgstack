@@ -440,7 +440,7 @@ export function extractTabId(args: string[]): { tabId: number | undefined; args:
 async function sendCommand(state: ServerState, command: string, args: string[], retries = 0): Promise<void> {
   // Precedence: CLI --tab-id flag > BROWSE_TAB env var.
   // make-pdf always passes --tab-id; human users typically rely on BROWSE_TAB
-  // (set by sidebar-agent per-tab) or the active tab.
+  // or the active tab.
   const extracted = extractTabId(args);
   args = extracted.args;
   const envTab = process.env.BROWSE_TAB;
@@ -556,7 +556,7 @@ interface InstructionBlockOptions {
   expiresAt: string;
 }
 
-/** Pure function: generate a copy-pasteable instruction block for a remote agent. */
+/** Pure function: generate a copy-pasteable instruction block for paired Codex. */
 export function generateInstructionBlock(opts: InstructionBlockOptions): string {
   const { setupKey, serverUrl, scopes, expiresAt } = opts;
   const scopeDesc = scopes.includes('admin')
@@ -828,7 +828,7 @@ async function handlePairAgent(state: ServerState, args: string[]): Promise<void
     } else {
       console.warn('[browse] No tunnel active and ngrok is not installed/configured.');
       console.warn('[browse] Instructions will use localhost (same-machine only).');
-      console.warn('[browse] For remote agents: install ngrok (https://ngrok.com) and run `ngrok config add-authtoken <TOKEN>`\n');
+      console.warn('[browse] For paired Codex sessions: install ngrok (https://ngrok.com) and run `ngrok config add-authtoken <TOKEN>`\n');
       serverUrl = pairData.server_url;
     }
   } else {
@@ -1000,7 +1000,6 @@ Refs:           After 'snapshot', use @e1, @e2... as selectors:
       const serverEnv: Record<string, string> = {
         BROWSE_HEADED: '1',
         BROWSE_PORT: '34567',
-        BROWSE_SIDEBAR_CHAT: '1',
         // Disable parent-process watchdog: the user controls the headed browser
         // window lifecycle. The CLI exits immediately after connect, so watching
         // it would kill the server ~15s later. Cleanup happens via browser
@@ -1026,10 +1025,6 @@ Refs:           After 'snapshot', use @e1, @e2... as selectors:
       });
       const status = await resp.text();
       console.log(`Connected to real Chrome\n${status}`);
-
-      // sidebar-agent.ts spawn was here. Ripped alongside the chat queue —
-      // the Terminal pane runs an interactive PTY now, no more one-shot
-      // codex -p subprocesses to multiplex.
 
       // Auto-start terminal agent (non-compiled bun process). Owns the PTY
       // WebSocket for the sidebar Terminal pane.
@@ -1156,7 +1151,7 @@ Refs:           After 'snapshot', use @e1, @e2... as selectors:
     // Ensure headed mode — the user should see the browser window
     // when sharing it with another Codex session. Feels safer, more impressive.
     if (state.mode !== 'headed' && !hasFlag(commandArgs, '--headless')) {
-      console.log('[browse] Opening CGStack Browser so you can see what the remote agent does...');
+      console.log('[browse] Opening CGStack Browser so you can see what the paired Codex session does...');
       // In compiled binaries, process.argv[1] is /$bunfs/... (virtual).
       // Use process.execPath which is the real binary on disk.
       const browseBin = process.execPath;

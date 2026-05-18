@@ -208,13 +208,13 @@ describe('validateAllConfigs', () => {
   });
 
   test('duplicate hostSubdir detected', () => {
-    const dup = { ...codex, name: 'dup-host', hostSubdir: '.codex', globalRoot: '.dup/skills/cgstack' } as HostConfig;
+    const dup = { ...codex, name: 'dup-host', hostSubdir: '.agents', globalRoot: '.dup/skills/cgstack' } as HostConfig;
     const errors = validateAllConfigs([codex, dup]);
     expect(errors.some(e => e.includes('Duplicate hostSubdir'))).toBe(true);
   });
 
   test('duplicate globalRoot detected', () => {
-    const dup = { ...codex, name: 'dup-host', hostSubdir: '.dup', globalRoot: '.agents/skills/cgstack' } as HostConfig;
+    const dup = { ...codex, name: 'dup-host', hostSubdir: '.dup', globalRoot: '.codex/skills/cgstack' } as HostConfig;
     const errors = validateAllConfigs([codex, dup]);
     expect(errors.some(e => e.includes('Duplicate globalRoot'))).toBe(true);
   });
@@ -229,18 +229,12 @@ describe('validateAllConfigs', () => {
 // ─── HOST_PATHS derivation ──────────────────────────────────
 
 describe('HOST_PATHS derivation from configs', () => {
-  test('Codex uses literal home paths (no env vars)', () => {
-    expect(HOST_PATHS.codex.skillRoot).toBe('~/.codex/skills/cgstack');
-    expect(HOST_PATHS.codex.binDir).toBe('~/.codex/skills/cgstack/bin');
-    expect(HOST_PATHS.codex.browseDir).toBe('~/.codex/skills/cgstack/browse/dist');
-    expect(HOST_PATHS.codex.designDir).toBe('~/.codex/skills/cgstack/design/dist');
-  });
-
   test('Codex uses $CGSTACK_ROOT env vars', () => {
     expect(HOST_PATHS.codex.skillRoot).toBe('$CGSTACK_ROOT');
     expect(HOST_PATHS.codex.binDir).toBe('$CGSTACK_BIN');
     expect(HOST_PATHS.codex.browseDir).toBe('$CGSTACK_BROWSE');
     expect(HOST_PATHS.codex.designDir).toBe('$CGSTACK_DESIGN');
+    expect(HOST_PATHS.codex.makePdfDir).toBe('$CGSTACK_MAKE_PDF');
   });
 
   test('every host with usesEnvVars=true gets env var paths', () => {
@@ -414,7 +408,7 @@ describe('host config correctness', () => {
 
   test('codex has boundary instruction', () => {
     expect(codex.boundaryInstruction).toBeDefined();
-    expect(codex.boundaryInstruction).toContain('Do NOT read');
+    expect(codex.boundaryInstruction).toContain('Do NOT wander');
   });
 
   test('codex has no adapter (dead code removed)', () => {

@@ -424,7 +424,7 @@ apply to this ML classifier PR:
 - [ ] Implement `logAttempt()` with salted hashing
 - [ ] Implement `getStatus()` for shield icon
 - [ ] Integrate into server.ts `spawnCodex()`
-- [ ] Add canary checking to sidebar-agent.ts output stream
+- [ ] Add canary checking to Codex output streams where structured stream data is available
 - [ ] Add shield icon to sidepanel.js
 - [ ] Add blocking message UI to sidepanel.js
 - [ ] Add security state to /health endpoint

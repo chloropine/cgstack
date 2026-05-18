@@ -59,9 +59,7 @@ function externalSkillName(skillDir: string, frontmatterName?: string): string {
   if (skillDir === '.' || skillDir === '') return 'cgstack';
   // Use frontmatter name when it differs from directory name (e.g., run-tests/ with name: test)
   const baseName = frontmatterName && frontmatterName !== skillDir ? frontmatterName : skillDir;
-  // Don't double-prefix: cgstack-upgrade → cgstack-upgrade (not cgstack-cgstack-upgrade)
-  if (baseName.startsWith('cgstack-')) return baseName;
-  return `cgstack-${baseName}`;
+  return baseName;
 }
 
 function extractNameAndDescription(content: string): { name: string; description: string } {

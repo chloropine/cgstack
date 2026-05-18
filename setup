@@ -25,11 +25,20 @@ TEAM_MODE=0
 NO_TEAM_MODE=0
 HOST="codex"
 log() { [ "$QUIET" -eq 0 ] && echo "$@" || true; }
+PRINTED_WINDOWS_COPY_NOTE=0
+
+_print_windows_copy_note_once() {
+  if [ "$IS_WINDOWS" -eq 1 ] && [ "$PRINTED_WINDOWS_COPY_NOTE" -eq 0 ]; then
+    log "Windows install uses file copies because symlinks may require Developer Mode."
+    PRINTED_WINDOWS_COPY_NOTE=1
+  fi
+}
 
 _link_or_copy() {
   local src="$1"
   local dst="$2"
   if [ "$IS_WINDOWS" -eq 1 ]; then
+    _print_windows_copy_note_once
     rm -rf "$dst"
     [ -e "$src" ] || return 0
     if [ -d "$src" ]; then
@@ -125,6 +134,18 @@ if [ "$NEEDS_BUILD" -eq 1 ]; then
     bun install --frozen-lockfile 2>/dev/null || bun install
     bun run build
   )
+  # macOS Apple Silicon: ad-hoc codesign compiled Bun binaries so Gatekeeper
+  # does not quarantine freshly built local tools. Best effort only.
+  if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ]; then
+    for _bin in browse/dist/browse browse/dist/find-browse design/dist/design make-pdf/dist/pdf bin/cgstack-global-discover; do
+      _bin_path="$SOURCE_CGSTACK_DIR/$_bin"
+      [ -f "$_bin_path" ] && [ -x "$_bin_path" ] || continue
+      codesign --remove-signature "$_bin_path" 2>/dev/null || true
+      if ! codesign -s - -f "$_bin_path" >/dev/null 2>&1; then
+        echo "warning: codesign failed for $_bin_path" >&2
+      fi
+    done
+  fi
   if [ ! -f "$SOURCE_CGSTACK_DIR/browse/dist/.version" ]; then
     git -C "$SOURCE_CGSTACK_DIR" rev-parse HEAD > "$SOURCE_CGSTACK_DIR/browse/dist/.version" 2>/dev/null || true
   fi
@@ -167,6 +188,7 @@ create_codex_runtime_root() {
 
   mkdir -p "$codex_cgstack" "$codex_cgstack/browse" "$codex_cgstack/cgstack-upgrade" "$codex_cgstack/review"
   [ -f "$agents_dir/cgstack/SKILL.md" ] && _link_or_copy "$agents_dir/cgstack/SKILL.md" "$codex_cgstack/SKILL.md"
+  [ -d "$agents_dir/cgstack/agents" ] && mkdir -p "$codex_cgstack/agents" && _link_or_copy "$agents_dir/cgstack/agents/openai.yaml" "$codex_cgstack/agents/openai.yaml"
   [ -d "$cgstack_dir/bin" ] && _link_or_copy "$cgstack_dir/bin" "$codex_cgstack/bin"
   [ -d "$cgstack_dir/browse/dist" ] && _link_or_copy "$cgstack_dir/browse/dist" "$codex_cgstack/browse/dist"
   [ -d "$cgstack_dir/browse/bin" ] && _link_or_copy "$cgstack_dir/browse/bin" "$codex_cgstack/browse/bin"
@@ -184,17 +206,31 @@ link_codex_skill_dirs() {
   local skills_dir="$2"
   local agents_dir="$cgstack_dir/.agents/skills"
   local linked=()
+  [ "$IS_WINDOWS" -eq 1 ] && _print_windows_copy_note_once
 
   if [ ! -d "$agents_dir" ]; then
     echo "  warning: .agents/skills/ is missing; run 'bun run gen:skill-docs' manually" >&2
     return 1
   fi
 
-  for skill_dir in "$agents_dir"/cgstack*/; do
+  _cleanup_skill_entry() {
+    local entry="$1"
+    if [ -L "$entry" ]; then
+      rm -f "$entry"
+    elif [ -d "$entry" ] && [ -L "$entry/SKILL.md" ]; then
+      rm -rf "$entry"
+    fi
+  }
+
+  for skill_dir in "$agents_dir"/*/; do
     [ -f "$skill_dir/SKILL.md" ] || continue
     skill_name="$(basename "$skill_dir")"
     [ "$skill_name" = "cgstack" ] && continue
     target="$skills_dir/$skill_name"
+    case "$skill_name" in
+      cgstack-*) ;;
+      *) _cleanup_skill_entry "$skills_dir/cgstack-$skill_name" ;;
+    esac
     if [ -L "$target" ] || [ ! -e "$target" ]; then
       _link_or_copy "$skill_dir" "$target"
       linked+=("$skill_name")

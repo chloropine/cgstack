@@ -1320,11 +1320,11 @@ describe('Review skill', () => {
     Bun.spawnSync(['bun', 'run', 'scripts/gen-skill-docs.ts', '--host', 'codex'], {
       cwd: ROOT, stdout: 'pipe', stderr: 'pipe',
     });
-    const shipContent = fs.readFileSync(path.join(ROOT, '.agents', 'skills', 'cgstack-ship', 'SKILL.md'), 'utf-8');
+    const shipContent = fs.readFileSync(path.join(ROOT, '.agents', 'skills', 'ship', 'SKILL.md'), 'utf-8');
     expect(shipContent).not.toContain('codex review --base');
     expect(shipContent).not.toContain('CODEX_REVIEWS');
 
-    const reviewContent = fs.readFileSync(path.join(ROOT, '.agents', 'skills', 'cgstack-review', 'SKILL.md'), 'utf-8');
+    const reviewContent = fs.readFileSync(path.join(ROOT, '.agents', 'skills', 'review', 'SKILL.md'), 'utf-8');
     expect(reviewContent).not.toContain('codex review --base');
     expect(reviewContent).not.toContain('codex_reviews');
     expect(reviewContent).not.toContain('CODEX_REVIEWS');
@@ -1525,7 +1525,7 @@ describe('Generated Codex skill validation', () => {
       const sourceMd = path.join(ROOT, skillDir, 'SKILL.md');
       expect(fs.existsSync(sourceMd)).toBe(true);
 
-      const codexName = skillDir.startsWith('cgstack-') ? skillDir : `cgstack-${skillDir}`;
+      const codexName = skillDir;
       const generatedMd = path.join(AGENTS_DIR, codexName, 'SKILL.md');
       expect(fs.existsSync(generatedMd)).toBe(true);
     }
@@ -1534,16 +1534,15 @@ describe('Generated Codex skill validation', () => {
     expect(fs.existsSync(path.join(AGENTS_DIR, 'cgstack', 'SKILL.md'))).toBe(true);
   });
 
-  test('Codex skill names follow cgstack-{name} convention', () => {
+  test('Codex skill names follow flat default invocation convention', () => {
     const codexDirs = fs.readdirSync(AGENTS_DIR);
-    for (const dir of codexDirs) {
-      // Every directory should start with cgstack
-      expect(dir.startsWith('cgstack')).toBe(true);
-      // Root is just 'cgstack', others are 'cgstack-{name}'
-      if (dir !== 'cgstack') {
-        expect(dir.startsWith('cgstack-')).toBe(true);
-      }
-    }
+    expect(codexDirs).toContain('cgstack');
+    expect(codexDirs).toContain('qa');
+    expect(codexDirs).toContain('ship');
+    expect(codexDirs).toContain('review');
+    expect(codexDirs).not.toContain('cgstack-qa');
+    expect(codexDirs).not.toContain('cgstack-ship');
+    expect(codexDirs).not.toContain('cgstack-review');
   });
 
   test('$B commands in Codex SKILL.md files are valid browse commands', () => {
@@ -1696,9 +1695,6 @@ describe('no compiled binaries in git', () => {
   });
 });
 
-// `sidebar agent (#584)` describe block was here. sidebar-agent.ts and
-// the entire chat-queue path were ripped in favor of the interactive
-// codex PTY (terminal-agent.ts); these assertions had no target file.
 // Terminal-pane invariants are covered by browse/test/sidebar-tabs.test.ts
 // and browse/test/terminal-agent.test.ts.
 

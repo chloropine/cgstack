@@ -261,6 +261,9 @@ describe('schema regression', () => {
     expect(r.code).toBe(0);
     const keys = Object.keys(r.json).sort();
     expect(keys).toEqual([
+      'cgstack_artifacts_remote',
+      'cgstack_brain_git',
+      'cgstack_brain_sync_mode',
       'gbrain_config_exists',
       'gbrain_doctor_ok',
       'gbrain_engine',
@@ -268,9 +271,6 @@ describe('schema regression', () => {
       'gbrain_mcp_mode',
       'gbrain_on_path',
       'gbrain_version',
-      'cgstack_artifacts_remote',
-      'cgstack_brain_git',
-      'cgstack_brain_sync_mode',
     ]);
   });
 });

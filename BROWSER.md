@@ -50,8 +50,8 @@ $B connect                       # headed Chromium + Side Panel extension
 6. [Browser-skills runtime](#browser-skills-runtime)
 7. [Domain-skills (per-site agent notes)](#domain-skills)
 8. [Real-browser mode (`$B connect`)](#real-browser-mode) — including [`--headed` + `--proxy` + `--navigate` (v1.28.0.0)](#headed-mode--proxy--browser-native-downloads-v12800)
-9. [Side Panel + sidebar agent](#side-panel--sidebar-agent)
-10. [Pair-agent — remote agents over an ngrok tunnel](#pair-agent)
+9. [Side Panel + Terminal](#side-panel--terminal)
+10. [Pair-agent — paired Codex over an ngrok tunnel](#pair-agent)
 11. [Authentication + tokens](#authentication)
 12. [Prompt-injection security stack (L1–L6)](#security-stack)
 13. [Screenshots, PDFs, visual inspection](#screenshots-pdfs-visual)
@@ -91,9 +91,8 @@ Three escalating modes:
   as "CGStack Browser") with the Side Panel extension auto-loaded. You watch
   every command tick through in real time.
 - **Pair-agent over a tunnel**. Daemon binds a second listener that ngrok
-  forwards. A remote agent (Codex, Codex, Codex, anything that can speak
-  HTTP) drives your local browser through a 26-command allowlist with a
-  scoped, single-use token.
+  forwards. A paired Codex session drives your local browser through the
+  browser-command allowlist with a scoped, single-use token.
 
 ---
 
@@ -537,7 +536,7 @@ and bookmarks stays untouched.
 - **Design review** where you need to see exactly what Codex sees
 - **Debugging** where headless behavior differs from real Chrome
 - **Demos** where you're sharing your screen
-- **Pair-agent** sessions (the remote agent drives your local browser)
+- **Pair-agent** sessions (a paired Codex session drives your local browser)
 
 ### CDP-aware skills
 
@@ -604,7 +603,7 @@ transport retries that could corrupt browser traffic.
 
 ---
 
-## Side Panel + sidebar agent
+## Side Panel + Terminal
 
 The Chrome extension that ships baked into CGStack Browser shows a live
 activity feed of every browse command in a Side Panel, plus `@ref` overlays
@@ -612,7 +611,7 @@ on the page, plus an interactive Codex PTY inside the sidebar.
 
 ### The Terminal pane (the headline)
 
-The Side Panel's primary surface is the **Terminal pane** — a live `codex -p`
+The Side Panel's primary surface is the **Terminal pane** — a live `codex`
 PTY you can type into directly from the sidebar. Activity / Refs / Inspector
 are debug overlays behind the footer's `debug` toggle. WebSocket auth uses
 `Sec-WebSocket-Protocol` (browsers can't set `Authorization` on a WebSocket
@@ -621,8 +620,7 @@ via `POST /pty-session`.
 
 The toolbar's Cleanup button and the Inspector's "Send to Code" action both
 pipe text into the live Codex PTY via `window.cgstackInjectToTerminal(text)`,
-exposed by `sidepanel-terminal.js`. There's no separate `/sidebar-command`
-POST — the live REPL is the only execution surface.
+exposed by `sidepanel-terminal.js`. The live REPL is the only execution surface.
 
 ### Activity feed
 
@@ -681,8 +679,8 @@ by a 26-command allowlist, scoped tokens, and a denial log.
 
 ```bash
 /pair-agent                     # generates a setup key, prints connection instructions
-# Copy the instructions to the remote agent
-# Remote agent runs:
+# Copy the instructions to the paired Codex session
+# Paired Codex runs:
 #   POST <tunnel-url>/connect with setup key → gets a scoped token (24h, single client)
 #   POST <tunnel-url>/command with token → runs allowed commands
 ```
@@ -695,8 +693,8 @@ When `pair-agent` activates, the daemon binds **two HTTP listeners**:
   forwarded by ngrok. Used by your Codex, the Side Panel, anything
   on your machine.
 - **Tunnel listener** (`127.0.0.1:TUNNEL_PORT`). Locked allowlist —
-  `/connect`, `/command` (scoped tokens + 26-command browser-driving
-  allowlist), `/sidebar-chat`. ngrok forwards only this port.
+  `/connect`, `/command` (scoped tokens + browser-driving command
+  allowlist). ngrok forwards only this port.
 
 Root tokens sent over the tunnel return 403. SSE endpoints use a 30-minute
 HttpOnly `cgstack_sse` cookie (never valid against `/command`).
@@ -714,7 +712,7 @@ newtab, tabs, back, forward, reload, snapshot, fill, url, closetab
 
 Notably absent: `pair`, `unpair`, `cookies`, `setup`, `launch`, `restart`,
 `stop`, `tunnel-start`, `token-mint`, `state`, `connect`, `disconnect`. A
-remote agent that tries them gets a 403 plus a fresh entry in the denial log.
+paired Codex session that tries them gets a 403 plus a fresh entry in the denial log.
 
 ### Tunnel denial log
 
@@ -781,13 +779,13 @@ every user message and every tool output that could carry untrusted content
 
 | Layer | Module | Lives in |
 |-------|--------|----------|
-| **L1** Datamarking | `content-security.ts` | both server + sidebar agent |
-| **L2** Hidden-element strip | `content-security.ts` | both |
-| **L3** ARIA + URL blocklist + envelope wrapping | `content-security.ts` | both |
-| **L4** TestSavantAI ML classifier (22MB ONNX) | `security-classifier.ts` | sidebar-agent only* |
-| **L4b** Codex Mini transcript check | `security-classifier.ts` | sidebar-agent only |
-| **L5** Canary token (session-exfil detection) | `security.ts` | both — inject in compiled, check in agent |
-| **L6** `combineVerdict` ensemble | `security.ts` | both |
+| **L1** Datamarking | `content-security.ts` | browse daemon |
+| **L2** Hidden-element strip | `content-security.ts` | browse daemon |
+| **L3** ARIA + URL blocklist + envelope wrapping | `content-security.ts` | browse daemon |
+| **L4** TestSavantAI ML classifier (22MB ONNX) | `security-classifier.ts` | optional local classifier module |
+| **L4b** Codex Mini transcript check | `security-classifier.ts` | disabled in this Codex-only fork |
+| **L5** Canary token (session-exfil detection) | `security.ts` | pure-string helpers |
+| **L6** `combineVerdict` ensemble | `security.ts` | pure-string helpers |
 
 \* `security-classifier.ts` cannot be imported from the compiled browse
 binary — `@huggingface/transformers` v4 requires `onnxruntime-node` which
@@ -926,7 +924,7 @@ avoid leaking secrets or customer data.
 ## Batch endpoint
 
 `POST /batch` sends multiple commands in a single HTTP request. Eliminates
-per-command round-trip latency — critical for remote agents over ngrok where
+per-command round-trip latency — critical for paired Codex sessions over ngrok where
 each HTTP call costs 2-5s.
 
 ```json

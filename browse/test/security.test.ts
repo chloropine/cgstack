@@ -1,7 +1,7 @@
 /**
  * Unit tests for browse/src/security.ts — pure-string operations that must
- * behave deterministically in the compiled browse binary AND in the
- * sidebar-agent bun process. No ML, no network, no subprocess spawning.
+ * behave deterministically in the compiled browse binary. No ML, no network,
+ * no subprocess spawning.
  */
 
 import { describe, test, expect } from 'bun:test';

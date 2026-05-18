@@ -22,7 +22,7 @@ bun run skill:check      # skill health dashboard
 - Run `bun run gen:skill-docs` after template or resolver changes.
 - Runtime state lives in `~/.cgstack` unless `CGSTACK_HOME` is set.
 - Codex global skill runtime lives at `~/.codex/skills/cgstack`.
-- Repo-local generated skills live at `.agents/skills/cgstack-*`.
+- Repo-local generated skills live at `.agents/skills/<skill-name>`.
 - The browser binary provides Chromium access. Use `$B <command>` in skills.
 - Safety skills (`/careful`, `/freeze`, `/guard`) use advisory prose and explicit checks before risky operations.
 

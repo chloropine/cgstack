@@ -13,9 +13,8 @@
  * Design constraints:
  *   - host is ALWAYS derived from the active tab's top-level origin (T3
  *     confused-deputy fix). Never accepted as an arg.
- *   - Save-time security uses content-security.ts L1-L3 filters (importable
- *     from the compiled binary, unlike the L4 ML classifier). The full L4
- *     scan happens in sidebar-agent.ts when the skill is loaded into a prompt.
+ *   - Save-time security uses content-security.ts L1-L3 filters, which are
+ *     importable from the compiled binary.
  *   - Output is structured: every success/error includes problem + cause +
  *     suggested-action. Matches the cgstack house style.
  *
@@ -117,8 +116,7 @@ async function handleSave(args: string[], bm: BrowserManager): Promise<string> {
     );
   }
   // L1-L3 content filters (datamarking, hidden-element strip, ARIA regex,
-  // URL blocklist). The full L4 ML classifier runs at sidebar-agent prompt
-  // injection time, not here (AGENTS.md: classifier can't import in compiled binary).
+  // URL blocklist). Native ML classifiers stay out of the compiled binary.
   const filterResult = runContentFilters(body, page.url(), 'domain-skill-save');
   if (filterResult.blocked) {
     logTelemetry({ event: 'domain_skill_save_blocked', host, reason: filterResult.message });
@@ -129,8 +127,7 @@ async function handleSave(args: string[], bm: BrowserManager): Promise<string> {
     );
   }
   // L1-L3 score is binary (passed or not). For the L4 score field we leave 0
-  // (meaning "not yet scanned by ML classifier") — sidebar-agent fills this
-  // in on first prompt-injection load.
+  // because this Codex-only path does not load the optional native classifier.
   const slug = getCurrentProjectSlug();
   const row = await writeSkill({
     host,

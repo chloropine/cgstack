@@ -13,14 +13,11 @@ dlopens dependencies from a temp extract dir, and native .dylib loading
 fails from that dir (documented oven-sh/bun#3574, #18079 + verified in
 CEO plan §Pre-Impl Gate 1).
 
-Today's mitigation (branch-2 architecture): the ML classifier runs only
-in `sidebar-agent.ts` (non-compiled bun script) via
+Today the optional ML classifier stays outside the compiled daemon and uses
 `@huggingface/transformers`. Server.ts (compiled) has zero ML — relies on
 canary + architectural controls (XML framing + command allowlist).
 
-Problem with branch-2: the classifier can only scan what the sidebar-agent
-sees. Any content path that stays inside the compiled binary (direct user
-input on its way out, canary check only) misses the ML layer.
+Problem: content paths that stay inside the compiled binary miss the ML layer.
 
 A from-scratch Bun-native classifier — no native modules, no onnxruntime —
 would let the compiled binary run full ML defense everywhere.

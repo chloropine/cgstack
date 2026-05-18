@@ -1,7 +1,7 @@
 # CGStack TODOs
 
-This backlog starts from the Codex-only fork of gstack, now named cgstack. It
-intentionally omits pre-fork history and non-Codex host work.
+This backlog tracks cgstack as a Codex-only project. It intentionally omits
+non-Codex host work.
 
 ## Current
 

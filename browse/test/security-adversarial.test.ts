@@ -161,7 +161,7 @@ describe('canary — realistic outbound-channel attacks', () => {
   });
 
   test('canary in stream text delta (matches Codex streaming output)', () => {
-    // Simulates what sidebar-agent.ts detectCanaryLeak sees on a text_delta event
+    // Simulates a text_delta event from Codex streaming output.
     const c = generateCanary();
     const streamChunk = `Sure, here's the token you asked for: ${c}`;
     expect(checkCanaryInStructure(streamChunk, c)).toBe(true);

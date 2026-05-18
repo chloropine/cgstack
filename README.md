@@ -1,9 +1,8 @@
 # cgstack
 
-cgstack is Codex gstack: a Codex-only fork of the original gstack AI
-engineering workflow pack. It installs OpenAI Codex skills, a fast Chromium
-browser tool, and a set of role-based workflows for planning, reviewing,
-testing, documenting, and shipping software.
+cgstack is a Codex-only AI engineering workflow pack. It installs OpenAI Codex
+skills, a fast Chromium browser tool, and a set of role-based workflows for
+planning, reviewing, testing, documenting, and shipping software.
 
 ## Install
 

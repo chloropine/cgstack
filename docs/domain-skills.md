@@ -52,9 +52,9 @@ $B domain-skill rm linkedin.com
 ```
 
 A new save lands as **quarantined** and does NOT auto-fire in prompts. After 3
-uses on this host without the L4 ML classifier flagging the skill content, the
-skill auto-promotes to **active** in the project. Active skills fire on every
-new sidebar-agent session for that hostname.
+uses on this host without the security filters flagging the skill content, the
+skill auto-promotes to **active** in the project. Active skills are available
+to Codex when working on that hostname.
 
 To make a skill fire across projects (for example, "I want my LinkedIn skill
 on every cgstack project I work on"), explicitly run
@@ -84,14 +84,12 @@ addresses this with multiple layers:
 | Layer | What | Where |
 |-------|------|-------|
 | L1-L3 | Datamarking, hidden-element strip, ARIA regex, URL blocklist | `content-security.ts` (compiled binary) |
-| L4 | TestSavantAI ONNX classifier | `security-classifier.ts` (sidebar-agent, non-compiled) |
-| L4b | Codex Mini transcript classifier | `security-classifier.ts` (sidebar-agent) |
+| L4 | TestSavantAI ONNX classifier | `security-classifier.ts` (optional local classifier module) |
+| L4b | Codex Mini transcript classifier | disabled in this Codex-only fork |
 | L5 | Canary token leak detection | `security.ts` |
 
-L1-L3 checks run at **save time** (in the daemon). The L4 ML classifier runs at
-**load time** (in sidebar-agent), so each session that loads a skill into its
-prompt also re-validates the content. This catches issues that only manifest
-after a classifier model update.
+L1-L3 checks run at **save time** in the daemon. The optional L4 classifier is
+kept out of the compiled daemon because of native-module packaging constraints.
 
 The save command derives the hostname from the **active tab's top-level
 origin**, not from agent arguments. This closes a confused-deputy bug Codex

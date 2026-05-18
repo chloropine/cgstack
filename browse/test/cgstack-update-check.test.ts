@@ -20,6 +20,7 @@ function run(extraEnv: Record<string, string> = {}, args: string[] = []) {
   const result = Bun.spawnSync(['bash', SCRIPT, ...args], {
     env: {
       ...process.env,
+      CGSTACK_HOME: stateDir,
       CGSTACK_DIR: cgstackDir,
       CGSTACK_STATE_DIR: stateDir,
       CGSTACK_REMOTE_URL: `file://${join(cgstackDir, 'REMOTE_VERSION')}`,

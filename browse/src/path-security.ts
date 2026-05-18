@@ -7,7 +7,7 @@
  *
  *   validateOutputPath(path)   — for writing files (screenshot, pdf, download, scrape, archive)
  *   validateReadPath(path)     — for reading files (eval)
- *   validateTempPath(path)     — for serving files to remote agents (GET /file, TEMP_DIR only)
+ *   validateTempPath(path)     — for serving files to paired Codex sessions (GET /file, TEMP_DIR only)
  *
  * Security invariants:
  *   1. All paths resolved to absolute before checking

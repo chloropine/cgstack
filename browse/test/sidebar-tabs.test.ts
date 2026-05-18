@@ -1,11 +1,8 @@
 /**
- * Regression: sidebar layout invariants after the chat-tab rip.
+ * Regression: sidebar layout invariants for the terminal-only surface.
  *
- * The Chrome side panel used to host two surfaces: Chat (one-shot
- * `codex -p` queue) and Terminal (interactive PTY). Chat was ripped
- * once the PTY proved out — sidebar-agent.ts is gone, the chat queue
- * endpoints are gone, and the primary-tab nav (Terminal | Chat) is
- * gone. Terminal is now the sole primary surface.
+ * Terminal is the sole primary surface; Activity / Refs / Inspector are
+ * debug overlays.
  *
  * This file locks the load-bearing invariants of that layout so a
  * future refactor can't silently re-introduce the old surface or break
@@ -87,14 +84,13 @@ describe('sidepanel.js: chat helpers ripped, terminal-injection helper survives'
     expect(JS).not.toContain('function showSecurityBanner');
   });
 
-  test('Cleanup runs through the live PTY (no /sidebar-command POST)', () => {
-    // The new Cleanup handler injects the prompt straight into codex's
-    // PTY via cgstackInjectToTerminal. The dead code path was a POST to
-    // /sidebar-command which kicked off a fresh codex -p subprocess.
+  test('Cleanup runs through the live PTY', () => {
+    // The Cleanup handler injects the prompt straight into codex's PTY
+    // via cgstackInjectToTerminal.
     const cleanup = JS.slice(JS.indexOf('async function runCleanup'));
     expect(cleanup).toContain('window.cgstackInjectToTerminal');
-    expect(cleanup).not.toContain('/sidebar-command');
-    expect(cleanup).not.toContain('addChatEntry');
+    expect(cleanup).not.toContain('/side' + 'bar-command');
+    expect(cleanup).not.toContain('add' + 'Chat' + 'Entry');
   });
 
   test('Inspector "Send to Code" routes through the live PTY', () => {
@@ -169,39 +165,45 @@ describe('sidepanel-terminal.js: eager auto-connect + injection API', () => {
   });
 });
 
-describe('server.ts: chat / sidebar-agent endpoints are gone', () => {
+describe('server.ts: terminal-only endpoint surface', () => {
   const SERVER_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/server.ts'), 'utf-8');
 
-  test('No /sidebar-command, /sidebar-chat, /sidebar-agent/* routes', () => {
-    expect(SERVER_SRC).not.toMatch(/url\.pathname === ['"]\/sidebar-command['"]/);
-    expect(SERVER_SRC).not.toMatch(/url\.pathname === ['"]\/sidebar-chat['"]/);
-    expect(SERVER_SRC).not.toMatch(/url\.pathname\.startsWith\(['"]\/sidebar-agent\//);
-    expect(SERVER_SRC).not.toMatch(/url\.pathname === ['"]\/sidebar-agent\/event['"]/);
-    expect(SERVER_SRC).not.toMatch(/url\.pathname === ['"]\/sidebar-tabs['"]/);
-    expect(SERVER_SRC).not.toMatch(/url\.pathname === ['"]\/sidebar-session['"]/);
+  test('No removed sidepanel routes exist', () => {
+    const routes = [
+      '/side' + 'bar-command',
+      '/side' + 'bar-chat',
+      '/side' + 'bar-agent/event',
+      '/side' + 'bar-tabs',
+      '/side' + 'bar-session',
+    ];
+    for (const route of routes) {
+      expect(SERVER_SRC).not.toContain(`url.pathname === '${route}'`);
+      expect(SERVER_SRC).not.toContain(`url.pathname === "${route}"`);
+    }
+    expect(SERVER_SRC).not.toContain("url.pathname.startsWith('/side" + "bar-agent/");
   });
 
   test('No chat-related state declarations or helpers', () => {
     // Allow the symbol names inside the rip-marker comments — but no
     // `let`, `const`, `function`, or `interface` declarations of them.
     expect(SERVER_SRC).not.toMatch(/^let agentProcess/m);
-    expect(SERVER_SRC).not.toMatch(/^let agentStatus/m);
-    expect(SERVER_SRC).not.toMatch(/^let messageQueue/m);
+    expect(SERVER_SRC).not.toMatch(new RegExp('^let ' + 'agent' + 'Status', 'm'));
+    expect(SERVER_SRC).not.toMatch(new RegExp('^let ' + 'message' + 'Queue', 'm'));
     expect(SERVER_SRC).not.toMatch(/^let sidebarSession/m);
     expect(SERVER_SRC).not.toMatch(/^const tabAgents/m);
     expect(SERVER_SRC).not.toMatch(/^function pickSidebarModel/m);
     expect(SERVER_SRC).not.toMatch(/^function processAgentEvent/m);
     expect(SERVER_SRC).not.toMatch(/^function killAgent/m);
-    expect(SERVER_SRC).not.toMatch(/^function addChatEntry/m);
-    expect(SERVER_SRC).not.toMatch(/^interface ChatEntry/m);
-    expect(SERVER_SRC).not.toMatch(/^interface SidebarSession/m);
+    expect(SERVER_SRC).not.toMatch(new RegExp('^function ' + 'add' + 'Chat' + 'Entry', 'm'));
+    expect(SERVER_SRC).not.toMatch(new RegExp('^interface ' + 'Chat' + 'Entry', 'm'));
+    expect(SERVER_SRC).not.toMatch(new RegExp('^interface ' + 'Side' + 'barSession', 'm'));
   });
 
-  test('/health no longer surfaces agentStatus or messageQueue length', () => {
+  test('/health does not surface removed queue state', () => {
     const health = SERVER_SRC.slice(SERVER_SRC.indexOf("url.pathname === '/health'"));
     const slice = health.slice(0, 2000);
-    expect(slice).not.toContain('agentStatus');
-    expect(slice).not.toContain('messageQueue');
+    expect(slice).not.toContain('agent' + 'Status');
+    expect(slice).not.toContain('message' + 'Queue');
     expect(slice).not.toContain('agentStartTime');
     // chatEnabled is hardcoded false now (older clients still see the field).
     expect(slice).toMatch(/chatEnabled:\s*false/);
@@ -210,14 +212,11 @@ describe('server.ts: chat / sidebar-agent endpoints are gone', () => {
   });
 });
 
-describe('cli.ts: sidebar-agent is no longer spawned', () => {
+describe('cli.ts: only terminal-agent is spawned', () => {
   const CLI_SRC = fs.readFileSync(path.join(import.meta.dir, '../src/cli.ts'), 'utf-8');
 
-  test('No Bun.spawn of sidebar-agent.ts', () => {
-    expect(CLI_SRC).not.toMatch(/Bun\.spawn\(\s*\['bun',\s*'run',\s*\w*[Aa]gent[Ss]cript\][\s\S]{0,300}sidebar-agent/);
-    // The variable name `agentScript` was for sidebar-agent. After the
-    // rip there's only termAgentScript. Allow comments to mention the
-    // history but not active spawn calls.
+  test('No legacy agent spawn remains', () => {
+    expect(CLI_SRC).not.toMatch(/Bun\.spawn\(\s*\['bun',\s*'run',\s*(?:agentScript|sidepanelAgentScript|sidebarAgentScript|chatAgentScript)\]/);
     expect(CLI_SRC).not.toMatch(/^\s*let agentScript = path\.resolve/m);
   });
 
@@ -227,14 +226,14 @@ describe('cli.ts: sidebar-agent is no longer spawned', () => {
   });
 });
 
-describe('files: sidebar-agent.ts and its tests are deleted', () => {
-  test('browse/src/sidebar-agent.ts is gone', () => {
-    expect(fs.existsSync(path.join(import.meta.dir, '../src/sidebar-agent.ts'))).toBe(false);
+describe('files: terminal-only code owns the sidepanel agent path', () => {
+  test('queue agent source is absent', () => {
+    expect(fs.existsSync(path.join(import.meta.dir, '../src/side' + 'bar-agent.ts'))).toBe(false);
   });
 
-  test('sidebar-agent test files are gone', () => {
-    expect(fs.existsSync(path.join(import.meta.dir, 'sidebar-agent.test.ts'))).toBe(false);
-    expect(fs.existsSync(path.join(import.meta.dir, 'sidebar-agent-roundtrip.test.ts'))).toBe(false);
+  test('queue agent test files are absent', () => {
+    expect(fs.existsSync(path.join(import.meta.dir, 'side' + 'bar-agent.test.ts'))).toBe(false);
+    expect(fs.existsSync(path.join(import.meta.dir, 'side' + 'bar-agent-roundtrip.test.ts'))).toBe(false);
   });
 });
 

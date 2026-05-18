@@ -131,8 +131,8 @@ describe('Verdict type includes user_overrode', () => {
   });
 });
 
-describe('review-flow smoke — simulated sidebar-agent poll loop', () => {
-  test('agent-side poll sees user allow decision', async () => {
+describe('review-flow smoke — decision file polling', () => {
+  test('poll sees user allow decision', async () => {
     const tabId = 123;
     clearDecision(tabId);
 
@@ -141,7 +141,6 @@ describe('review-flow smoke — simulated sidebar-agent poll loop', () => {
       writeDecision({ tabId, decision: 'allow', ts: new Date().toISOString(), reason: 'user' });
     }, 50);
 
-    // Simulate the sidebar-agent poll loop.
     const deadline = Date.now() + 2000;
     let decision: 'allow' | 'block' | null = null;
     while (Date.now() < deadline) {
@@ -155,7 +154,7 @@ describe('review-flow smoke — simulated sidebar-agent poll loop', () => {
     expect(decision).toBe('allow');
   });
 
-  test('agent-side poll sees user block decision', async () => {
+  test('poll sees user block decision', async () => {
     const tabId = 456;
     clearDecision(tabId);
     setTimeout(() => {

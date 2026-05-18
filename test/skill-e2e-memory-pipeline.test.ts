@@ -49,18 +49,18 @@ function setupFixture(home: string): { cgstackHome: string; counts: Record<strin
   const codexProjectsDir = join(home, ".codex", "projects", "tmp-test-repo");
   mkdirSync(codexProjectsDir, { recursive: true });
   const ts = new Date().toISOString();
-  const codexSession =
+  const codexProjectSession =
     `{"type":"user","message":{"role":"user","content":"hello agent"},"timestamp":"${ts}","cwd":"/tmp/test-repo"}\n` +
     `{"type":"assistant","message":{"role":"assistant","content":"hi back"},"timestamp":"${ts}"}\n`;
-  writeFileSync(join(codexProjectsDir, "session-abc123.jsonl"), codexSession, "utf-8");
+  writeFileSync(join(codexProjectsDir, "session-abc123.jsonl"), codexProjectSession, "utf-8");
 
   // Codex session
   const today = new Date();
   const ymd = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}`;
   const codexDir = join(home, ".codex", "sessions", ...ymd.split("/"));
   mkdirSync(codexDir, { recursive: true });
-  const codexSession = `{"type":"session_meta","payload":{"id":"sess-xyz","cwd":"/tmp/test-repo"},"timestamp":"${ts}"}\n`;
-  writeFileSync(join(codexDir, "rollout-1.jsonl"), codexSession, "utf-8");
+  const codexRolloutSession = `{"type":"session_meta","payload":{"id":"sess-xyz","cwd":"/tmp/test-repo"},"timestamp":"${ts}"}\n`;
+  writeFileSync(join(codexDir, "rollout-1.jsonl"), codexRolloutSession, "utf-8");
 
   // cgstack artifacts
   writeFileSync(join(cgstackHome, "analytics", "eureka.jsonl"), '{"insight":"boil the lake"}\n', "utf-8");

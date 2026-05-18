@@ -12,10 +12,8 @@
  *      that match are excluded from the Windows-safe subset — they would fail
  *      on `windows-latest` no matter how the runner shards them.
  *
- * Adapted from upstream gstack's test-free-shards.ts (190 LOC). The
- * Windows-safe filter is original to cgstack — codex flagged that sharding
- * alone doesn't fix POSIX-bound tests, so we curate the subset that actually
- * runs on the windows-latest CI job.
+ * The Windows-safe filter curates the subset that actually runs on the
+ * windows-latest CI job; sharding alone does not fix POSIX-bound tests.
  *
  * Usage:
  *   bun run scripts/test-free-shards.ts --list                    # show all
@@ -84,13 +82,6 @@ const WINDOWS_FRAGILE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // BROWSE_HEADLESS_SKIP=1 to skip the browser launch but still need a working
   // server, which they don't get on Windows.
   { pattern: /BROWSE_HEADLESS_SKIP|spawn\(\[['"]bun['"],\s*['"]run['"]/, reason: 'spawns the browse server subprocess (Bun-driven path is Windows-broken)' },
-  // Tests that read browse/src/sidebar-agent.ts — deleted in v1.14.0.0
-  // sidebar refactor (replaced by sidepanel-terminal.js). 10 security tests
-  // still reference it and fail on import. They've been broken on every
-  // platform since v1.14, but Bun on macOS/Linux reports the failure as a
-  // module-load error (exit 0) while Bun on Windows treats it as a hard
-  // fail (exit 1). Tracked as a follow-up: update or delete these tests.
-  { pattern: /sidebar-agent\.ts/, reason: 'reads deleted browse/src/sidebar-agent.ts (pre-existing breakage from v1.14.0.0 sidebar refactor)' },
 ];
 
 // Explicit known-Windows-incompatible test files that don't fit a regex

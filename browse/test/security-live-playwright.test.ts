@@ -17,7 +17,7 @@
  * the deterministic signal must BOTH be present.
  *
  * ML portion is skipped gracefully if the model cache is absent (first-run
- * CI). To prime: `bun run browse/src/sidebar-agent.ts` for ~30s and kill it.
+ * CI). To prime, call the classifier warmup path once before running this file.
  */
 
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';

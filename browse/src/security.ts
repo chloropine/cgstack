@@ -5,8 +5,8 @@
  * Safe to import from the compiled `browse/dist/browse` binary because it
  * does not load onnxruntime-node or other native modules.
  *
- * ML classifier code lives in `security-classifier.ts`, which is only
- * imported from `sidebar-agent.ts` (runs as non-compiled bun script).
+ * ML classifier code lives in `security-classifier.ts` and stays out of the
+ * compiled browse binary because it depends on native ONNX runtime modules.
  *
  * Layering (see CEO plan 2026-04-19-prompt-injection-guard.md):
  *   L1-L3: content-security.ts (existing, datamarking / DOM strip / URL blocklist)
@@ -15,8 +15,8 @@
  *   L5:    Canary (this module — inject + check)
  *   L6:    Threshold aggregation (this module — combineVerdict)
  *
- * Cross-process state lives at ~/.cgstack/security/session-state.json
- * (per eng review finding 1.2 — server.ts and sidebar-agent.ts are different processes).
+ * Security state lives at ~/.cgstack/security/session-state.json so separate
+ * cgstack processes can observe one consistent view.
  */
 
 import { randomBytes, createHash } from 'crypto';
@@ -543,7 +543,7 @@ export interface SessionState {
 
 /**
  * Atomic write of session state (temp + rename pattern). Writes are safe
- * across the server.ts / sidebar-agent.ts process boundary.
+ * across cooperating cgstack processes.
  */
 export function writeSessionState(state: SessionState): void {
   try {
@@ -568,10 +568,9 @@ export function readSessionState(): SessionState | null {
 // ─── User-in-the-loop review on BLOCK ────────────────────────
 //
 // When a tool-output BLOCK fires, the user gets to see the suspected text
-// and decide. The sidepanel posts to /security-decision, server writes a
-// per-tab file under ~/.cgstack/security/decisions/, sidebar-agent polls
-// for it. File-based on purpose: sidebar-agent.ts is a separate subprocess
-// and this is the same pattern the existing per-tab cancel file uses.
+// and decide. The sidepanel posts to /security-decision, and the daemon writes
+// a per-tab file under ~/.cgstack/security/decisions/ for any cooperating
+// process that needs the decision.
 
 const DECISIONS_DIR = path.join(SECURITY_DIR, 'decisions');
 

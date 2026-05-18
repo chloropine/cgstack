@@ -245,7 +245,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
 
   // Codex E2E (tests skills via Codex CLI + worktree)
   'codex-discover-skill':  ['.agents/skills/**', 'test/helpers/codex-session-runner.ts', 'lib/worktree.ts'],
-  'codex-review-findings': ['review/**', '.agents/skills/cgstack-review/**', 'test/helpers/codex-session-runner.ts', 'lib/worktree.ts'],
+  'codex-review-findings': ['review/**', '.agents/skills/review/**', 'test/helpers/codex-session-runner.ts', 'lib/worktree.ts'],
 
   // Codex E2E — smoke test only (Codex gets lost in worktrees on complex tasks)
   'codex-smoke':  ['.agents/skills/**', 'test/helpers/codex-session-runner.ts', 'lib/worktree.ts'],
@@ -286,11 +286,6 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'canary-workflow':               ['canary/**', 'browse/src/**'],
   'benchmark-workflow':            ['benchmark/**', 'browse/src/**'],
   'setup-deploy-workflow':         ['setup-deploy/**', 'scripts/gen-skill-docs.ts'],
-
-  // Sidebar agent
-  'sidebar-navigate':              ['browse/src/server.ts', 'browse/src/sidebar-agent.ts', 'browse/src/sidebar-utils.ts', 'extension/**'],
-  'sidebar-url-accuracy':          ['browse/src/server.ts', 'browse/src/sidebar-agent.ts', 'browse/src/sidebar-utils.ts', 'extension/background.js'],
-  'sidebar-css-interaction':       ['browse/src/server.ts', 'browse/src/sidebar-agent.ts', 'browse/src/write-commands.ts', 'browse/src/read-commands.ts', 'browse/src/cdp-inspector.ts', 'extension/**'],
 
   // Autoplan
   'autoplan-core':  ['autoplan/**', 'plan-ceo-review/**', 'plan-eng-review/**', 'plan-design-review/**'],
@@ -587,11 +582,6 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'canary-workflow': 'gate',
   'benchmark-workflow': 'gate',
   'setup-deploy-workflow': 'gate',
-
-  // Sidebar agent
-  'sidebar-navigate': 'periodic',
-  'sidebar-url-accuracy': 'periodic',
-  'sidebar-css-interaction': 'periodic',
 
   // Autoplan — periodic (not yet implemented)
   'autoplan-core': 'periodic',
