@@ -1,8 +1,25 @@
 # cgstack
 
+Use Codex as a full engineering staff: CEO, Designer, Eng Manager, QA, Release
+Manager, and Doc Engineer.
+
 cgstack is a Codex-only AI engineering workflow pack. It installs OpenAI Codex
-skills, a fast Chromium browser tool, and a set of role-based workflows for
-planning, reviewing, testing, documenting, and shipping software.
+skills, a fast Chromium browser tool, and role-based workflows for planning,
+reviewing, testing, documenting, and shipping software.
+
+## About This Fork
+
+cgstack is a fork and Codex port of Garry Tan's original
+[gstack](https://github.com/garrytan/gstack) project.
+
+The original gstack was built around Claude Code. cgstack keeps the opinionated
+engineering workflow idea, but ports the repository to OpenAI Codex and removes
+legacy Claude Code and multi-agent host support. In this fork, Codex is the only
+supported runtime.
+
+The port includes Codex skill generation, `~/.codex/skills/` installation,
+`AGENTS.md` project guidance, Codex CLI invocation paths, and a Codex-focused
+browser/terminal integration.
 
 ## Install
 
