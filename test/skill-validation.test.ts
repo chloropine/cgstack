@@ -577,6 +577,8 @@ describe('v0.4.1 preamble features', () => {
       expect(content).toContain('Net:');
       expect(content).toContain('ELI10');
       expect(content).toContain('Stakes if we pick wrong:');
+      expect(content).toContain('use prose fallback + hard stop');
+      expect(content).not.toContain('BLOCKED — AskUserQuestion unavailable');
       // Concrete format markers must be documented in the resolver text
       expect(content).toMatch(/✅/);
       expect(content).toMatch(/❌/);

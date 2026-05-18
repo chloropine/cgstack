@@ -7,13 +7,16 @@ export function generateAskUserFormat(_ctx: TemplateContext): string {
 
 "AskUserQuestion" can resolve to two tools at runtime: the **host MCP variant** (e.g. \`mcp__conductor__AskUserQuestion\` — appears in your tool list when the host registers it) or the **native** Codex tool.
 
-**Rule:** if any \`mcp__*__AskUserQuestion\` variant is in your tool list, prefer it. Hosts may disable native AUQ via \`--disallowedTools AskUserQuestion\` (Conductor does, by default) and route through their MCP variant; calling native there silently fails. Same questions/options shape; same decision-brief format applies.
+**Tool selection order:**
+1. If any \`mcp__*__AskUserQuestion\` variant is in your tool list, use that. Hosts may disable native AUQ via \`--disallowedTools AskUserQuestion\` (Conductor does, by default) and route through their MCP variant; calling native there silently fails.
+2. Else if native \`AskUserQuestion\` is in your tool list, use native \`AskUserQuestion\`.
+3. Else use prose fallback + hard stop: write the exact decision brief as normal chat prose, then stop and wait for the user. Do not write decisions to the plan file as a substitute, do not continue the workflow, and do not silently auto-decide (only \`$plan-tune\` AUTO_DECIDE opt-ins authorize auto-picking).
 
-**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report \`BLOCKED — AskUserQuestion unavailable\`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only \`$plan-tune\` AUTO_DECIDE opt-ins authorize auto-picking).
+Same questions/options shape; same decision-brief format applies in every path.
 
 ### Format
 
-Every AskUserQuestion is a decision brief and must be sent as tool_use, not prose.
+Every AskUserQuestion is a decision brief and must be sent as tool_use when an AskUserQuestion variant is available. If no variant is available, emit the same decision brief as prose and hard-stop.
 
 \`\`\`
 D<N> — <one-line question title>
@@ -77,7 +80,7 @@ Before calling AskUserQuestion, verify:
 - [ ] (recommended) label on one option (even for neutral-posture)
 - [ ] Dual-scale effort labels on effort-bearing options (human / CC)
 - [ ] Net line closes the decision
-- [ ] You are calling the tool, not writing prose
+- [ ] You are calling the tool, unless no AskUserQuestion variant is available
 - [ ] Non-ASCII characters (CJK / accents) written directly, NOT \\u-escaped
 `;
 }

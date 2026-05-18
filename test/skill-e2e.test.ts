@@ -160,8 +160,10 @@ function dumpOutcomeDiagnostic(dir: string, label: string, report: string, judge
 
 // Fail fast if OpenAI API is unreachable — don't burn through 13 tests getting ConnectionRefused
 if (evalsEnabled) {
-  const check = spawnSync('sh', ['-c', 'echo "ping" | codex -p --max-turns 1 --output-format stream-json --verbose --dangerously-skip-permissions'], {
-    stdio: 'pipe', timeout: 30_000,
+  const check = spawnSync('codex', ['exec', '-', '--json', '--skip-git-repo-check', '-s', 'read-only'], {
+    input: 'ping',
+    stdio: 'pipe',
+    timeout: 30_000,
   });
   const output = check.stdout?.toString() || '';
   if (output.includes('ConnectionRefused') || output.includes('Unable to connect')) {

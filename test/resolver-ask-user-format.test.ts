@@ -99,6 +99,8 @@ describe('generateAskUserFormat — v1.7.0.0 Pros/Cons format', () => {
 
   test('documents tool_use mandate (rule 11)', () => {
     expect(out).toMatch(/tool_use/);
+    expect(out).toMatch(/mcp__\*__AskUserQuestion[\s\S]*native `AskUserQuestion`[\s\S]*prose fallback \+ hard stop/);
+    expect(out).toMatch(/prose fallback \+ hard stop|prose and hard-stop/i);
     // "not a question" spans a newline in the rendered text
     expect(out).toMatch(/not a[\s\S]*question|not[\s\S]*interactive/i);
   });

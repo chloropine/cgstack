@@ -1,9 +1,9 @@
 /**
  * Codex CLI subprocess runner for skill E2E testing.
  *
- * Spawns `codex -p` as a completely independent process (not via Agent SDK),
+ * Spawns `codex exec` as a completely independent process (not via Agent SDK),
  * so it works inside Codex sessions. Pipes prompt via stdin, streams
- * NDJSON output for real-time progress, scans for browse errors.
+ * JSONL output for real-time progress, scans for browse errors.
  */
 
 import * as fs from 'fs';
@@ -67,6 +67,8 @@ export interface ParsedNDJSON {
   turnCount: number;
   toolCallCount: number;
   toolCalls: Array<{ tool: string; input: any; output: string }>;
+  output: string;
+  usage: { inputTokens: number; outputTokens: number; cachedInputTokens: number };
 }
 
 /**
@@ -80,6 +82,8 @@ export function parseNDJSON(lines: string[]): ParsedNDJSON {
   let turnCount = 0;
   let toolCallCount = 0;
   const toolCalls: ParsedNDJSON['toolCalls'] = [];
+  const outputParts: string[] = [];
+  const usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
 
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -87,7 +91,7 @@ export function parseNDJSON(lines: string[]): ParsedNDJSON {
       const event = JSON.parse(line);
       transcript.push(event);
 
-      // Track turns and tool calls from assistant events
+      // Legacy `codex -p --output-format stream-json` events.
       if (event.type === 'assistant') {
         turnCount++;
         const content = event.message?.content || [];
@@ -104,10 +108,40 @@ export function parseNDJSON(lines: string[]): ParsedNDJSON {
       }
 
       if (event.type === 'result') resultLine = event;
+
+      // Current `codex exec --json` events.
+      if (event.type === 'item.completed' && event.item) {
+        const item = event.item;
+        if (item.type === 'agent_message' && typeof item.text === 'string') {
+          outputParts.push(item.text);
+        } else if (item.type === 'command_execution') {
+          toolCallCount++;
+          toolCalls.push({
+            tool: 'Bash',
+            input: { command: item.command || '' },
+            output: item.aggregated_output || '',
+          });
+        } else if (item.type) {
+          toolCallCount++;
+          toolCalls.push({
+            tool: String(item.type),
+            input: item.input || item,
+            output: item.output || '',
+          });
+        }
+      } else if (event.type === 'turn.started') {
+        turnCount++;
+      } else if (event.type === 'turn.completed') {
+        resultLine = event;
+        const u = event.usage || {};
+        usage.inputTokens += u.input_tokens || 0;
+        usage.outputTokens += u.output_tokens || 0;
+        usage.cachedInputTokens += u.cached_input_tokens || u.cache_read_input_tokens || 0;
+      }
     } catch { /* skip malformed lines */ }
   }
 
-  return { transcript, resultLine, turnCount, toolCallCount, toolCalls };
+  return { transcript, resultLine, turnCount, toolCallCount, toolCalls, output: outputParts.join('\n'), usage };
 }
 
 function truncate(s: string, max: number): string {
@@ -126,7 +160,7 @@ export async function runSkillTest(options: {
   runId?: string;
   /** Model to use. Defaults to gpt-5.4 (overridable via EVALS_MODEL env). */
   model?: string;
-  /** Extra env vars merged into the spawned codex -p process. Useful for
+  /** Extra env vars merged into the spawned codex exec process. Useful for
    *  per-test CGSTACK_HOME overrides so the test doesn't have to spell out
    *  env setup in the prompt itself. */
   env?: Record<string, string>;
@@ -156,30 +190,28 @@ export async function runSkillTest(options: {
     } catch { /* non-fatal */ }
   }
 
-  // Spawn codex -p with streaming NDJSON output. Prompt piped via stdin to
-  // avoid shell escaping issues. --verbose is required for stream-json mode.
+  // Spawn codex exec with streaming JSONL output. Prompt is piped via stdin
+  // to avoid shell escaping issues.
   const args = [
-    '-p',
+    'exec',
+    '-',
     '--model', model,
-    '--output-format', 'stream-json',
-    '--verbose',
-    '--dangerously-skip-permissions',
-    '--max-turns', String(maxTurns),
-    '--allowed-tools', ...allowedTools,
+    '--json',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
   ];
+  void maxTurns;
+  void allowedTools;
 
-  // Write prompt to a temp file OUTSIDE workingDirectory to avoid race conditions
-  // where afterAll cleanup deletes the dir before cat reads the file (especially
-  // with --concurrent --retry). Using os.tmpdir() + unique suffix keeps it stable.
-  const promptFile = path.join(os.tmpdir(), `.prompt-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-  fs.writeFileSync(promptFile, prompt);
-
-  const proc = Bun.spawn(['sh', '-c', `cat "${promptFile}" | codex ${args.map(a => `"${a}"`).join(' ')}`], {
+  const proc = Bun.spawn(['codex', ...args], {
     cwd: workingDirectory,
     env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
+    stdin: 'pipe',
     stdout: 'pipe',
     stderr: 'pipe',
   });
+  proc.stdin?.write(prompt);
+  proc.stdin?.end();
 
   // Race against timeout
   let stderr = '';
@@ -261,6 +293,25 @@ export async function runSkillTest(options: {
                 }
               }
             }
+          } else if (event.type === 'turn.started') {
+            liveTurnCount++;
+            if (firstResponseMs === 0) firstResponseMs = Date.now() - startTime;
+          } else if (event.type === 'item.completed' && event.item?.type === 'command_execution') {
+            liveToolCount++;
+            const now = Date.now();
+            const elapsed = Math.round((now - startTime) / 1000);
+            if (firstResponseMs === 0) firstResponseMs = now - startTime;
+            if (lastToolTime > 0) {
+              const interTurn = now - lastToolTime;
+              if (interTurn > maxInterTurnMs) maxInterTurnMs = interTurn;
+            }
+            lastToolTime = now;
+            const progressLine = `  [${elapsed}s] turn ${liveTurnCount} tool #${liveToolCount}: Bash(${truncate(event.item.command || '', 80)})\n`;
+            process.stderr.write(progressLine);
+
+            if (runDir) {
+              try { fs.appendFileSync(path.join(runDir, 'progress.log'), progressLine); } catch { /* non-fatal */ }
+            }
           }
         } catch { /* skip — parseNDJSON will handle it later */ }
 
@@ -280,8 +331,6 @@ export async function runSkillTest(options: {
   stderr = await stderrPromise;
   const exitCode = await proc.exited;
   clearTimeout(timeoutId);
-
-  try { fs.unlinkSync(promptFile); } catch { /* non-fatal */ }
 
   if (timedOut) {
     exitReason = 'timeout';
@@ -308,7 +357,7 @@ export async function runSkillTest(options: {
   }
 
   // Use resultLine for structured result data
-  if (resultLine) {
+  if (resultLine?.type === 'result') {
     if (resultLine.subtype === 'success' && resultLine.is_error) {
       // codex -p can return subtype=success with is_error=true (e.g. API connection failure)
       exitReason = 'error_api';
@@ -346,13 +395,14 @@ export async function runSkillTest(options: {
   }
 
   // Cost from result line (exact) or estimate from chars
-  const turnsUsed = resultLine?.num_turns || 0;
+  const turnsUsed = resultLine?.num_turns || parsed.turnCount || 0;
   const estimatedCost = resultLine?.total_cost_usd || 0;
   const inputChars = prompt.length;
-  const outputChars = (resultLine?.result || '').length;
-  const estimatedTokens = (resultLine?.usage?.input_tokens || 0)
-    + (resultLine?.usage?.output_tokens || 0)
-    + (resultLine?.usage?.cache_read_input_tokens || 0);
+  const output = resultLine?.result || parsed.output || '';
+  const outputChars = output.length;
+  const estimatedTokens = (resultLine?.usage?.input_tokens || parsed.usage.inputTokens || 0)
+    + (resultLine?.usage?.output_tokens || parsed.usage.outputTokens || 0)
+    + (resultLine?.usage?.cache_read_input_tokens || parsed.usage.cachedInputTokens || 0);
 
   const costEstimate: CostEstimate = {
     inputChars,
@@ -362,5 +412,5 @@ export async function runSkillTest(options: {
     turnsUsed,
   };
 
-  return { toolCalls, browseErrors, exitReason, duration, output: resultLine?.result || '', costEstimate, transcript, model, firstResponseMs, maxInterTurnMs };
+  return { toolCalls, browseErrors, exitReason, duration, output, costEstimate, transcript, model, firstResponseMs, maxInterTurnMs };
 }

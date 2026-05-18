@@ -39,6 +39,10 @@ export function resolveCodexBinary(): string | null {
   return null;
 }
 
+function shellQuote(arg: string): string {
+  return `'${arg.replace(/'/g, `'\\''`)}'`;
+}
+
 export interface CodexPtyOptions {
   permissionMode?: 'plan' | 'default' | 'acceptEdits' | 'bypassPermissions' | 'auto' | 'dontAsk' | null;
   extraArgs?: string[];
@@ -73,18 +77,54 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
 
   const args = [...(opts.extraArgs || [])];
   if (opts.permissionMode === 'plan') args.unshift('--ask-for-approval', 'on-request');
-
-  const proc = Bun.spawn([codex, ...args], {
-    cwd: opts.cwd || process.cwd(),
-    env: { ...process.env, ...(opts.env || {}) },
-    stdin: 'pipe',
-    stdout: 'pipe',
-    stderr: 'pipe',
-  });
+  if (!args.includes('--no-alt-screen')) args.push('--no-alt-screen');
 
   let raw = '';
   let code: number | null = null;
   const decoder = new TextDecoder();
+
+  // Interactive Codex requires a TTY. Bun.spawn({ stdin: 'pipe' }) is enough
+  // for `codex exec`, but the TUI exits with "stdin is not a terminal".
+  // Prefer Bun's native PTY support; fall back to util-linux `script` on
+  // runtimes that do not expose it.
+  let proc: any;
+  let terminal: any = null;
+  try {
+    proc = (Bun as any).spawn([codex, ...args], {
+      cwd: opts.cwd || process.cwd(),
+      env: { ...process.env, TERM: 'xterm-256color', ...(opts.env || {}) },
+      terminal: {
+        rows: opts.rows ?? 40,
+        cols: opts.cols ?? 120,
+        data(_terminal: any, chunk: Buffer) {
+          raw += decoder.decode(chunk, { stream: true });
+        },
+      },
+    });
+    terminal = proc.terminal;
+  } catch {
+    const script = process.platform === 'win32'
+      ? null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      : ((Bun as any).which?.('script') as string | undefined | null);
+    const spawnArgs = script
+      ? [
+          script,
+          '-qfec',
+          `stty cols ${opts.cols ?? 120} rows ${opts.rows ?? 40}; exec ${[codex, ...args].map(shellQuote).join(' ')}`,
+          '/dev/null',
+        ]
+      : [codex, ...args];
+
+    proc = Bun.spawn(spawnArgs, {
+      cwd: opts.cwd || process.cwd(),
+      env: { ...process.env, ...(opts.env || {}) },
+      stdin: 'pipe',
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+  }
+
   const collect = async (stream: ReadableStream<Uint8Array> | null) => {
     if (!stream) return;
     const reader = stream.getReader();
@@ -102,10 +142,13 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
   collect(proc.stderr);
   proc.exited.then((exitCode) => { code = exitCode; }).catch(() => { code = -1; });
 
-  const write = proc.stdin?.getWriter();
+  const stdin = proc.stdin;
   const session: CodexPtySession = {
     send(data: string) {
-      write?.write(new TextEncoder().encode(data)).catch(() => {});
+      try {
+        if (typeof terminal?.write === 'function') terminal.write(Buffer.from(data));
+        else if (typeof stdin?.write === 'function') stdin.write(data.replace(/\r/g, '\n'));
+      } catch {}
     },
     sendKey(key) {
       const map: Record<typeof key, string> = {
@@ -144,7 +187,10 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
     exited: () => code !== null,
     exitCode: () => code,
     async close() {
-      try { write?.close().catch(() => {}); } catch {}
+      try {
+        if (typeof terminal?.close === 'function') terminal.close();
+        else if (typeof stdin?.end === 'function') stdin.end();
+      } catch {}
       try { proc.kill(); } catch {}
       await proc.exited.catch(() => {});
     },
@@ -233,14 +279,29 @@ export interface PlanSkillObservation {
 export async function runPlanSkillObservation(opts: {
   skillName: string;
   inPlanMode?: boolean;
+  extraArgs?: string[];
   timeoutMs?: number;
   cwd?: string;
   env?: Record<string, string>;
 }): Promise<PlanSkillObservation> {
   const start = Date.now();
-  const session = await launchCodexPty({ cwd: opts.cwd, env: opts.env, timeoutMs: opts.timeoutMs });
+  const extraArgs = [...(opts.extraArgs || [])];
+  for (let i = 0; i < extraArgs.length; i++) {
+    if (extraArgs[i] === '--disallowedTools') {
+      extraArgs.splice(i, 2);
+      i--;
+    }
+  }
+  const session = await launchCodexPty({
+    cwd: opts.cwd,
+    env: opts.env,
+    timeoutMs: opts.timeoutMs,
+    permissionMode: opts.inPlanMode ? 'plan' : undefined,
+    extraArgs,
+  });
   try {
-    session.send(`/${opts.skillName}\n`);
+    await Bun.sleep(8000);
+    session.send(`$${opts.skillName}\r`);
     const hit = await session.waitForAny([/❯\s*1\./, /ready to execute/i, /completed|done/i], {
       timeoutMs: opts.timeoutMs ?? 120_000,
     });

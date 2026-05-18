@@ -30,6 +30,9 @@ import { THRESHOLDS, type LayerSignal } from './security';
 
 // ─── Model location + packaging ──────────────────────────────
 
+// Legacy name retained for bench fixture schema compatibility.
+export const HAIKU_MODEL = 'gpt-5.4-mini';
+
 /**
  * TestSavantAI prompt-injection-defender-small-v0-onnx.
  *
