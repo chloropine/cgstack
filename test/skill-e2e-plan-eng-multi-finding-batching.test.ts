@@ -1,5 +1,5 @@
 /**
- * /plan-eng-review multi-finding batching regression (periodic, paid, real-PTY).
+ * $plan-eng-review multi-finding batching regression (periodic, paid, real-PTY).
  *
  * Catches the specific shape of the May 2026 transcript bug that the
  * single-finding gate-tier floor test cannot detect: a model that fires
@@ -40,7 +40,7 @@ const FLOOR = N - 1; // 3 — agent must fire at least one AUQ per non-batched f
 
 const PLAN_PATH = '/tmp/cgstack-test-plan-eng-batching.md';
 
-describeE2E('/plan-eng-review multi-finding batching regression (periodic)', () => {
+describeE2E('$plan-eng-review multi-finding batching regression (periodic)', () => {
   test(
     `4-finding plan emits >= ${FLOOR} review-phase AskUserQuestions (no batching)`,
     async () => {
@@ -52,7 +52,7 @@ describeE2E('/plan-eng-review multi-finding batching regression (periodic)', () 
 
       const obs = await runPlanSkillCounting({
         skillName: 'plan-eng-review',
-        slashCommand: '/plan-eng-review',
+        slashCommand: '$plan-eng-review',
         followUpPrompt: FORCING_BATCHING_ENG,
         isLastStep0AUQ: engStep0Boundary,
         reviewCountCeiling: N + 3, // hard cap above floor + tolerance

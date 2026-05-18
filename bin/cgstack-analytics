@@ -183,7 +183,7 @@ echo "$SKILL_COUNTS" | while read -r COUNT SKILL; do
     AVG_DISPLAY="${AVG_DUR}s"
   fi
 
-  printf "  /%-20s %s  %d runs  (avg %s)\n" "$SKILL" "$BAR" "$COUNT" "$AVG_DISPLAY"
+  printf "  \$%-20s %s  %d runs  (avg %s)\n" "$SKILL" "$BAR" "$COUNT" "$AVG_DISPLAY"
 done
 
 echo ""

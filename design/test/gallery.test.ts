@@ -33,7 +33,7 @@ describe('Gallery generation', () => {
 
     const html = generateGalleryHtml(emptyDir);
     expect(html).toContain('No design history yet');
-    expect(html).toContain('/design-shotgun');
+    expect(html).toContain('$design-shotgun');
   });
 
   test('nonexistent directory returns "No history" page', () => {

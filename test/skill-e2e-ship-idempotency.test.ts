@@ -1,7 +1,7 @@
 /**
- * /ship idempotency E2E (periodic, paid, real-PTY).
+ * $ship idempotency E2E (periodic, paid, real-PTY).
  *
- * Asserts: when /ship runs against a branch that has ALREADY been bumped
+ * Asserts: when $ship runs against a branch that has ALREADY been bumped
  * (VERSION ahead of base AND package.json synced AND a CHANGELOG entry
  * exists for the bumped version), the workflow:
  *
@@ -13,11 +13,11 @@
  *
  * Why real-PTY: the existing ship-idempotency test in skill-e2e.test.ts
  * uses the SDK harness with a synthetic prompt asking the agent to "run
- * ONLY the idempotency checks." This test exercises the actual /ship
+ * ONLY the idempotency checks." This test exercises the actual $ship
  * skill end-to-end against a real git fixture so a regression that
  * silently re-bumps despite the check passing would be caught.
  *
- * Plan-mode framing: we run /ship in plan mode so the agent cannot push,
+ * Plan-mode framing: we run $ship in plan mode so the agent cannot push,
  * commit, or open PRs. The Step 12 idempotency check is read-only
  * (reads VERSION + package.json + git rev-parse) and runs fine in plan
  * mode. The plan-ready output serves as the terminal signal — the agent
@@ -58,7 +58,7 @@ interface ShipFixture {
  *     CHANGELOG has [0.0.2] entry on top of [0.0.1], one feature commit
  *   - bareRemote is the origin; both branches are pushed
  *
- * Returns the work-tree dir for /ship to operate on.
+ * Returns the work-tree dir for $ship to operate on.
  */
 function buildShippedFixture(): ShipFixture {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-ship-fixture-'));
@@ -148,9 +148,9 @@ function snapshotFixture(workTree: string): FixtureSnapshot {
   return { versionFile, packageVersion: pkg.version, changelogEntryCount, bumpCommitCount, branchHead };
 }
 
-describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
+describeE2E('$ship idempotency E2E (periodic, real-PTY)', () => {
   test(
-    'rerunning /ship on an already-shipped branch detects ALREADY_BUMPED and does not mutate fixture',
+    'rerunning $ship on an already-shipped branch detects ALREADY_BUMPED and does not mutate fixture',
     async () => {
       const fixture = buildShippedFixture();
       const before = snapshotFixture(fixture.workTree);
@@ -169,7 +169,7 @@ describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
       try {
         await Bun.sleep(8000);
         const since = session.mark();
-        session.send('/ship\r');
+        session.send('$ship\r');
 
         const budgetMs = 600_000;
         const start = Date.now();
@@ -243,7 +243,7 @@ describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
       try {
         if (outcome === 'attempted_mutation') {
           throw new Error(
-            `/ship attempted to mutate already-shipped state.\n` +
+            `$ship attempted to mutate already-shipped state.\n` +
               `--- evidence (last 3KB) ---\n${evidence}\n` +
               `--- before ---\n${JSON.stringify(before, null, 2)}\n` +
               `--- after  ---\n${JSON.stringify(after, null, 2)}`,

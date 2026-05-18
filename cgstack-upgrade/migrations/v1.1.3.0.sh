@@ -3,7 +3,7 @@
 #
 # Codex ships /checkpoint as a native alias for /rewind, which was
 # shadowing the cgstack checkpoint skill. The skill has been split into
-# /context-save + /context-restore. This migration removes the old on-disk
+# $context-save + $context-restore. This migration removes the old on-disk
 # install so Codex's native /checkpoint is no longer shadowed.
 #
 # Ownership guard: the script only removes the install IF it owns it —
@@ -131,7 +131,7 @@ elif [ -d "$OLD_NAMESPACED" ]; then
 fi
 
 if [ "$removed_any" = "1" ]; then
-  echo "  [v1.1.3.0] /checkpoint is now Codex's native /rewind alias. Use /context-save to save state and /context-restore to resume."
+  echo "  [v1.1.3.0] /checkpoint is now Codex's native /rewind alias. Use \$context-save to save state and \$context-restore to resume."
 fi
 
 exit 0

@@ -14,7 +14,7 @@ This plan exists because of **[Louise de Sadeleer](https://x.com/LouiseDSadeleer
 Louise's fatigue reading cgstack review output came from two sources:
 
 1. **Jargon density** — technical terms appeared without explanation. *Addressed in V1 (ELI10 writing).*
-2. **Interruption volume** — `/autoplan` ran 4 phases (CEO + Design + Eng + DX), each with 5–10 AskUserQuestion prompts. Total ≈ 30–50 prompts over ~45 minutes. Non-technical users check out at ~10–15 interruptions. **This is V1.1.**
+2. **Interruption volume** — `$autoplan` ran 4 phases (CEO + Design + Eng + DX), each with 5–10 AskUserQuestion prompts. Total ≈ 30–50 prompts over ~45 minutes. Non-technical users check out at ~10–15 interruptions. **This is V1.1.**
 
 Translation alone doesn't fix interruption volume. A transformd interruption is still an interruption. The fix needs to change WHEN findings surface, not just HOW they're worded.
 
@@ -49,7 +49,7 @@ During V1 planning, a pacing workstream was drafted: rank findings, auto-accept 
 
 6. **Migration-prompt budget decision.** Explicit rule: one-shot migration prompts are exempt from the per-phase interruption budget. Rationale: they fire before review phases start, not during.
 
-7. **First-run preamble audit.** Audit lake intro, telemetry, proactive, routing injection. For each: is this load-bearing for a first-time user, or deferrable? Likely outcome: suppress all but lake intro until session 2+. Offer remaining ones via a `/plan-tune first-run` command that users can invoke voluntarily.
+7. **First-run preamble audit.** Audit lake intro, telemetry, proactive, routing injection. For each: is this load-bearing for a first-time user, or deferrable? Likely outcome: suppress all but lake intro until session 2+. Offer remaining ones via a `$plan-tune first-run` command that users can invoke voluntarily.
 
 8. **Ranking threshold calibration.** Instrument V0's question-log (already running, has history). Measure the actual distribution of `severity × irreversibility × user-decision-matters` across recent CEO + Eng + DX + Design reviews. Pick threshold based on real data. Target: ~20% of findings surface, ~80% auto-accept.
 
@@ -59,10 +59,10 @@ During V1 planning, a pacing workstream was drafted: rank findings, auto-accept 
 
 ## Acceptance criteria for V1.1
 
-- **Interruption count:** Louise (or similar non-technical collaborator) reruns `/autoplan` end-to-end on a plan comparable to V0-baseline. AskUserQuestion count ≤ 50% of V0 baseline. (V1 captures this baseline transcript for V1.1 calibration.)
+- **Interruption count:** Louise (or similar non-technical collaborator) reruns `$autoplan` end-to-end on a plan comparable to V0-baseline. AskUserQuestion count ≤ 50% of V0 baseline. (V1 captures this baseline transcript for V1.1 calibration.)
 - **One-way-door coverage:** 100% of safety-critical decisions (`door_type: one-way` OR classifier-flagged dynamic findings) surface individually at full technical detail. Uncapped.
 - **Flip round-trip:** User types `flip test-coverage-bookclub-form`. The original auto-accepted decision re-opens as an AskUserQuestion. User's new choice persists to the Silent Decisions block (or is removed if user flips to explicit surfacing).
-- **Per-phase observability:** `/plan-tune` can display per-phase AskUserQuestion counts for any session, reading from question-log.jsonl's new `phase` field.
+- **Per-phase observability:** `$plan-tune` can display per-phase AskUserQuestion counts for any session, reading from question-log.jsonl's new `phase` field.
 - **First-run reduction:** New users see ≤ 1 meta-prompt (lake intro) before their first real skill runs, vs. V1's 4 (lake + telemetry + proactive + routing).
 - **Human rerun:** Louise + Garry independent qualitative reviews, same pattern as V1.
 
@@ -89,7 +89,7 @@ V1.1 does NOT depend on any V2 items (E1 substrate wiring, narrative/vibe, etc.)
 V2 items remain deferred:
 - Confusion-signal detection
 - 5D psychographic-driven skill adaptation (V0 E1)
-- /plan-tune narrative + /plan-tune vibe (V0 E3)
+- $plan-tune narrative + $plan-tune vibe (V0 E3)
 - Per-skill or per-topic explain levels
 - Team profiles
 - AST-based "delivered features" metric

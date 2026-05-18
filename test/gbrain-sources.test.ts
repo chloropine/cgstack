@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/gbrain-sources.ts (per /plan-eng-review D3 DRY extraction).
+ * Unit tests for lib/gbrain-sources.ts (per $plan-eng-review D3 DRY extraction).
  *
  * The helper shells out to the real `gbrain` CLI. To test idempotency
  * deterministically without a live brain, we put a fake `gbrain` binary on

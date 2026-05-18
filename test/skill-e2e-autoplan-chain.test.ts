@@ -1,7 +1,7 @@
 /**
- * /autoplan cross-skill chain (periodic, paid, real-PTY).
+ * $autoplan cross-skill chain (periodic, paid, real-PTY).
  *
- * Asserts: when /autoplan runs against a plan fixture, the phase markers
+ * Asserts: when $autoplan runs against a plan fixture, the phase markers
  * the autoplan template emits appear in the correct order:
  *
  *   "**Phase 1 complete." (CEO)        →
@@ -47,7 +47,7 @@ interface PhaseHit {
   ts: number;
 }
 
-describeE2E('/autoplan chain ordering (periodic)', () => {
+describeE2E('$autoplan chain ordering (periodic)', () => {
   test(
     'phases run sequentially: Phase 1 (CEO) before Phase 3 (Eng), Phase 2 (Design) between when present',
     async () => {
@@ -80,7 +80,7 @@ describeE2E('/autoplan chain ordering (periodic)', () => {
         try {
           await Bun.sleep(8000);
           const since = session.mark();
-          session.send('/autoplan\r');
+          session.send('$autoplan\r');
 
           const budgetMs = 900_000; // 15 min
           const start = Date.now();

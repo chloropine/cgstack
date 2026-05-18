@@ -57,7 +57,7 @@ describeIfSelected('Review skill E2E', ['review-sql-injection'], () => {
 Read review-SKILL.md for the review workflow instructions.
 Also read review-checklist.md and apply it.
 Skip the preamble bash block, lake intro, telemetry, and contributor mode sections — go straight to the review.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 Write your review findings to ${reviewDir}/review-output.md`,
       workingDirectory: reviewDir,
       maxTurns: 20,
@@ -66,8 +66,8 @@ Write your review findings to ${reviewDir}/review-output.md`,
       runId,
     });
 
-    logCost('/review', result);
-    recordE2E(evalCollector, '/review SQL injection', 'Review skill E2E', result);
+    logCost('$review', result);
+    recordE2E(evalCollector, '$review SQL injection', 'Review skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review output mentions SQL injection-related findings
@@ -130,7 +130,7 @@ describeIfSelected('Review enum completeness E2E', ['review-enum-completeness'],
       prompt: `You are in a git repo on branch feature/add-returned-status with changes against main.
 Read review-SKILL.md for the review workflow instructions.
 Also read review-checklist.md and apply it — pay special attention to the Enum & Value Completeness section.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 Write your review findings to ${enumDir}/review-output.md
 
 The diff adds a new "returned" status to the Order model. Your job is to check if all consumers handle it.`,
@@ -141,8 +141,8 @@ The diff adds a new "returned" status to the Order model. Your job is to check i
       runId,
     });
 
-    logCost('/review enum', result);
-    recordE2E(evalCollector, '/review enum completeness', 'Review enum completeness E2E', result);
+    logCost('$review enum', result);
+    recordE2E(evalCollector, '$review enum completeness', 'Review enum completeness E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review caught the missing enum handlers
@@ -206,7 +206,7 @@ describeIfSelected('Review design lite E2E', ['review-design-lite'], () => {
 Read review-SKILL.md for the review workflow instructions.
 Read review-checklist.md for the code review checklist.
 Read review-design-checklist.md for the design review checklist.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 
 Skip the preamble bash block, lake intro, telemetry, and contributor mode sections — go straight to the review.
 
@@ -221,8 +221,8 @@ Important: The design checklist should catch issues like blacklisted fonts, smal
       runId,
     });
 
-    logCost('/review design lite', result);
-    recordE2E(evalCollector, '/review design lite', 'Review design lite E2E', result);
+    logCost('$review design lite', result);
+    recordE2E(evalCollector, '$review design lite', 'Review design lite E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review caught at least 4 of 7 planted design issues
@@ -309,8 +309,8 @@ Write your findings to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review base-branch', result);
-    recordE2E(evalCollector, '/review base branch detection', 'Base branch detection', result);
+    logCost('$review base-branch', result);
+    recordE2E(evalCollector, '$review base branch detection', 'Base branch detection', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review used "base branch" language (from Step 0)
@@ -369,8 +369,8 @@ Write a summary to ${dir}/ship-preflight.md including:
       runId,
     });
 
-    logCost('/ship base-branch', result);
-    recordE2E(evalCollector, '/ship base branch detection', 'Base branch detection', result);
+    logCost('$ship base-branch', result);
+    recordE2E(evalCollector, '$ship base branch detection', 'Base branch detection', result);
     expect(result.exitReason).toBe('success');
 
     // Verify preflight output was written
@@ -421,7 +421,7 @@ Write a summary to ${dir}/ship-preflight.md including:
 IMPORTANT: Follow the "Detect default branch" step first. Since there is no remote, gh will fail — fall back to main.
 Then use the detected branch name for all git queries.
 
-Run /retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
+Run $retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
 This is a local-only repo so use the local branch (main) instead of origin/main for all git log commands.
 
 Write your retrospective to ${dir}/retro-output.md`,
@@ -432,8 +432,8 @@ Write your retrospective to ${dir}/retro-output.md`,
       runId,
     });
 
-    logCost('/retro base-branch', result);
-    recordE2E(evalCollector, '/retro default branch detection', 'Base branch detection', result, {
+    logCost('$retro base-branch', result);
+    recordE2E(evalCollector, '$retro default branch detection', 'Base branch detection', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -505,7 +505,7 @@ describeIfSelected('Retro E2E', ['retro'], () => {
     const result = await runSkillTest({
       prompt: `Read retro/SKILL.md for instructions on how to run a retrospective.
 
-Run /retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
+Run $retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
 Write your retrospective report to ${retroDir}/retro-output.md
 
 Analyze the git history and produce the narrative report as described in the SKILL.md.`,
@@ -517,8 +517,8 @@ Analyze the git history and produce the narrative report as described in the SKI
       model: 'gpt-5.4',
     });
 
-    logCost('/retro', result);
-    recordE2E(evalCollector, '/retro', 'Retro E2E', result, {
+    logCost('$retro', result);
+    recordE2E(evalCollector, '$retro', 'Retro E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // Accept error_max_turns — retro does many git commands to analyze history
@@ -606,7 +606,7 @@ describeIfSelected('Review Dashboard Via Attribution', ['review-dashboard-via'],
 Instead of running ~/.codex/skills/cgstack/bin/cgstack-review-read, run this mock: ${mockBinDir}/cgstack-review-read
 
 Parse the output and display the dashboard table. Pay attention to:
-1. The "via" field in entries — show source attribution (e.g., "via /autoplan")
+1. The "via" field in entries — show source attribution (e.g., "via $autoplan")
 2. The codex-plan-review entry — it should populate the Outside Voice row
 3. Since Eng Review IS clear, there should be NO gate blocking — just display the dashboard
 
@@ -619,8 +619,8 @@ Write the dashboard output to ${dashDir}/dashboard-output.md`,
       runId,
     });
 
-    logCost('/ship dashboard-via', result);
-    recordE2E(evalCollector, '/ship review dashboard via attribution', 'Dashboard via field', result);
+    logCost('$ship dashboard-via', result);
+    recordE2E(evalCollector, '$ship review dashboard via attribution', 'Dashboard via field', result);
     expect(result.exitReason).toBe('success');
 
     // Check dashboard output for via attribution

@@ -6,7 +6,7 @@ description: |
   Generate missing documentation from scratch for a feature, module, or entire project.
   Uses the Diataxis framework (tutorial / how-to / reference / explanation) to produce
   complete, structured documentation. Can be invoked standalone or called by
-  /document-release when it finds coverage gaps. Use when asked to "write docs",
+  $document-release when it finds coverage gaps. Use when asked to "write docs",
   "generate documentation", "document this feature", "create a tutorial", or
   "explain this module". (cgstack)
 allowed-tools:
@@ -33,13 +33,13 @@ triggers:
 
 # Document Generate: Diataxis Documentation Writer
 
-You are running the `/document-generate` workflow. Your job: produce **high-quality,
+You are running the `$document-generate` workflow. Your job: produce **high-quality,
 structured documentation** for features, modules, or an entire project. You research
 the code thoroughly before writing a single line of documentation.
 
 This skill can be invoked two ways:
 1. **Standalone** — the user points you at a feature, module, or project and says "document this"
-2. **From /document-release** — the coverage map identified gaps; you fill them
+2. **From $document-release** — the coverage map identified gaps; you fill them
 
 You follow the **Diataxis framework** — four quadrants of documentation, each serving a
 different reader need:
@@ -59,7 +59,7 @@ any documentation. This prevents the "documentation that describes half the feat
 1. Determine what to document:
    - **If invoked with a specific target** (feature, module, file, skill): scope is that target
    - **If invoked for an entire project**: scope is the full project
-   - **If called from /document-release with gaps**: scope is the specific entities from the coverage map
+   - **If called from $document-release with gaps**: scope is the specific entities from the coverage map
 
 2. Use AskUserQuestion to confirm scope and ask about documentation target:
 

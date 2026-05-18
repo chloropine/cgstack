@@ -3,7 +3,7 @@
  *
  * Per plan D5: print a one-time discoverability notice for existing Path 4
  * (remote-http MCP) users who don't yet have a local engine, so they
- * find /setup-gbrain Step 4.5. Silent for everyone else. Idempotent.
+ * find $setup-gbrain Step 4.5. Silent for everyone else. Idempotent.
  *
  * Test matrix (5 cases):
  *   1. state match (remote-http + no local config) → notice printed, touchfile written
@@ -134,7 +134,7 @@ describe("cgstack-upgrade/migrations/v1.37.0.0.sh", () => {
       const r = runMigration(env);
       expect(r.exitCode).toBe(0);
       expect(r.stdout + r.stderr).toContain("split-engine");
-      expect(r.stdout + r.stderr).toContain("/setup-gbrain");
+      expect(r.stdout + r.stderr).toContain("$setup-gbrain");
       expect(existsSync(env.doneTouch)).toBe(true);
     } finally {
       env.cleanup();

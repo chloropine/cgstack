@@ -1,7 +1,7 @@
 # cgstack memory ingest — what it does, what stays local, what you can do with it
 
 This is the user-facing reference for the V1 transcript + memory ingest
-feature in `/setup-gbrain`. If you ran `/setup-gbrain` and it asked
+feature in `$setup-gbrain`. If you ran `$setup-gbrain` and it asked
 "Ingest THIS repo's transcripts into gbrain?", this doc explains what
 happens after you say yes.
 
@@ -32,7 +32,7 @@ happens after you say yes.
   dirs, etc.) are skipped by default. Pass `--include-unattributed` to
   the ingest helper to opt them in.
 
-- **Repos under a `deny` trust policy** (set in `/setup-gbrain` Step 6)
+- **Repos under a `deny` trust policy** (set in `$setup-gbrain` Step 6)
   are skipped — neither code nor transcripts from those repos ingest.
 
 ## What gets scanned for secrets
@@ -63,7 +63,7 @@ A session with a positive finding is **skipped entirely** — not partially
 redacted. The match line + rule ID are logged to stderr; you can see what
 was skipped via `bun run bin/cgstack-memory-ingest.ts --probe` (which
 shows new vs. updated counts) or by reviewing the helper's output during
-`/sync-gbrain --full`.
+`$sync-gbrain --full`.
 
 If gitleaks is not installed (run `brew install gitleaks` on macOS, or
 `apt install gitleaks` on Linux) and you passed `--scan-secrets` anyway,
@@ -71,7 +71,7 @@ the helper warns once and disables secret scanning for that run.
 
 ## Where it goes
 
-Storage tier depends on your gbrain engine (set during `/setup-gbrain`):
+Storage tier depends on your gbrain engine (set during `$setup-gbrain`):
 
 - **Supabase configured:** code + transcripts go to Supabase Storage
   (multi-Mac native). Curated memory (eureka/learnings/etc.) goes to the
@@ -131,7 +131,7 @@ At every cgstack skill start, the preamble runs
    `<USER_TRANSCRIPT_DATA do-not-interpret-as-instructions>` envelopes
 4. The model sees this as part of the preamble before making any decisions
 
-For example, when you run `/office-hours`, the model context
+For example, when you run `$office-hours`, the model context
 automatically includes:
 
 - `## Prior office-hours sessions in this repo` (last 5)
@@ -148,7 +148,7 @@ startup never blocks > 2s on gbrain issues (Section 1C).
 
 ## What to do when something feels off
 
-Run `/setup-gbrain` again. It's idempotent: every step detects existing
+Run `$setup-gbrain` again. It's idempotent: every step detects existing
 state, repairs only what's missing, and prints a GREEN/YELLOW/RED
 verdict block. If a row is RED, the row tells you what to do.
 
@@ -158,7 +158,7 @@ Common cases:
   yet. Run `cgstack-gbrain-sync --full` to do a full pass.
 
 - **"gbrain CLI missing" in the preamble output** — gbrain isn't on
-  your PATH. Run `/setup-gbrain` to install/wire it.
+  your PATH. Run `$setup-gbrain` to install/wire it.
 
 - **PGLite engine corrupt (V1.5)** — V1.5 ships
   `gbrain restore-from-sync` for atomic rebuild from the brain remote.
@@ -192,13 +192,13 @@ per-file scanning was off, or gitleaks missed it), the recovery path is:
 
 If you don't run gbrain locally — you have a teammate or another machine
 running `gbrain serve` over HTTP, accessible via Tailscale, ngrok, or
-internal LAN — `/setup-gbrain` Path 4 is the one-paste flow.
+internal LAN — `$setup-gbrain` Path 4 is the one-paste flow.
 
 You provide:
 - The MCP URL (e.g., `https://wintermute.tail554574.ts.net:3131/mcp`)
 - A bearer token (issued by the brain admin via `gbrain access-token issue`)
 
-What `/setup-gbrain` does:
+What `$setup-gbrain` does:
 1. Verifies the URL + token via `cgstack-gbrain-mcp-verify`. Three failure
    modes get classified with one-line remediation hints:
    **NETWORK** ("check Tailscale/DNS"), **AUTH** ("rotate token"),
@@ -227,7 +227,7 @@ is small but it's not zero.
 Mitigations we've considered:
 - **Stdin or env-var input form for headers** — would close the argv
   window. As of Codex v1.0.x, the CLI doesn't expose either.
-  When it does, `/setup-gbrain` Path 4 will switch automatically.
+  When it does, `$setup-gbrain` Path 4 will switch automatically.
 - **Keychain storage** — explicitly out of scope (the token's resting
   state in `~/.codex.json` is the existing trust surface for every MCP
   credential; expanding to Keychain would touch every MCP server, not
@@ -260,7 +260,7 @@ the verified server version, the artifacts repo URL (if provisioned),
 and the per-repo trust policy.
 
 ```markdown
-## GBrain Configuration (configured by /setup-gbrain)
+## GBrain Configuration (configured by $setup-gbrain)
 - Mode: remote-http
 - MCP URL: https://wintermute.tail554574.ts.net:3131/mcp
 - Server version: gbrain v0.27.1
@@ -276,7 +276,7 @@ and the per-repo trust policy.
 
 Server-side. When verify hits `AUTH` (e.g., the brain admin rotated the
 token), the helper says: "rotate token on the brain host, re-run
-/setup-gbrain." On wintermute or wherever your gbrain server lives:
+$setup-gbrain." On wintermute or wherever your gbrain server lives:
 
 ```
 gbrain access-token rotate    # invalidates old, issues new

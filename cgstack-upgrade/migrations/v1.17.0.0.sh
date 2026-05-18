@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Migration: v1.17.0.0 — Wire existing brain-sync repos as gbrain federated sources
 #
-# Pre-1.17.0.0 /setup-gbrain wrote ~/.cgstack/consumers.json with a placeholder
+# Pre-1.17.0.0 $setup-gbrain wrote ~/.cgstack/consumers.json with a placeholder
 # `status: "pending"` and an empty `ingest_url`, expecting a gbrain HTTP
 # /ingest-repo endpoint that never shipped. This migration runs the real
 # wireup (gbrain sources add + worktree + initial sync) for users who
@@ -13,7 +13,7 @@
 #   - The wireup helper is missing on disk (broken install — defensive)
 #
 # Failure mode: invokes the helper WITHOUT --strict, so a missing/old gbrain
-# CLI is a benign skip rather than blocking the rest of /cgstack-upgrade.
+# CLI is a benign skip rather than blocking the rest of $cgstack-upgrade.
 set -euo pipefail
 
 if [ -z "${HOME:-}" ]; then

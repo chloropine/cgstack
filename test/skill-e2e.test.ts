@@ -416,7 +416,7 @@ describeIfSelected('QA skill E2E', ['qa-quick'], () => {
     try { fs.rmSync(qaDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/qa quick completes without browse errors', async () => {
+  test('$qa quick completes without browse errors', async () => {
     const result = await runSkillTest({
       prompt: `B="${browseBin}"
 
@@ -436,13 +436,13 @@ Write your report to ${qaDir}/qa-reports/qa-report.md`,
       runId,
     });
 
-    logCost('/qa quick', result);
-    recordE2E('/qa quick', 'QA skill E2E', result, {
+    logCost('$qa quick', result);
+    recordE2E('$qa quick', 'QA skill E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // browseErrors can include false positives from hallucinated paths
     if (result.browseErrors.length > 0) {
-      console.warn('/qa quick browse errors (non-fatal):', result.browseErrors);
+      console.warn('$qa quick browse errors (non-fatal):', result.browseErrors);
     }
     // Accept error_max_turns — the agent doing thorough QA work is not a failure
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -488,12 +488,12 @@ describeIfSelected('Review skill E2E', ['review-sql-injection'], () => {
     try { fs.rmSync(reviewDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/review produces findings on SQL injection branch', async () => {
+  test('$review produces findings on SQL injection branch', async () => {
     const result = await runSkillTest({
       prompt: `You are in a git repo on a feature branch with changes against main.
 Read review-SKILL.md for the review workflow instructions.
 Also read review-checklist.md and apply it.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 Write your review findings to ${reviewDir}/review-output.md`,
       workingDirectory: reviewDir,
       maxTurns: 15,
@@ -502,8 +502,8 @@ Write your review findings to ${reviewDir}/review-output.md`,
       runId,
     });
 
-    logCost('/review', result);
-    recordE2E('/review SQL injection', 'Review skill E2E', result);
+    logCost('$review', result);
+    recordE2E('$review SQL injection', 'Review skill E2E', result);
     expect(result.exitReason).toBe('success');
   }, 120_000);
 });
@@ -546,12 +546,12 @@ describeIfSelected('Review enum completeness E2E', ['review-enum-completeness'],
     try { fs.rmSync(enumDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/review catches missing enum handlers for new status value', async () => {
+  test('$review catches missing enum handlers for new status value', async () => {
     const result = await runSkillTest({
       prompt: `You are in a git repo on branch feature/add-returned-status with changes against main.
 Read review-SKILL.md for the review workflow instructions.
 Also read review-checklist.md and apply it — pay special attention to the Enum & Value Completeness section.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 Write your review findings to ${enumDir}/review-output.md
 
 The diff adds a new "returned" status to the Order model. Your job is to check if all consumers handle it.`,
@@ -562,8 +562,8 @@ The diff adds a new "returned" status to the Order model. Your job is to check i
       runId,
     });
 
-    logCost('/review enum', result);
-    recordE2E('/review enum completeness', 'Review enum completeness E2E', result);
+    logCost('$review enum', result);
+    recordE2E('$review enum completeness', 'Review enum completeness E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review caught the missing enum handlers
@@ -621,13 +621,13 @@ describeE2E('Review design lite E2E', () => {
     try { fs.rmSync(designDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/review catches design anti-patterns in CSS/HTML diff', async () => {
+  test('$review catches design anti-patterns in CSS/HTML diff', async () => {
     const result = await runSkillTest({
       prompt: `You are in a git repo on branch feature/add-landing-page with changes against main.
 Read review-SKILL.md for the review workflow instructions.
 Read review-checklist.md for the code review checklist.
 Read review-design-checklist.md for the design review checklist.
-Run /review on the current diff (git diff main...HEAD).
+Run $review on the current diff (git diff main...HEAD).
 
 The diff adds a landing page with CSS and HTML. Check for both code issues AND design anti-patterns.
 Write your review findings to ${designDir}/review-output.md
@@ -640,8 +640,8 @@ Important: The design checklist should catch issues like blacklisted fonts, smal
       runId,
     });
 
-    logCost('/review design lite', result);
-    recordE2E('/review design lite', 'Review design lite E2E', result);
+    logCost('$review design lite', result);
+    recordE2E('$review design lite', 'Review design lite E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review caught at least 4 of 7 planted design issues
@@ -757,7 +757,7 @@ CRITICAL RULES:
       runId,
     });
 
-    logCost(`/qa ${label}`, result);
+    logCost(`$qa ${label}`, result);
 
     // Phase 1: browse mechanics. Accept error_max_turns — agent may have written
     // a partial report before running out of turns. What matters is detection rate.
@@ -797,7 +797,7 @@ CRITICAL RULES:
 
     if (!report) {
       dumpOutcomeDiagnostic(testWorkDir, label, '(no report file found)', { error: 'missing report' });
-      recordE2E(`/qa ${label}`, 'Planted-bug outcome evals', result, { error: 'no report generated' });
+      recordE2E(`$qa ${label}`, 'Planted-bug outcome evals', result, { error: 'no report generated' });
       throw new Error(`No report file found in ${reportDir}`);
     }
 
@@ -805,7 +805,7 @@ CRITICAL RULES:
     console.log(`${label} outcome:`, JSON.stringify(judgeResult, null, 2));
 
     // Record to eval collector with outcome judge results
-    recordE2E(`/qa ${label}`, 'Planted-bug outcome evals', result, {
+    recordE2E(`$qa ${label}`, 'Planted-bug outcome evals', result, {
       passed: judgePassed(judgeResult, groundTruth),
       detection_rate: judgeResult.detection_rate,
       false_positives: judgeResult.false_positives,
@@ -826,17 +826,17 @@ CRITICAL RULES:
   }
 
   // B6: Static dashboard — broken link, disabled submit, overflow, missing alt, console error
-  test('/qa finds >= 2 of 5 planted bugs (static)', async () => {
+  test('$qa finds >= 2 of 5 planted bugs (static)', async () => {
     await runPlantedBugEval('qa-eval.html', 'qa-eval-ground-truth.json', 'b6-static');
   }, 360_000);
 
   // B7: SPA — broken route, stale state, async race, missing aria, console warning
-  test('/qa finds >= 2 of 5 planted SPA bugs', async () => {
+  test('$qa finds >= 2 of 5 planted SPA bugs', async () => {
     await runPlantedBugEval('qa-eval-spa.html', 'qa-eval-spa-ground-truth.json', 'b7-spa');
   }, 360_000);
 
   // B8: Checkout — email regex, NaN total, CC overflow, missing required, stripe error
-  test('/qa finds >= 2 of 5 planted checkout bugs', async () => {
+  test('$qa finds >= 2 of 5 planted checkout bugs', async () => {
     await runPlantedBugEval('qa-eval-checkout.html', 'qa-eval-checkout-ground-truth.json', 'b8-checkout');
   }, 360_000);
 
@@ -896,7 +896,7 @@ We're building a new user dashboard that shows recent activity, notifications, a
     try { fs.rmSync(planDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-ceo-review produces structured review output', async () => {
+  test('$plan-ceo-review produces structured review output', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-ceo-review/SKILL.md for the review workflow.
 
@@ -913,8 +913,8 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       runId,
     });
 
-    logCost('/plan-ceo-review', result);
-    recordE2E('/plan-ceo-review', 'Plan CEO Review E2E', result, {
+    logCost('$plan-ceo-review', result);
+    recordE2E('$plan-ceo-review', 'Plan CEO Review E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // Accept error_max_turns — the CEO review is very thorough and may exceed turns
@@ -980,7 +980,7 @@ We're building a new user dashboard that shows recent activity, notifications, a
     try { fs.rmSync(planDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-ceo-review SELECTIVE EXPANSION produces structured review output', async () => {
+  test('$plan-ceo-review SELECTIVE EXPANSION produces structured review output', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-ceo-review/SKILL.md for the review workflow.
 
@@ -998,7 +998,7 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       runId,
     });
 
-    logCost('/plan-ceo-review (SELECTIVE)', result);
+    logCost('$plan-ceo-review (SELECTIVE)', result);
     recordE2E('/plan-ceo-review-selective', 'Plan CEO Review SELECTIVE EXPANSION E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -1074,7 +1074,7 @@ Replace session-cookie auth with JWT tokens. Currently using express-session + R
     try { fs.rmSync(planDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-eng-review produces structured review output', async () => {
+  test('$plan-eng-review produces structured review output', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-eng-review/SKILL.md for the review workflow.
 
@@ -1091,8 +1091,8 @@ Focus on architecture, code quality, tests, and performance sections.`,
       runId,
     });
 
-    logCost('/plan-eng-review', result);
-    recordE2E('/plan-eng-review', 'Plan Eng Review E2E', result, {
+    logCost('$plan-eng-review', result);
+    recordE2E('$plan-eng-review', 'Plan Eng Review E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -1161,11 +1161,11 @@ describeIfSelected('Retro E2E', ['retro'], () => {
     try { fs.rmSync(retroDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/retro produces analysis from git history', async () => {
+  test('$retro produces analysis from git history', async () => {
     const result = await runSkillTest({
       prompt: `Read retro/SKILL.md for instructions on how to run a retrospective.
 
-Run /retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
+Run $retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
 Write your retrospective report to ${retroDir}/retro-output.md
 
 Analyze the git history and produce the narrative report as described in the SKILL.md.`,
@@ -1176,8 +1176,8 @@ Analyze the git history and produce the narrative report as described in the SKI
       runId,
     });
 
-    logCost('/retro', result);
-    recordE2E('/retro', 'Retro E2E', result, {
+    logCost('$retro', result);
+    recordE2E('$retro', 'Retro E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // Accept error_max_turns — retro does many git commands to analyze history
@@ -1229,7 +1229,7 @@ describeIfSelected('QA-Only skill E2E', ['qa-only-no-fix'], () => {
     try { fs.rmSync(qaOnlyDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/qa-only produces report without using Edit tool', async () => {
+  test('$qa-only produces report without using Edit tool', async () => {
     const result = await runSkillTest({
       prompt: `IMPORTANT: The browse binary is already assigned below as B. Do NOT search for it or run the SKILL.md setup block — just use $B directly.
 
@@ -1248,7 +1248,7 @@ Write your report to ${qaOnlyDir}/qa-reports/qa-only-report.md`,
       runId,
     });
 
-    logCost('/qa-only', result);
+    logCost('$qa-only', result);
 
     // Verify Edit was not used — the critical guardrail for report-only mode.
     // Glob is read-only and may be used for file discovery (e.g. finding SKILL.md).
@@ -1258,7 +1258,7 @@ Write your report to ${qaOnlyDir}/qa-reports/qa-only-report.md`,
     }
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
-    recordE2E('/qa-only no-fix', 'QA-Only skill E2E', result, {
+    recordE2E('$qa-only no-fix', 'QA-Only skill E2E', result, {
       passed: exitOk && editCalls.length === 0,
     });
 
@@ -1348,7 +1348,7 @@ describeIfSelected('QA Fix Loop E2E', ['qa-fix-loop'], () => {
     try { fs.rmSync(qaFixDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/qa fix loop finds bugs and commits fixes', async () => {
+  test('$qa fix loop finds bugs and commits fixes', async () => {
     const qaFixUrl = `http://127.0.0.1:${qaFixServer!.port}`;
 
     const result = await runSkillTest({
@@ -1370,8 +1370,8 @@ This is a test+fix loop: find bugs, fix them in the source code, commit each fix
       runId,
     });
 
-    logCost('/qa fix loop', result);
-    recordE2E('/qa fix loop', 'QA Fix Loop E2E', result, {
+    logCost('$qa fix loop', result);
+    recordE2E('$qa fix loop', 'QA Fix Loop E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -1383,7 +1383,7 @@ This is a test+fix loop: find bugs, fix them in the source code, commit each fix
       cwd: qaFixDir, stdio: 'pipe',
     });
     const commits = gitLog.stdout.toString().trim().split('\n');
-    console.log(`/qa fix loop: ${commits.length} commits total (1 initial + ${commits.length - 1} fixes)`);
+    console.log(`$qa fix loop: ${commits.length} commits total (1 initial + ${commits.length - 1} fixes)`);
     expect(commits.length).toBeGreaterThan(1);
 
     // Verify Edit tool was used (agent actually modified source code)
@@ -1472,7 +1472,7 @@ export function main() { return Dashboard(); }
     } catch {}
   });
 
-  test('/plan-eng-review writes test-plan artifact to ~/.cgstack/projects/', async () => {
+  test('$plan-eng-review writes test-plan artifact to ~/.cgstack/projects/', async () => {
     // Count existing test-plan files before
     const beforeFiles = fs.readdirSync(projectDir).filter(f => f.includes('test-plan'));
 
@@ -1494,8 +1494,8 @@ Write your review to ${planDir}/review-output.md`,
       runId,
     });
 
-    logCost('/plan-eng-review artifact', result);
-    recordE2E('/plan-eng-review test-plan artifact', 'Plan-Eng-Review Test-Plan Artifact E2E', result, {
+    logCost('$plan-eng-review artifact', result);
+    recordE2E('$plan-eng-review test-plan artifact', 'Plan-Eng-Review Test-Plan Artifact E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -1573,8 +1573,8 @@ Write your findings to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review base-branch', result);
-    recordE2E('/review base branch detection', 'Base branch detection', result);
+    logCost('$review base-branch', result);
+    recordE2E('$review base branch detection', 'Base branch detection', result);
     expect(result.exitReason).toBe('success');
 
     // Verify the review used "base branch" language (from Step 0)
@@ -1628,8 +1628,8 @@ Write a summary of what you detected to ${dir}/ship-preflight.md including:
       runId,
     });
 
-    logCost('/ship base-branch', result);
-    recordE2E('/ship base branch detection', 'Base branch detection', result);
+    logCost('$ship base-branch', result);
+    recordE2E('$ship base branch detection', 'Base branch detection', result);
     expect(result.exitReason).toBe('success');
 
     // Verify preflight output was written
@@ -1680,7 +1680,7 @@ Write a summary of what you detected to ${dir}/ship-preflight.md including:
 IMPORTANT: Follow the "Detect default branch" step first. Since there is no remote, gh will fail — fall back to main.
 Then use the detected branch name for all git queries.
 
-Run /retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
+Run $retro for the last 7 days of this git repo. Skip any AskUserQuestion calls — this is non-interactive.
 This is a local-only repo so use the local branch (main) instead of origin/main for all git log commands.
 
 Write your retrospective to ${dir}/retro-output.md`,
@@ -1691,8 +1691,8 @@ Write your retrospective to ${dir}/retro-output.md`,
       runId,
     });
 
-    logCost('/retro base-branch', result);
-    recordE2E('/retro default branch detection', 'Base branch detection', result, {
+    logCost('$retro base-branch', result);
+    recordE2E('$retro default branch detection', 'Base branch detection', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -1753,11 +1753,11 @@ describeIfSelected('Document-Release skill E2E', ['document-release'], () => {
     try { fs.rmSync(docReleaseDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/document-release updates docs without clobbering CHANGELOG', async () => {
+  test('$document-release updates docs without clobbering CHANGELOG', async () => {
     const result = await runSkillTest({
       prompt: `Read the file document-release/SKILL.md for the document-release workflow instructions.
 
-Run the /document-release workflow on this repo. The base branch is "main".
+Run the $document-release workflow on this repo. The base branch is "main".
 
 IMPORTANT:
 - Do NOT use AskUserQuestion — auto-approve everything or skip if unsure.
@@ -1775,7 +1775,7 @@ IMPORTANT:
       runId,
     });
 
-    logCost('/document-release', result);
+    logCost('$document-release', result);
 
     // Read CHANGELOG to verify it was NOT clobbered
     const changelog = fs.readFileSync(path.join(docReleaseDir, 'CHANGELOG.md'), 'utf-8');
@@ -1791,7 +1791,7 @@ IMPORTANT:
     const readmeUpdated = readme.includes('Feature C') || readme.includes('feature-c') || readme.includes('feature C');
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
-    recordE2E('/document-release', 'Document-Release skill E2E', result, {
+    recordE2E('$document-release', 'Document-Release skill E2E', result, {
       passed: exitOk && hasOriginalEntries,
     });
 
@@ -1815,10 +1815,10 @@ IMPORTANT:
 // Deferred tests — only test.todo entries, no selection needed
 describeE2E('Deferred skill E2E', () => {
   // Ship is destructive: pushes to remote, creates PRs, modifies VERSION/CHANGELOG
-  test.todo('/ship completes full workflow');
+  test.todo('$ship completes full workflow');
 
   // Setup-browser-cookies requires interactive browser picker UI
-  test.todo('/setup-browser-cookies imports cookies');
+  test.todo('$setup-browser-cookies imports cookies');
 
 });
 
@@ -1898,7 +1898,7 @@ describeIfSelected('cgstack-upgrade E2E', ['cgstack-upgrade-happy-path'], () => 
     const result = await runSkillTest({
       prompt: `Read cgstack-upgrade/SKILL.md for the upgrade workflow.
 
-You are running /cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
+You are running $cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
 
 Current version: 0.5.0. A new version 0.6.0 is available on origin/main.
 
@@ -1918,7 +1918,7 @@ IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exa
       runId,
     });
 
-    logCost('/cgstack-upgrade happy path', result);
+    logCost('$cgstack-upgrade happy path', result);
 
     // Check that the version was updated
     const versionAfter = fs.readFileSync(path.join(mockGstack, 'VERSION'), 'utf-8').trim();
@@ -1927,7 +1927,7 @@ IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exa
       output.toLowerCase().includes('upgrade') ||
       output.toLowerCase().includes('updated');
 
-    recordE2E('/cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
+    recordE2E('$cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
       passed: versionAfter === '0.6.0' && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2025,7 +2025,7 @@ Write DESIGN.md and AGENTS.md (or update it) in the working directory.`,
       runId,
     });
 
-    logCost('/design-consultation core', result);
+    logCost('$design-consultation core', result);
 
     const designPath = path.join(designDir, 'DESIGN.md');
     const codexPath = path.join(designDir, 'AGENTS.md');
@@ -2054,7 +2054,7 @@ Write DESIGN.md and AGENTS.md (or update it) in the working directory.`,
     }
 
     const structuralPass = designExists && codexExists && missingSections.length === 0;
-    recordE2E('/design-consultation core', 'Design Consultation E2E', result, {
+    recordE2E('$design-consultation core', 'Design Consultation E2E', result, {
       passed: structuralPass && judgeResult.passed && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2089,7 +2089,7 @@ Write DESIGN.md to the working directory.`,
       runId,
     });
 
-    logCost('/design-consultation research', result);
+    logCost('$design-consultation research', result);
 
     const designPath = path.join(designDir, 'DESIGN.md');
     const designExists = fs.existsSync(designPath);
@@ -2118,7 +2118,7 @@ Write DESIGN.md to the working directory.`,
       }
     }
 
-    recordE2E('/design-consultation research', 'Design Consultation E2E', result, {
+    recordE2E('$design-consultation research', 'Design Consultation E2E', result, {
       passed: designExists && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2147,7 +2147,7 @@ Skip research. Skip font preview. Skip any AskUserQuestion calls — this is non
       runId,
     });
 
-    logCost('/design-consultation existing', result);
+    logCost('$design-consultation existing', result);
 
     const designPath = path.join(designDir, 'DESIGN.md');
     const designExists = fs.existsSync(designPath);
@@ -2160,7 +2160,7 @@ Skip research. Skip font preview. Skip any AskUserQuestion calls — this is non
     const hasColor = designContent.toLowerCase().includes('color');
     const hasSpacing = designContent.toLowerCase().includes('spacing');
 
-    recordE2E('/design-consultation existing', 'Design Consultation E2E', result, {
+    recordE2E('$design-consultation existing', 'Design Consultation E2E', result, {
       passed: designExists && hasColor && hasSpacing && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2189,7 +2189,7 @@ Skip research. Skip any AskUserQuestion calls — this is non-interactive. Gener
       runId,
     });
 
-    logCost('/design-consultation preview', result);
+    logCost('$design-consultation preview', result);
 
     const previewPath = path.join(designDir, 'design-preview.html');
     const designPath = path.join(designDir, 'DESIGN.md');
@@ -2220,7 +2220,7 @@ Skip research. Skip any AskUserQuestion calls — this is non-interactive. Gener
       }
     }
 
-    recordE2E('/design-consultation preview', 'Design Consultation E2E', result, {
+    recordE2E('$design-consultation preview', 'Design Consultation E2E', result, {
       passed: previewExists && designExists && hasHtml && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2301,7 +2301,7 @@ IMPORTANT: Do NOT try to browse any URLs or use a browse binary. This is a plan 
       runId,
     });
 
-    logCost('/plan-design-review plan-mode', result);
+    logCost('$plan-design-review plan-mode', result);
 
     // Check that the agent produced design ratings (0-10 scale)
     const output = result.output || '';
@@ -2322,7 +2322,7 @@ IMPORTANT: Do NOT try to browse any URLs or use a browse binary. This is a plan 
       planAfter.toLowerCase().includes('responsive') ||
       planAfter.toLowerCase().includes('accessibility');
 
-    recordE2E('/plan-design-review plan-mode', 'Plan Design Review E2E', result, {
+    recordE2E('$plan-design-review plan-mode', 'Plan Design Review E2E', result, {
       passed: hasDesignContent && planWasEdited && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2364,7 +2364,7 @@ IMPORTANT: Do NOT try to browse any URLs or use a browse binary. This is a plan 
       runId,
     });
 
-    logCost('/plan-design-review no-ui-scope', result);
+    logCost('$plan-design-review no-ui-scope', result);
 
     // Agent should detect no UI scope and exit early
     const output = result.output || '';
@@ -2374,7 +2374,7 @@ IMPORTANT: Do NOT try to browse any URLs or use a browse binary. This is a plan 
       output.toLowerCase().includes('not applicable') ||
       output.toLowerCase().includes('backend');
 
-    recordE2E('/plan-design-review no-ui-scope', 'Plan Design Review E2E', result, {
+    recordE2E('$plan-design-review no-ui-scope', 'Plan Design Review E2E', result, {
       passed: detectsNoUI && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2474,7 +2474,7 @@ describeIfSelected('Design Review E2E', ['design-review-fix'], () => {
     try { fs.rmSync(qaDesignDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('Test 7: /design-review audits and fixes design issues', async () => {
+  test('Test 7: $design-review audits and fixes design issues', async () => {
     const serverUrl = `http://localhost:${(qaDesignServer as any)?.port}`;
 
     const result = await runSkillTest({
@@ -2492,7 +2492,7 @@ Review the site at ${serverUrl}. Use --quick mode. Skip any AskUserQuestion call
       runId,
     });
 
-    logCost('/design-review fix', result);
+    logCost('$design-review fix', result);
 
     const reportPath = path.join(qaDesignDir, 'design-audit.md');
     const reportExists = fs.existsSync(reportPath);
@@ -2504,7 +2504,7 @@ Review the site at ${serverUrl}. Use --quick mode. Skip any AskUserQuestion call
     const commits = gitLog.stdout.toString().trim().split('\n');
     const designFixCommits = commits.filter((c: string) => c.includes('style(design)'));
 
-    recordE2E('/design-review fix', 'Design Review E2E', result, {
+    recordE2E('$design-review fix', 'Design Review E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2595,7 +2595,7 @@ export function divide(a, b) { return a / b; } // BUG: no zero check
     try { fs.rmSync(bootstrapDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/qa bootstrap + regression test on zero-test project', async () => {
+  test('$qa bootstrap + regression test on zero-test project', async () => {
     const serverUrl = `http://127.0.0.1:${bootstrapServer!.port}`;
 
     const result = await runSkillTest({
@@ -2618,8 +2618,8 @@ This is a test+fix loop: find bugs, fix them, write regression tests, commit eac
       runId,
     });
 
-    logCost('/qa bootstrap', result);
-    recordE2E('/qa bootstrap + regression test', 'Test Bootstrap E2E', result, {
+    logCost('$qa bootstrap', result);
+    recordE2E('$qa bootstrap + regression test', 'Test Bootstrap E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2680,7 +2680,7 @@ describeIfSelected('Test Coverage Audit E2E', ['ship-coverage-audit'], () => {
     try { fs.rmSync(coverageDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/ship Step 3.4 produces coverage diagram', async () => {
+  test('$ship Step 3.4 produces coverage diagram', async () => {
     const result = await runSkillTest({
       prompt: `Read the file ship/SKILL.md for the ship workflow instructions.
 
@@ -2705,8 +2705,8 @@ Output the diagram directly.`,
       runId,
     });
 
-    logCost('/ship coverage audit', result);
-    recordE2E('/ship Step 3.4 coverage audit', 'Test Coverage Audit E2E', result, {
+    logCost('$ship coverage audit', result);
+    recordE2E('$ship Step 3.4 coverage audit', 'Test Coverage Audit E2E', result, {
       passed: result.exitReason === 'success',
     });
 
@@ -2752,7 +2752,7 @@ describeIfSelected('Review Coverage Audit E2E', ['review-coverage-audit'], () =>
     try { fs.rmSync(reviewCoverageDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/review Step 4.75 produces coverage diagram', async () => {
+  test('$review Step 4.75 produces coverage diagram', async () => {
     const result = await runSkillTest({
       prompt: `Read the file review/SKILL.md for the review workflow instructions.
 
@@ -2775,8 +2775,8 @@ Output the diagram directly.`,
       runId,
     });
 
-    logCost('/review coverage audit', result);
-    recordE2E('/review Step 4.75 coverage audit', 'Review Coverage Audit E2E', result, {
+    logCost('$review coverage audit', result);
+    recordE2E('$review Step 4.75 coverage audit', 'Review Coverage Audit E2E', result, {
       passed: result.exitReason === 'success',
     });
 
@@ -2822,7 +2822,7 @@ describeIfSelected('Plan Eng Review Coverage Audit E2E', ['plan-eng-coverage-aud
     try { fs.rmSync(planCoverageDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-eng-review coverage audit traces plan codepaths', async () => {
+  test('$plan-eng-review coverage audit traces plan codepaths', async () => {
     const result = await runSkillTest({
       prompt: `Read the file plan-eng-review/SKILL.md for the plan review workflow instructions.
 
@@ -2845,8 +2845,8 @@ Output the diagram directly.`,
       runId,
     });
 
-    logCost('/plan-eng-review coverage audit', result);
-    recordE2E('/plan-eng-review coverage audit', 'Plan Eng Review Coverage Audit E2E', result, {
+    logCost('$plan-eng-review coverage audit', result);
+    recordE2E('$plan-eng-review coverage audit', 'Plan Eng Review Coverage Audit E2E', result, {
       passed: result.exitReason === 'success',
     });
 
@@ -2985,7 +2985,7 @@ try {
     try { fs.rmSync(triageDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/ship triage correctly classifies in-branch vs pre-existing failures', async () => {
+  test('$ship triage correctly classifies in-branch vs pre-existing failures', async () => {
     const result = await runSkillTest({
       prompt: `Read the file ship/SKILL.md for the ship workflow instructions.
 
@@ -3016,7 +3016,7 @@ This is a solo repo (REPO_MODE=solo). For pre-existing failures, recommend fixin
       runId,
     });
 
-    logCost('/ship triage', result);
+    logCost('$ship triage', result);
 
     const output = result.output || '';
     const outputLower = output.toLowerCase();
@@ -3043,7 +3043,7 @@ This is a solo repo (REPO_MODE=solo). For pre-existing failures, recommend fixin
     console.log(`Ran math test file (pre-existing failure): ${ranMathTest}`);
     console.log(`Ran string test file (in-branch failure): ${ranStringTest}`);
 
-    recordE2E('/ship triage', 'Test Failure Triage E2E', result, {
+    recordE2E('$ship triage', 'Test Failure Triage E2E', result, {
       passed: result.exitReason === 'success' && hasInBranch && hasPreExisting,
       has_in_branch_classification: hasInBranch,
       has_pre_existing_classification: hasPreExisting,
@@ -3171,7 +3171,7 @@ describeIfSelected('Office Hours Spec Review E2E', ['office-hours-spec-review'],
     try { fs.rmSync(ohDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/office-hours SKILL.md contains spec review loop', async () => {
+  test('$office-hours SKILL.md contains spec review loop', async () => {
     const result = await runSkillTest({
       prompt: `Read office-hours/SKILL.md. I want to understand the spec review loop.
 
@@ -3189,7 +3189,7 @@ Write your summary to ${ohDir}/spec-review-summary.md`,
       runId,
     });
 
-    logCost('/office-hours spec review', result);
+    logCost('$office-hours spec review', result);
     recordE2E('/office-hours-spec-review', 'Office Hours Spec Review E2E', result);
     expect(result.exitReason).toBe('success');
 
@@ -3233,12 +3233,12 @@ describeIfSelected('Plan CEO Review Benefits-From E2E', ['plan-ceo-review-benefi
     try { fs.rmSync(benefitsDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-ceo-review SKILL.md contains prerequisite skill offer', async () => {
+  test('$plan-ceo-review SKILL.md contains prerequisite skill offer', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-ceo-review/SKILL.md. Search for sections about "Prerequisite" or "office-hours" or "design doc found".
 
 Summarize what happens when no design doc is found — specifically:
-1. Is /office-hours offered as a prerequisite?
+1. Is $office-hours offered as a prerequisite?
 2. What options does the user get?
 3. Is there a mid-session detection for when the user seems lost?
 
@@ -3250,7 +3250,7 @@ Write your summary to ${benefitsDir}/benefits-summary.md`,
       runId,
     });
 
-    logCost('/plan-ceo-review benefits-from', result);
+    logCost('$plan-ceo-review benefits-from', result);
     recordE2E('/plan-ceo-review-benefits', 'Plan CEO Review Benefits-From E2E', result);
     expect(result.exitReason).toBe('success');
 
@@ -3290,7 +3290,7 @@ describeIfSelected('Ship idempotency', ['ship-idempotency'], () => {
     gitRun(['add', 'app.ts'], idempDir);
     gitRun(['commit', '-m', 'feat: update to v2'], idempDir);
 
-    // Simulate prior /ship run: bump VERSION and write CHANGELOG entry
+    // Simulate prior $ship run: bump VERSION and write CHANGELOG entry
     fs.writeFileSync(path.join(idempDir, 'VERSION'), '0.2.0.0\n');
     fs.writeFileSync(path.join(idempDir, 'CHANGELOG.md'),
       '# Changelog\n\n## [0.2.0.0] — 2026-03-30\n\n- Updated app to v2\n');
@@ -3316,7 +3316,7 @@ describeIfSelected('Ship idempotency', ['ship-idempotency'], () => {
 
   testIfSelected('ship-idempotency', async () => {
     const result = await runSkillTest({
-      prompt: `You are in a git repo on branch feat/my-feature. A prior /ship run already:
+      prompt: `You are in a git repo on branch feat/my-feature. A prior $ship run already:
 - Bumped VERSION from 0.1.0.0 to 0.2.0.0
 - Wrote a CHANGELOG entry for 0.2.0.0
 - But the push/PR step failed
@@ -3338,8 +3338,8 @@ Do NOT modify VERSION or CHANGELOG. Only run the detection checks and report.`,
       runId,
     });
 
-    logCost('/ship idempotency', result);
-    recordE2E('/ship idempotency guard', 'Ship idempotency', result);
+    logCost('$ship idempotency', result);
+    recordE2E('$ship idempotency guard', 'Ship idempotency', result);
     expect(result.exitReason).toBe('success');
 
     // Verify VERSION was NOT modified

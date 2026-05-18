@@ -8,7 +8,7 @@
  *
  * Exceptions (explicitly allowed): SKILL.md files for skills that legitimately discuss
  * V0 machinery:
- *   - plan-tune/ — the conversational inspection skill for /plan-tune
+ *   - plan-tune/ — the conversational inspection skill for $plan-tune
  *   - office-hours/ — sets the declared profile
  * For these, V0 vocabulary is load-bearing and must appear.
  *

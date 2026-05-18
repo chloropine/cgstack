@@ -2,7 +2,7 @@
  * artifacts-sync preamble block (renamed from gbrain-sync in v1.27.0.0).
  *
  * Emits bash that runs at every skill invocation:
- *   0. Live gbrain-availability hint (per /plan-eng-review): when gbrain is
+ *   0. Live gbrain-availability hint (per $plan-eng-review): when gbrain is
  *      configured, emit one of two variants (steady-state vs empty-corpus
  *      emergency). Zero context cost when gbrain is not configured.
  *   1. If ~/.cgstack-artifacts-remote.txt (or legacy ~/.cgstack-brain-remote.txt
@@ -45,7 +45,7 @@ fi
 _BRAIN_SYNC_BIN="${ctx.paths.binDir}/cgstack-brain-sync"
 _BRAIN_CONFIG_BIN="${ctx.paths.binDir}/cgstack-config"
 
-# /sync-gbrain context-load: teach the agent to use gbrain when it's available.
+# $sync-gbrain context-load: teach the agent to use gbrain when it's available.
 # Per-worktree pin: post-spike redesign uses kubectl-style \`.gbrain-source\` in the
 # git toplevel to scope queries. Look for the pin in the worktree (not a global
 # state file) so that opening worktree B without a pin doesn't claim "indexed"
@@ -64,9 +64,9 @@ if [ -f "$_GBRAIN_CONFIG" ] && command -v gbrain >/dev/null 2>&1; then
       echo "GBrain configured. Prefer \\\`gbrain search\\\`/\\\`gbrain query\\\` over Grep for"
       echo "semantic questions; use \\\`gbrain code-def\\\`/\\\`code-refs\\\`/\\\`code-callers\\\` for"
       echo "symbol-aware code lookup. See \\"## GBrain Search Guidance\\" in AGENTS.md."
-      echo "Run /sync-gbrain to refresh."
+      echo "Run \\$sync-gbrain to refresh."
     else
-      echo "GBrain configured but this worktree isn't pinned yet. Run \\\`/sync-gbrain --full\\\`"
+      echo "GBrain configured but this worktree isn't pinned yet. Run \\\`\\$sync-gbrain --full\\\`"
       echo "before relying on \\\`gbrain search\\\` for code questions in this worktree."
       echo "Falls back to Grep until pinned."
     fi
@@ -75,7 +75,7 @@ fi
 
 _BRAIN_SYNC_MODE=$("$_BRAIN_CONFIG_BIN" get artifacts_sync_mode 2>/dev/null || echo off)
 
-# Detect remote-MCP mode (Path 4 of /setup-gbrain). Local artifacts sync is
+# Detect remote-MCP mode (Path 4 of $setup-gbrain). Local artifacts sync is
 # a no-op in remote mode; the brain server pulls from GitHub/GitLab on its
 # own cadence. Read codex.json directly to keep this preamble fast (no
 # subprocess to codex CLI on every skill start).

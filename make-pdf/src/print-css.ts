@@ -3,7 +3,7 @@
  *
  * Source of truth: .context/designs/make-pdf-print-reference.html and siblings.
  * Mirror those CSS rules here. The HTML references were approved via
- * /plan-design-review with explicit design decisions locked in the plan:
+ * $plan-design-review with explicit design decisions locked in the plan:
  *
  *   - Helvetica first, with Liberation Sans as a metric-compatible Linux
  *     fallback (Helvetica and Arial aren't installed on most Linux distros;

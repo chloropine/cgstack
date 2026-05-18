@@ -32,7 +32,7 @@ describe('gen-llms-txt — shape', () => {
     expect(generated.skills.length).toBeLessThanOrEqual(templates.length);
 
     for (const skill of generated.skills) {
-      expect(generated.content).toMatch(new RegExp(`/${skill.name}\\b`));
+      expect(generated.content).toMatch(new RegExp(`\\$${skill.name}\\b`));
     }
   });
 

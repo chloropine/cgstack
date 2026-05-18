@@ -1,7 +1,7 @@
 /**
  * cgstack-upgrade/migrations/v1.17.0.0.sh — migration script unit tests.
  *
- * The migration runs on /cgstack-upgrade for users with brain-sync configured but
+ * The migration runs on $cgstack-upgrade for users with brain-sync configured but
  * never wired up to gbrain. It has 4 skip conditions and one happy path.
  *
  * Strategy: stub cgstack-config and cgstack-gbrain-source-wireup binaries on PATH

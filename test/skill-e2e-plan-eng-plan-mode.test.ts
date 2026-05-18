@@ -2,7 +2,7 @@
  * plan-eng-review plan-mode smoke (gate, paid, real-PTY).
  *
  * See test/skill-e2e-plan-ceo-plan-mode.test.ts for the shared assertion
- * contract. This file exercises the same contract against /plan-eng-review.
+ * contract. This file exercises the same contract against $plan-eng-review.
  */
 
 import { describe, test, expect } from 'bun:test';

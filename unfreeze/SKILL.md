@@ -2,7 +2,7 @@
 name: unfreeze
 version: 0.1.0
 description: |
-  Clear the freeze boundary set by /freeze, allowing edits to all directories
+  Clear the freeze boundary set by $freeze, allowing edits to all directories
   again. Use when you want to widen edit scope without ending the session.
   Use when asked to "unfreeze", "unlock edits", "remove freeze", or
   "allow all edits". (cgstack)
@@ -17,9 +17,9 @@ allowed-tools:
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
-# /unfreeze — Clear Freeze Boundary
+# $unfreeze — Clear Freeze Boundary
 
-Remove the edit restriction set by `/freeze`, allowing edits to all directories.
+Remove the edit restriction set by `$freeze`, allowing edits to all directories.
 
 ```bash
 mkdir -p ~/.cgstack/analytics
@@ -40,6 +40,6 @@ else
 fi
 ```
 
-Tell the user the result. Note that `/freeze` hooks are still registered for the
+Tell the user the result. Note that `$freeze` hooks are still registered for the
 session — they will just allow everything since no state file exists. To re-freeze,
-run `/freeze` again.
+run `$freeze` again.

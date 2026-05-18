@@ -36,11 +36,11 @@ allowed-tools:
 
 {{BENEFITS_FROM}}
 
-# /autoplan — Auto-Review Pipeline
+# $autoplan — Auto-Review Pipeline
 
 One command. Rough plan in, fully reviewed plan out.
 
-/autoplan reads the full CEO, design, eng, and DX review skill files from disk and follows
+$autoplan reads the full CEO, design, eng, and DX review skill files from disk and follows
 them at full depth — same rigor, same sections, same methodology as running each skill
 manually. The only difference: intermediate AskUserQuestion calls are auto-decided using
 the 6 principles below. Taste decisions (where reasonable people could disagree) are
@@ -174,19 +174,19 @@ echo "RESTORE_PATH=$HOME/.cgstack/projects/$SLUG/${BRANCH}-autoplan-restore-${DA
 
 Write the plan file's full contents to the restore path with this header:
 ```
-# /autoplan Restore Point
+# $autoplan Restore Point
 Captured: [timestamp] | Branch: [branch] | Commit: [short hash]
 
 ## Re-run Instructions
 1. Copy "Original Plan State" below back to your plan file
-2. Invoke /autoplan
+2. Invoke $autoplan
 
 ## Original Plan State
 [verbatim plan file contents]
 ```
 
 Then prepend a one-line HTML comment to the plan file:
-`<!-- /autoplan restore point: [RESTORE_PATH] -->`
+`<!-- $autoplan restore point: [RESTORE_PATH] -->`
 
 ### Step 2: Read context
 
@@ -213,7 +213,7 @@ Read each file using the Read tool:
 - `~/.codex/skills/cgstack/plan-devex-review/SKILL.md` (only if DX scope detected)
 
 **Section skip list — when following a loaded skill file, SKIP these sections
-(they are already handled by /autoplan):**
+(they are already handled by $autoplan):**
 - Preamble (run first)
 - AskUserQuestion Format
 - Completeness Principle — Boil the Lake
@@ -262,7 +262,7 @@ fi
 ```
 
 If `_CODEX_AVAILABLE=false`, all Phase 1-3.5 Codex voices below degrade to
-`[codex-unavailable]` in the degradation matrix. /autoplan completes with
+`[codex-unavailable]` in the degradation matrix. $autoplan completes with
 Codex subagent only — saves token spend on Codex prompts we can't use.
 
 ---
@@ -776,7 +776,7 @@ noting which items are incomplete. Do not loop indefinitely.
 Present as a message, then use AskUserQuestion:
 
 ```
-## /autoplan Review Complete
+## $autoplan Review Complete
 
 ### Plan Summary
 [1-3 sentence summary]
@@ -842,7 +842,7 @@ AskUserQuestion options:
 - E) Reject (start over)
 
 **Option handling:**
-- A: mark APPROVED, write review logs, suggest /ship
+- A: mark APPROVED, write review logs, suggest $ship
 - B: ask which overrides, apply, re-present gate
 - C: answer freeform, re-present gate
 - D: make changes, re-run affected phases (scope→1B, design→2, test plan→3, arch→3). Max 3 cycles.
@@ -852,7 +852,7 @@ AskUserQuestion options:
 
 ## Completion: Write Review Logs
 
-On approval, write 3 separate review log entries so /ship's dashboard recognizes them.
+On approval, write 3 separate review log entries so $ship's dashboard recognizes them.
 Replace TIMESTAMP, STATUS, and N with actual values from each review phase.
 STATUS is "clean" if no unresolved issues, "issues_open" otherwise.
 
@@ -895,13 +895,13 @@ If Phase 3.5 ran (DX scope), also log:
 SOURCE = "codex+subagent", "codex-only", "subagent-only", or "unavailable".
 Replace N values with actual consensus counts from the tables.
 
-Suggest next step: `/ship` when ready to create the PR.
+Suggest next step: `$ship` when ready to create the PR.
 
 ---
 
 ## Important Rules
 
-- **Never abort.** The user chose /autoplan. Respect that choice. Surface all taste decisions, never redirect to interactive review.
+- **Never abort.** The user chose $autoplan. Respect that choice. Surface all taste decisions, never redirect to interactive review.
 - **Two gates.** The non-auto-decided AskUserQuestions are: (1) premise confirmation in Phase 1, and (2) User Challenges — when both models agree the user's stated direction should change. Everything else is auto-decided using the 6 principles.
 - **Log every decision.** No silent auto-decisions. Every choice gets a row in the audit trail.
 - **Full depth means full depth.** Do not compress or skip sections from the loaded skill files (except the skip list in Phase 0). "Full depth" means: read the code the section asks you to read, produce the outputs the section requires, identify every issue, and decide each one. A one-sentence summary of a section is not "full depth" — it is a skip. If you catch yourself writing fewer than 3 sentences for any review section, you are likely compressing.

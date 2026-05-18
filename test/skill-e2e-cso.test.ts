@@ -61,11 +61,11 @@ app.listen(3000);
     try { fs.rmSync(csoDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/cso finds planted vulnerabilities', async () => {
+  test('$cso finds planted vulnerabilities', async () => {
     const result = await runSkillTest({
       prompt: `Read the file ${path.join(ROOT, 'cso', 'SKILL.md')} for the CSO skill instructions.
 
-Run /cso on this repo (full daily audit, no flags).
+Run $cso on this repo (full daily audit, no flags).
 
 IMPORTANT:
 - Do NOT use AskUserQuestion — skip any interactive prompts.
@@ -150,11 +150,11 @@ app.post('/webhook/stripe', (req, res) => {
     try { fs.rmSync(csoDiffDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/cso --diff scopes to branch changes', async () => {
+  test('$cso --diff scopes to branch changes', async () => {
     const result = await runSkillTest({
       prompt: `Read the file ${path.join(ROOT, 'cso', 'SKILL.md')} for the CSO skill instructions.
 
-Run /cso --diff on this repo. The base branch is "main".
+Run $cso --diff on this repo. The base branch is "main".
 
 IMPORTANT:
 - Do NOT use AskUserQuestion — skip any interactive prompts.
@@ -224,11 +224,11 @@ CMD ["node", "server.js"]
     try { fs.rmSync(csoInfraDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/cso --infra runs infrastructure phases only', async () => {
+  test('$cso --infra runs infrastructure phases only', async () => {
     const result = await runSkillTest({
       prompt: `Read the file ${path.join(ROOT, 'cso', 'SKILL.md')} for the CSO skill instructions.
 
-Run /cso --infra on this repo. This should run infrastructure-only phases (0-6, 12-14).
+Run $cso --infra on this repo. This should run infrastructure-only phases (0-6, 12-14).
 
 IMPORTANT:
 - Do NOT use AskUserQuestion — skip any interactive prompts.

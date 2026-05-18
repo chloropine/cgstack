@@ -1,5 +1,5 @@
 /**
- * Tests the .bak-rollback contract used by /setup-gbrain Step 1.5 (broken-db
+ * Tests the .bak-rollback contract used by $setup-gbrain Step 1.5 (broken-db
  * repair) and Step 4.5 (Path 4 opt-in to local PGLite), per plan D7.
  *
  * These code paths live in the skill TEMPLATE, not in a TypeScript helper —

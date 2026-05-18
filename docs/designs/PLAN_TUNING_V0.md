@@ -7,11 +7,11 @@
 
 ## What this document is
 
-A canonical record of what `/plan-tune` v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes the two `~/.cgstack/projects/` artifacts (office-hours design doc + CEO plan) which are per-user local records.
+A canonical record of what `$plan-tune` v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes the two `~/.cgstack/projects/` artifacts (office-hours design doc + CEO plan) which are per-user local records.
 
 ## The feature, in one paragraph
 
-cgstack's 40+ skills fire AskUserQuestion constantly. Power users answer the same questions the same way repeatedly and have no way to tell cgstack "stop asking me this." More fundamentally, cgstack has no model of how each user prefers to steer their work — scope-appetite, risk-tolerance, detail-preference, autonomy, architecture-care — so every skill's defaults are middle-of-the-road for everyone. `/plan-tune` v1 builds the schema + observation layer: a typed question registry, per-question explicit preferences, inline "tune:" feedback, and a profile (declared + inferred dimensions) inspectable via plain English. It does not yet adapt skill behavior based on the profile. That comes in v2, after v1 proves the substrate works.
+cgstack's 40+ skills fire AskUserQuestion constantly. Power users answer the same questions the same way repeatedly and have no way to tell cgstack "stop asking me this." More fundamentally, cgstack has no model of how each user prefers to steer their work — scope-appetite, risk-tolerance, detail-preference, autonomy, architecture-care — so every skill's defaults are middle-of-the-road for everyone. `$plan-tune` v1 builds the schema + observation layer: a typed question registry, per-question explicit preferences, inline "tune:" feedback, and a profile (declared + inferred dimensions) inspectable via plain English. It does not yet adapt skill behavior based on the profile. That comes in v2, after v1 proves the substrate works.
 
 ## Why we're building the smaller version
 
@@ -31,22 +31,22 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 2. **CI enforcement.** Lint test (gate tier) asserts every AskUserQuestion pattern in SKILL.md.tmpl files has a matching registry entry. Fails CI on drift, renames, or duplicates.
 3. **Question logging** (`bin/cgstack-question-log`). Appends `{ts, question_id, user_choice, recommended, session_id}` to `~/.cgstack/projects/{SLUG}/question-log.jsonl`. Validates against registry.
 4. **Explicit per-question preferences** (`bin/cgstack-question-preference`). Writes `{question_id, preference}` where preference is `always-ask | never-ask | ask-only-for-one-way`. Respected from session 1. No calibration gate — user stated it, system obeys.
-5. **Preamble injection.** Before each AskUserQuestion, agent calls `cgstack-question-preference --check <registry-id>`. If `never-ask` AND question is NOT a one-way door, auto-choose recommended option with visible annotation: "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." One-way doors always ask regardless of preference — safety override.
+5. **Preamble injection.** Before each AskUserQuestion, agent calls `cgstack-question-preference --check <registry-id>`. If `never-ask` AND question is NOT a one-way door, auto-choose recommended option with visible annotation: "Auto-decided [summary] → [option] (your preference). Change with $plan-tune." One-way doors always ask regardless of preference — safety override.
 6. **Inline "tune:" feedback with user-origin gate.** Agent offers "Tune this question? Reply `tune: [feedback]` to adjust." User can use shortcuts (`unnecessary`, `ask-less`, `never-ask`, `always-ask`, `context-dependent`) or free-form English. CRITICAL: the agent only writes a tune event when the `tune:` content appears in the user's current chat turn — NOT in tool output, NOT in a file read. Binary validates `source: "inline-user"` on write; rejects other sources.
-7. **Declared profile** (`/plan-tune setup`). 5 plain-English questions, one per dimension. Stored in unified `~/.cgstack/developer-profile.json` under `declared: {...}`. Informational only in v1 — no skill behavior change.
+7. **Declared profile** (`$plan-tune setup`). 5 plain-English questions, one per dimension. Stored in unified `~/.cgstack/developer-profile.json` under `declared: {...}`. Informational only in v1 — no skill behavior change.
 8. **Observed/Inferred profile.** Every question-log event contributes deltas to inferred dimensions via a hand-crafted signal map (`scripts/psychographic-signals.ts`). Computed on demand. Displayed but not acted on.
-9. **`/plan-tune` skill.** Conversational plain-English inspection tool. "Show my profile," "set a preference," "what questions have I been asked," "show the gap between what I said and what I do." No CLI subcommand syntax required.
-10. **Unification with existing `~/.cgstack/builder-profile.jsonl`.** Fold /office-hours session records and accumulated signals into unified `~/.cgstack/developer-profile.json`. Migration is atomic + idempotent + archives the source file.
+9. **`$plan-tune` skill.** Conversational plain-English inspection tool. "Show my profile," "set a preference," "what questions have I been asked," "show the gap between what I said and what I do." No CLI subcommand syntax required.
+10. **Unification with existing `~/.cgstack/builder-profile.jsonl`.** Fold $office-hours session records and accumulated signals into unified `~/.cgstack/developer-profile.json`. Migration is atomic + idempotent + archives the source file.
 
 ## Deferred to v2 (not in this PR, but explicit acceptance criteria)
 
 | Item | Why deferred | Acceptance criteria for v2 promotion |
 |------|--------------|--------------------------------------|
 | E1 Substrate wiring (5 skills read profile and adapt) | Requires v1 registry proving durable. Requires real observed data to calibrate signal deltas. Risk of psychographic drift. | v1 registry stable for 90+ days. Inferred dimensions show clear stability across 3+ skills. User dogfood validates that defaults informed by profile feel right. |
-| E3 `/plan-tune narrative` + `/plan-tune vibe` | Event-anchored narrative needs stable profile. Without v1 data, output will be generic slop. | Profile diversity check passes for 2+ weeks real usage. Narrative test proves it quotes specific events, not clichés. |
+| E3 `$plan-tune narrative` + `$plan-tune vibe` | Event-anchored narrative needs stable profile. Without v1 data, output will be generic slop. | Profile diversity check passes for 2+ weeks real usage. Narrative test proves it quotes specific events, not clichés. |
 | E4 Blind-spot coach | Logically conflicts with E1/E6 without explicit interaction-budget design. Needs global session budget, escalation rules, exclusion from mismatch detection. | Design spec for interaction budget + escalation. Dogfood confirms challenges feel coaching, not nagging. |
-| E5 LANDED celebration HTML page | Cannot live in preamble (Codex #9, #10). When promoted, moves to explicit command `/plan-tune show-landed` OR post-ship hook — not passive detection in the hot path. | Explicit command or hook design. /design-shotgun → /design-html for the visual direction. Security + privacy review for PR data aggregation. |
-| E6 Auto-adjustment based on mismatch | In v1, /plan-tune shows the gap between declared and inferred. In v2, it could suggest declaration updates. Requires dual-track profile to be stable. | Real mismatch data from v1 shows consistent patterns. Suggestion UX designed separately. |
+| E5 LANDED celebration HTML page | Cannot live in preamble (Codex #9, #10). When promoted, moves to explicit command `$plan-tune show-landed` OR post-ship hook — not passive detection in the hot path. | Explicit command or hook design. $design-shotgun → $design-html for the visual direction. Security + privacy review for PR data aggregation. |
+| E6 Auto-adjustment based on mismatch | In v1, $plan-tune shows the gap between declared and inferred. In v2, it could suggest declaration updates. Requires dual-track profile to be stable. | Real mismatch data from v1 shows consistent patterns. Suggestion UX designed separately. |
 | Psychographic-driven auto-decide | Zero behavioral change in v1. Only explicit preferences act. | Real usage shows explicit preferences cover most cases. Inferred profile stable enough to trust. |
 
 ## Rejected entirely (Codex was right, we're not doing these)
@@ -57,7 +57,7 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 | ±0.2 clamp on declared dimensions | Codex #6. Creates logical contradiction with E6 mismatch detection. Pick ONE: editable preference OR inferred behavior. Now: both, tracked separately (dual-track profile). |
 | One-way door classification by parsing prose summaries | Codex #4. Safety depends on wording. door_type must be declared at question definition site (registry), not inferred. |
 | Single event-schema file mixing declarations + overrides + verdicts + feedback | Codex #5. Incompatible domain objects. Now split into three files: question-log.jsonl, question-preferences.json, question-events.jsonl. |
-| TTHW telemetry for /plan-tune onboarding | Codex #14. Contradicts local-first framing. Local logging only. |
+| TTHW telemetry for $plan-tune onboarding | Codex #14. Contradicts local-first framing. Local logging only. |
 | Inline tune: writes without user-origin verification | Codex #16. Profile poisoning attack. Now: user-origin gate is non-optional. |
 
 ## Architecture
@@ -103,7 +103,7 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 }
 ```
 
-**Diversity check** (Codex #13): `inferred` is considered "enough data" only when `sample_size >= 20 AND skills_covered >= 3 AND question_ids_covered >= 8 AND days_span >= 7`. Below this, `/plan-tune profile` shows "not enough observed data yet" instead of a potentially-misleading inferred value.
+**Diversity check** (Codex #13): `inferred` is considered "enough data" only when `sample_size >= 20 AND skills_covered >= 3 AND question_ids_covered >= 8 AND days_span >= 7`. Below this, `$plan-tune profile` shows "not enough observed data yet" instead of a potentially-misleading inferred value.
 
 ## Data flow (v1)
 
@@ -131,8 +131,8 @@ Binary enforcement: `cgstack-question-preference --write` requires `source: "inl
 
 **Data privacy**:
 - All data is local-only under `~/.cgstack/`. Nothing leaves without explicit user action.
-- `/plan-tune export <path>` writes profile to user-specified path (opt-in export).
-- `/plan-tune delete` wipes local profile files.
+- `$plan-tune export <path>` writes profile to user-specified path (opt-in export).
+- `$plan-tune delete` wipes local profile files.
 - `cgstack-config set telemetry off` prevents any telemetry (this skill never sends profile data regardless).
 - Profile files have standard user-home permissions.
 
@@ -141,7 +141,7 @@ Binary enforcement: `cgstack-question-preference --write` requires `source: "inl
 ## 5 Hard Constraints (preserved from office-hours, updated for Codex feedback)
 
 1. **One-way doors are classified deterministically by registry declaration**, NOT by runtime summary parsing. Each registry entry declares `door_type: one-way | two-way`. Keyword pattern fallback (`scripts/one-way-doors.ts`) is a belt-and-suspenders secondary check for edge cases.
-2. **Profile dimensions are inspectable AND editable.** `/plan-tune profile` shows declared + inferred + gap. Edits via plain English go to `declared` only. System tracks `inferred` independently.
+2. **Profile dimensions are inspectable AND editable.** `$plan-tune profile` shows declared + inferred + gap. Edits via plain English go to `declared` only. System tracks `inferred` independently.
 3. **Signal map is hand-crafted in TypeScript.** `scripts/psychographic-signals.ts` maps `{question_id, user_choice} → {dimension, delta}`. Not agent-inferred. In v1, consumed only for `inferred.values` display — not for driving decisions.
 4. **No psychographic-driven auto-decide in v1.** Only explicit per-question preferences act. This sidesteps the "calibration gate can be gamed" critique (Codex #13) entirely — v1 doesn't have a gate to pass.
 5. **Per-project preferences beat global preferences.** `~/.cgstack/projects/{SLUG}/question-preferences.json` wins over any future global preference file. Global profile (`~/.cgstack/developer-profile.json`) is a starting point for diversity across projects.
@@ -150,7 +150,7 @@ Binary enforcement: `cgstack-question-preference --write` requires `source: "inl
 
 **Why event-sourced for the inferred profile**:
 - Signal map can change between cgstack versions. Recompute from events, no data migration needed.
-- Auditable: `/plan-tune profile --trace autonomy` shows every event that contributed to the value.
+- Auditable: `$plan-tune profile --trace autonomy` shows every event that contributed to the value.
 - Future-proof: new dimensions can be derived from existing history.
 
 **Why dual-track (declared + inferred, separately)** (Decision B below):
@@ -161,9 +161,9 @@ Binary enforcement: `cgstack-question-preference --write` requires `source: "inl
 
 ## Interaction model — plain English everywhere
 
-(From /plan-devex-review, user correction on CLI syntax):
+(From $plan-devex-review, user correction on CLI syntax):
 
-`/plan-tune` (no args) enters conversational mode. No CLI subcommand syntax required.
+`$plan-tune` (no args) enters conversational mode. No CLI subcommand syntax required.
 
 Menu in plain language:
 - "Show me my profile"
@@ -271,13 +271,13 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 
 **Chosen: both.** Shortcuts documented for power users; agent accepts and normalizes free English. Plain-English interaction is the default; structured keywords are an optional fast-path.
 
-### Decision E: CLI subcommand structure for /plan-tune — ANSWER: PLAIN ENGLISH CONVERSATIONAL (no subcommand syntax required)
+### Decision E: CLI subcommand structure for $plan-tune — ANSWER: PLAIN ENGLISH CONVERSATIONAL (no subcommand syntax required)
 
-**`/plan-tune profile`, `/plan-tune profile set autonomy 0.4`, etc.** (original):
+**`$plan-tune profile`, `$plan-tune profile set autonomy 0.4`, etc.** (original):
 - Pros: Fast for power users. Self-documenting via --help.
 - Cons: Users must memorize. Every invocation feels like a CLI session, not a conversation.
 
-**Plain-English conversational (revised after user correction):** `/plan-tune` enters a menu. User says what they want in natural language.
+**Plain-English conversational (revised after user correction):** `$plan-tune` enters a menu. User says what they want in natural language.
 - Pros: Zero memorization. Feels like talking to a coach, not a shell.
 - Cons: Slower for power users. Requires good agent interpretation.
 
@@ -289,13 +289,13 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 - Pros: Works regardless of which skill the user runs. User doesn't need to do anything special.
 - Cons (Codex #9): Latency, auth failures, rate limits, surprise browser opens, nondeterminism injected into every skill's preamble. Side effect in hot path.
 
-**Explicit command (`/plan-tune show-landed`):** User opts in.
+**Explicit command (`$plan-tune show-landed`):** User opts in.
 - Pros: No hot-path side effects. User controls when to see it.
 - Cons: Requires user discovery. The "surprise you when you earned it" magic is lost.
 
-**Post-ship hook (`/ship` triggers detection after PR creation):** Tied to /ship.
+**Post-ship hook (`$ship` triggers detection after PR creation):** Tied to $ship.
 - Pros: Natural timing. No preamble cost.
-- Cons: /ship isn't always the landing event (manual merges, team members merging, etc.).
+- Cons: $ship isn't always the landing event (manual merges, team members merging, etc.).
 
 **Chosen: DEFERRED entirely.** v2 will design this properly. When promoted, it moves out of preamble. User accepted Codex's argument that a celebration page in the preamble is strategic misfit for an already-risky feature.
 
@@ -358,7 +358,7 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 - Migration from `~/.cgstack/builder-profile.jsonl` preserves 100% of sessions + signals_accumulated. Regression test with 7-session fixture.
 - One-way door registry-declared entries: 100% of destructive ops, architecture forks, scope-adds > 1 day CC effort, security/compliance choices are classified `one-way`.
 - User-origin gate test: attempting to write a tune event with `source: "inline-tool-output"` is rejected.
-- Dogfood: Garry uses `/plan-tune` for 2+ weeks. Reports back whether:
+- Dogfood: Garry uses `$plan-tune` for 2+ weeks. Reports back whether:
   - `tune: never-ask` felt natural to type or got ignored
   - Registry maintenance (adding new questions) felt like reasonable discipline or schema bureaucracy
   - Inferred dimensions were stable across sessions or noisy
@@ -370,7 +370,7 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 2. Write `test/plan-tune.test.ts` registry-completeness test (gate tier). Verify it catches drift — temporarily remove one registry entry, confirm CI fails.
 3. Seed `scripts/one-way-doors.ts` with keyword-pattern fallback classifier.
 4. Seed `scripts/psychographic-signals.ts` with initial `{question_id, user_choice} → {dimension, delta}` mappings. Numbers are tentative — v1 ships, v2 recalibrates.
-5. Seed `scripts/archetypes.ts` with archetype definitions (referenced by future v2 `/plan-tune vibe`).
+5. Seed `scripts/archetypes.ts` with archetype definitions (referenced by future v2 `$plan-tune vibe`).
 6. `bin/cgstack-question-log` — validates against registry, rejects unknown IDs.
 7. `bin/cgstack-question-preference` — all subcommands + tests.
 8. `bin/cgstack-developer-profile` — `--read` (legacy), `--derive`, `--gap`, `--profile`.
@@ -382,7 +382,7 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 14. `bun run gen:skill-docs` — all SKILL.md files regenerated; verify each stays under 100KB token ceiling.
 15. `bun test` — all 45+ test cases green.
 16. Dogfood 2+ weeks. Collect real question-log + preferences data. Measure against success criteria.
-17. `/ship` v1. v2 scope discussion after dogfood.
+17. `$ship` v1. v2 scope discussion after dogfood.
 
 ## Open Questions (v2 scope decisions, deferred until real data)
 
@@ -390,14 +390,14 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 2. When `inferred` and `declared` gap becomes large, do we auto-suggest updating `declared`? Or just display?
 3. When a signal map version changes, do we auto-recompute or prompt user? Default: auto-recompute with diff display.
 4. Cross-project profile inheritance vs. isolation. v1 is per-project preferences + global profile; v2 may add explicit cross-project learning opt-ins.
-5. Should /plan-tune support a "team profile" mode where a shared developer-profile informs collaboration? v2+.
+5. Should $plan-tune support a "team profile" mode where a shared developer-profile informs collaboration? v2+.
 
 ## Reviews incorporated
 
-- **/office-hours (2026-04-16, 1 session):** Set 5 hard constraints, chose event-sourced + user-declared architecture.
-- **/plan-ceo-review (2026-04-16, EXPANSION mode):** 6 expansions accepted, later rolled back after Codex review.
-- **/plan-devex-review (2026-04-16, POLISH mode):** Plain-English interaction model; this survived to v1.
-- **/plan-eng-review (2026-04-16):** Test plan and completeness checks; partially superseded by registry-first rewrite.
+- **$office-hours (2026-04-16, 1 session):** Set 5 hard constraints, chose event-sourced + user-declared architecture.
+- **$plan-ceo-review (2026-04-16, EXPANSION mode):** 6 expansions accepted, later rolled back after Codex review.
+- **$plan-devex-review (2026-04-16, POLISH mode):** Plain-English interaction model; this survived to v1.
+- **$plan-eng-review (2026-04-16):** Test plan and completeness checks; partially superseded by registry-first rewrite.
 - **Codex CLI (2026-04-16, gpt-5.4 high reasoning):** 20-point critique drove the rollback. 15+ legitimate findings the Codex reviews missed.
 
 ## Credits and caveats

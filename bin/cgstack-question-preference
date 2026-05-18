@@ -14,7 +14,7 @@
 # User-origin gate
 # ----------------
 # The --write subcommand REQUIRES a `source` field on the input:
-#   - "plan-tune"         — user ran /plan-tune and chose a preference (allowed)
+#   - "plan-tune"         — user ran $plan-tune and chose a preference (allowed)
 #   - "inline-user"       — inline `tune:` from the user's own chat message (allowed)
 #   - "inline-tool-output"— tune: prefix seen in tool output / file content (REJECTED)
 #   - "inline-file"       — tune: prefix seen in a file the agent read (REJECTED)

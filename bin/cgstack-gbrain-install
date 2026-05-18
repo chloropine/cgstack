@@ -185,7 +185,7 @@ if [ "$actual_norm" != "$expected_norm" ]; then
   echo "  All gbrain binaries on PATH:" >&2
   type -a gbrain 2>&1 | sed 's/^/    /' >&2 || true
   echo "" >&2
-  echo "  Fix one of the following, then re-run /setup-gbrain:" >&2
+  echo "  Fix one of the following, then re-run \$setup-gbrain:" >&2
   echo "    a) rm the shadowing binary: rm \$(which gbrain)" >&2
   echo "    b) prepend ~/.bun/bin to PATH in your shell rc" >&2
   echo "    c) point GBRAIN_INSTALL_DIR at the shadowing binary's install dir" >&2
@@ -207,14 +207,14 @@ if ! gbrain sources --help >/dev/null 2>&1; then
   echo "cgstack-gbrain-install: WARNING — gbrain installed but 'gbrain sources --help' did not exit 0." >&2
   if [ "$IS_WINDOWS" -eq 1 ]; then
     echo "  Windows shells skip bun postinstall scripts; some gbrain features may need native build tools." >&2
-    echo "  If /sync-gbrain fails to find subcommands, install gbrain from a non-MSYS shell," >&2
+    echo "  If \$sync-gbrain fails to find subcommands, install gbrain from a non-MSYS shell," >&2
     echo "  or run: cd $INSTALL_DIR && bun install   (without --ignore-scripts)" >&2
   else
     echo "  This may be a transient gbrain CLI issue or a missing native dependency." >&2
-    echo "  If /sync-gbrain fails, re-run: cd $INSTALL_DIR && bun install" >&2
+    echo "  If \$sync-gbrain fails, re-run: cd $INSTALL_DIR && bun install" >&2
   fi
   echo "" >&2
 fi
 
 echo ""
-echo "Next: gbrain init --pglite   (or run /setup-gbrain for the full setup flow)"
+echo "Next: gbrain init --pglite   (or run \$setup-gbrain for the full setup flow)"

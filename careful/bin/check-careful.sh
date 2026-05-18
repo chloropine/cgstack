@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-careful.sh — PreToolUse hook for /careful skill
+# check-careful.sh — PreToolUse hook for $careful skill
 # Reads JSON from stdin, checks Bash command for destructive patterns.
 # Returns {"permissionDecision":"ask","message":"..."} to warn, or {} to allow.
 set -euo pipefail

@@ -1,6 +1,6 @@
 /**
  * Domain skills — per-site notes the agent writes for itself, persisted
- * alongside /learn's per-project learnings as type:"domain" rows.
+ * alongside $learn's per-project learnings as type:"domain" rows.
  *
  * Scope:
  *   - per-project: ~/.cgstack/projects/<slug>/learnings.jsonl

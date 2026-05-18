@@ -4,7 +4,7 @@
  * Purpose
  * -------
  * Every AskUserQuestion invocation is tagged with a stable question_id that maps
- * to an entry in this registry. The registry is the substrate /plan-tune builds on:
+ * to an entry in this registry. The registry is the substrate $plan-tune builds on:
  * - Logging (question-log.jsonl) tags events with a registered id
  * - Per-question preferences (question-preferences.json) are keyed by registered id
  * - One-way door safety is declared here, not inferred from prose summaries
@@ -12,7 +12,7 @@
  *
  * Not every AskUserQuestion in cgstack needs a registry entry right away. Skills
  * often craft questions dynamically at runtime — the agent generates an ad-hoc id
- * of the form `{skill}-{slug}` for those. The /plan-tune skill surfaces frequently-
+ * of the form `{skill}-{slug}` for those. The $plan-tune skill surfaces frequently-
  * firing ad-hoc ids as candidates for registry promotion.
  *
  * v1 coverage target: the ~30-50 most-common recurring question categories across
@@ -84,7 +84,7 @@ export interface QuestionDef {
   options?: StandardOption[] | string[];
   /** Optional key into scripts/psychographic-signals.ts for dimension attribution */
   signal_key?: string;
-  /** One-line description for docs and /plan-tune profile output */
+  /** One-line description for docs and $plan-tune profile output */
   description: string;
 }
 
@@ -97,7 +97,7 @@ export interface QuestionDef {
  */
 export const QUESTIONS = {
   // -----------------------------------------------------------------------
-  // /ship — pre-landing review, deploy, PR creation
+  // $ship — pre-landing review, deploy, PR creation
   // -----------------------------------------------------------------------
   'ship-release-pipeline-missing': {
     id: 'ship-release-pipeline-missing',
@@ -179,7 +179,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /review — pre-landing code review
+  // $review — pre-landing code review
   // -----------------------------------------------------------------------
   'review-finding-fix': {
     id: 'review-finding-fix',
@@ -208,7 +208,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /office-hours — YC diagnostic + builder brainstorm
+  // $office-hours — YC diagnostic + builder brainstorm
   // -----------------------------------------------------------------------
   'office-hours-mode-goal': {
     id: 'office-hours-mode-goal',
@@ -262,7 +262,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /plan-ceo-review — scope & strategy
+  // $plan-ceo-review — scope & strategy
   // -----------------------------------------------------------------------
   'plan-ceo-review-mode': {
     id: 'plan-ceo-review-mode',
@@ -308,7 +308,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /plan-eng-review — architecture & tests (required gate)
+  // $plan-eng-review — architecture & tests (required gate)
   // -----------------------------------------------------------------------
   'plan-eng-review-arch-finding': {
     id: 'plan-eng-review-arch-finding',
@@ -355,7 +355,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /plan-design-review — UI/UX plan audit
+  // $plan-design-review — UI/UX plan audit
   // -----------------------------------------------------------------------
   'plan-design-review-mode': {
     id: 'plan-design-review-mode',
@@ -377,7 +377,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /plan-devex-review — developer experience plan audit
+  // $plan-devex-review — developer experience plan audit
   // -----------------------------------------------------------------------
   'plan-devex-review-persona': {
     id: 'plan-devex-review-persona',
@@ -406,7 +406,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /qa — QA testing
+  // $qa — QA testing
   // -----------------------------------------------------------------------
   'qa-bug-fix-scope': {
     id: 'qa-bug-fix-scope',
@@ -427,7 +427,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /investigate — root-cause debugging
+  // $investigate — root-cause debugging
   // -----------------------------------------------------------------------
   'investigate-hypothesis-confirm': {
     id: 'investigate-hypothesis-confirm',
@@ -447,7 +447,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /land-and-deploy — merge + deploy + verify
+  // $land-and-deploy — merge + deploy + verify
   // -----------------------------------------------------------------------
   'land-and-deploy-merge-confirm': {
     id: 'land-and-deploy-merge-confirm',
@@ -467,7 +467,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /cso — security audit
+  // $cso — security audit
   // -----------------------------------------------------------------------
   'cso-global-scan-approval': {
     id: 'cso-global-scan-approval',
@@ -487,7 +487,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /cgstack-upgrade — version upgrade
+  // $cgstack-upgrade — version upgrade
   // -----------------------------------------------------------------------
   'cgstack-upgrade-inline': {
     id: 'cgstack-upgrade-inline',
@@ -551,7 +551,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /plan-tune — the skill itself
+  // $plan-tune — the skill itself
   // -----------------------------------------------------------------------
   'plan-tune-enable-setup': {
     id: 'plan-tune-enable-setup',
@@ -566,7 +566,7 @@ export const QUESTIONS = {
     skill: 'plan-tune',
     category: 'clarification',
     door_type: 'two-way',
-    description: "Self-declaration question (one per dimension during /plan-tune setup)",
+    description: "Self-declaration question (one per dimension during $plan-tune setup)",
   },
   'plan-tune-confirm-mutation': {
     id: 'plan-tune-confirm-mutation',
@@ -578,7 +578,7 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /autoplan — sequential auto-review
+  // $autoplan — sequential auto-review
   // -----------------------------------------------------------------------
   'autoplan-taste-decision': {
     id: 'autoplan-taste-decision',
@@ -622,7 +622,7 @@ export function getAllRegisteredIds(): Set<string> {
   return new Set(Object.keys(QUESTIONS));
 }
 
-/** Registry stats, for /plan-tune stats */
+/** Registry stats, for $plan-tune stats */
 export function getRegistryStats() {
   const all = Object.values(QUESTIONS as Record<string, QuestionDef>);
   const bySkill: Record<string, number> = {};

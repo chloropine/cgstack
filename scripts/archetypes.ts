@@ -1,7 +1,7 @@
 /**
  * Archetypes — one-word builder identities computed from dimension clusters.
  *
- * Used by future /plan-tune vibe and /plan-tune narrative commands (v2).
+ * Used by future $plan-tune vibe and $plan-tune narrative commands (v2).
  * v1 ships the definitions but doesn't wire them into user-facing output
  * yet. This file exists so the archetype model is stable by the time v2
  * narrative generation ships.
@@ -180,7 +180,7 @@ export function matchArchetype(dims: Record<Dimension, number>): Archetype {
   return best;
 }
 
-/** All archetype names, useful for tests and /plan-tune stats. */
+/** All archetype names, useful for tests and $plan-tune stats. */
 export function getAllArchetypeNames(): string[] {
   return ARCHETYPES.map((a) => a.name).concat(FALLBACK_ARCHETYPE.name);
 }

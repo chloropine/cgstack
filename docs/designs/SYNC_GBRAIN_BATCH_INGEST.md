@@ -1,9 +1,9 @@
-# /sync-gbrain batch ingest migration
+# $sync-gbrain batch ingest migration
 
 **Status:** Implemented on garrytan/dublin-v1 (D1-D8 decisions land in this PR)
 **Branch:** garrytan/dublin-v1
 **Owner:** Garry Tan
-**Triggered by:** /investigate run, 2026-05-09
+**Triggered by:** $investigate run, 2026-05-09
 **Estimated effort:** human ~3 days / CC+cgstack ~2 hr
 **Files touched:** 4 source + 1 test = 5 total (under estimate)
 
@@ -95,12 +95,12 @@ crosses the algorithm boundary. No data loss, but worth knowing.
 
 ## Problem
 
-`/sync-gbrain` memory stage takes 35 minutes on a fresh PGLite and exits null,
+`$sync-gbrain` memory stage takes 35 minutes on a fresh PGLite and exits null,
 losing all progress. Subsequent runs redo the same 35 minutes. Observed in
 two consecutive runs (gbrain 0.30.0 broken-postgres run: 712s exit-null;
 gbrain 0.31.2 PGLite run: 2100s exit-null with 501 pages actually persisted).
 
-## Root cause (from /investigate)
+## Root cause (from $investigate)
 
 Two compounding bugs in `bin/cgstack-memory-ingest.ts`:
 
@@ -298,7 +298,7 @@ the skip list with a new `cgstack-memory-ingest --skip-list` flag.
    supports it) — likely not, ignore for V1.
 
 4. **Cross-worktree concurrency.** `~/.cgstack/.staging-ingest-${pid}-${ts}/`
-   is pid-namespaced so two concurrent /sync-gbrain runs don't collide.
+   is pid-namespaced so two concurrent $sync-gbrain runs don't collide.
    But the orchestrator already holds a lock at `~/.cgstack/.sync-gbrain.lock`
    so this is belt-and-suspenders. Keep it.
 
@@ -322,8 +322,8 @@ the skip list with a new `cgstack-memory-ingest --skip-list` flag.
 
 ## Acceptance criteria
 
-- Cold `/sync-gbrain` on 1841 files completes in under 8 minutes.
-- Incremental `/sync-gbrain` (no file changes) completes in under 60 seconds.
+- Cold `$sync-gbrain` on 1841 files completes in under 8 minutes.
+- Incremental `$sync-gbrain` (no file changes) completes in under 60 seconds.
 - SIGTERM mid-run flushes state; next run resumes without redoing
   successfully-imported files.
 - FILE_TOO_LARGE failures don't block sync.last_commit advancement.

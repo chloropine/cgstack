@@ -113,9 +113,9 @@ In plan mode, allowed because they inform the plan: `$B`, `$D`, `codex exec`/`co
 
 If the user invokes a skill in plan mode, the skill takes precedence over generic plan mode behavior. **Treat the skill file as executable instructions, not reference.** Follow it step by step starting from Step 0; the first AskUserQuestion is the workflow entering plan mode, not a violation of it. AskUserQuestion (any variant — `mcp__*__AskUserQuestion` or native; see "AskUserQuestion Format → Tool resolution") satisfies plan mode's end-of-turn requirement. If no variant is callable, the skill is BLOCKED — stop and report `BLOCKED — AskUserQuestion unavailable` per the AskUserQuestion Format rule. At a STOP point, stop immediately. Do not continue the workflow or call ExitPlanMode there. Commands marked "PLAN MODE EXCEPTION — ALWAYS RUN" execute. Call ExitPlanMode only after the skill workflow completes, or if the user tells you to cancel the skill or leave plan mode.
 
-If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think /skillname might help here — want me to run it?"
+If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think $skillname might help here — want me to run it?"
 
-If `SKILL_PREFIX` is `"true"`, suggest/invoke `/cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
+If `SKILL_PREFIX` is `"true"`, suggest/invoke `$cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
 
 If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.codex/skills/cgstack/cgstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined).
 
@@ -185,11 +185,11 @@ Skip if `TEL_PROMPTED` is `yes`.
 
 If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: ask once:
 
-> Let cgstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
+> Let cgstack proactively suggest skills, like $qa for "does this work?" or $investigate for bugs?
 
 Options:
 - A) Keep it on (recommended)
-- B) Turn it off — I'll type /commands myself
+- B) Turn it off — I'll invoke skills myself
 
 If A: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive true`
 If B: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive false`
@@ -221,18 +221,18 @@ If A: Append this section to the end of AGENTS.md:
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
 
 Key routing rules:
-- Product ideas/brainstorming → invoke /office-hours
-- Strategy/scope → invoke /plan-ceo-review
-- Architecture → invoke /plan-eng-review
-- Design system/plan review → invoke /design-consultation or /plan-design-review
-- Full review pipeline → invoke /autoplan
-- Bugs/errors → invoke /investigate
-- QA/testing site behavior → invoke /qa or /qa-only
-- Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
-- Ship/deploy/PR → invoke /ship or /land-and-deploy
-- Save progress → invoke /context-save
-- Resume context → invoke /context-restore
+- Product ideas/brainstorming → invoke $office-hours
+- Strategy/scope → invoke $plan-ceo-review
+- Architecture → invoke $plan-eng-review
+- Design system/plan review → invoke $design-consultation or $plan-design-review
+- Full review pipeline → invoke $autoplan
+- Bugs/errors → invoke $investigate
+- QA/testing site behavior → invoke $qa or $qa-only
+- Code review/diff check → invoke $review
+- Visual polish → invoke $design-review
+- Ship/deploy/PR → invoke $ship or $land-and-deploy
+- Save progress → invoke $context-save
+- Resume context → invoke $context-restore
 ```
 
 Then commit the change: `git add AGENTS.md && git commit -m "chore: add cgstack skill routing rules to AGENTS.md"`
@@ -282,7 +282,7 @@ AI orchestrator (e.g., Codex). In spawned sessions:
 
 **Rule:** if any `mcp__*__AskUserQuestion` variant is in your tool list, prefer it. Hosts may disable native AUQ via `--disallowedTools AskUserQuestion` (Conductor does, by default) and route through their MCP variant; calling native there silently fails. Same questions/options shape; same decision-brief format applies.
 
-**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `/plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
+**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `$plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
 
 ### Format
 
@@ -368,7 +368,7 @@ fi
 _BRAIN_SYNC_BIN="~/.codex/skills/cgstack/bin/cgstack-brain-sync"
 _BRAIN_CONFIG_BIN="~/.codex/skills/cgstack/bin/cgstack-config"
 
-# /sync-gbrain context-load: teach the agent to use gbrain when it's available.
+# $sync-gbrain context-load: teach the agent to use gbrain when it's available.
 # Per-worktree pin: post-spike redesign uses kubectl-style `.gbrain-source` in the
 # git toplevel to scope queries. Look for the pin in the worktree (not a global
 # state file) so that opening worktree B without a pin doesn't claim "indexed"
@@ -387,9 +387,9 @@ if [ -f "$_GBRAIN_CONFIG" ] && command -v gbrain >/dev/null 2>&1; then
       echo "GBrain configured. Prefer \`gbrain search\`/\`gbrain query\` over Grep for"
       echo "semantic questions; use \`gbrain code-def\`/\`code-refs\`/\`code-callers\` for"
       echo "symbol-aware code lookup. See \"## GBrain Search Guidance\" in AGENTS.md."
-      echo "Run /sync-gbrain to refresh."
+      echo "Run \$sync-gbrain to refresh."
     else
-      echo "GBrain configured but this worktree isn't pinned yet. Run \`/sync-gbrain --full\`"
+      echo "GBrain configured but this worktree isn't pinned yet. Run \`\$sync-gbrain --full\`"
       echo "before relying on \`gbrain search\` for code questions in this worktree."
       echo "Falls back to Grep until pinned."
     fi
@@ -398,7 +398,7 @@ fi
 
 _BRAIN_SYNC_MODE=$("$_BRAIN_CONFIG_BIN" get artifacts_sync_mode 2>/dev/null || echo off)
 
-# Detect remote-MCP mode (Path 4 of /setup-gbrain). Local artifacts sync is
+# Detect remote-MCP mode (Path 4 of $setup-gbrain). Local artifacts sync is
 # a no-op in remote mode; the brain server pulls from GitHub/GitLab on its
 # own cadence. Read codex.json directly to keep this preamble fast (no
 # subprocess to codex CLI on every skill start).
@@ -484,7 +484,7 @@ At skill END before telemetry:
 
 The following nudges are tuned for the codex model family. They are
 **subordinate** to skill workflow, STOP points, AskUserQuestion gates, plan-mode
-safety, and /ship review gates. If a nudge below conflicts with skill instructions,
+safety, and $ship review gates. If a nudge below conflicts with skill instructions,
 the skill wins. Treat these as preferences, not rules.
 
 **Todo-list discipline.** When working through a multi-step plan, mark each task
@@ -656,13 +656,13 @@ WIP: <concise description of what changed>
 Decisions: <key choices made this step>
 Remaining: <what's left in the logical unit>
 Tried: <failed approaches worth recording> (omit if none)
-Skill: </skill-name-if-running>
+Skill: <$skill-name-if-running>
 [/cgstack-context]
 ```
 
 Rules: stage only intentional files, NEVER `git add -A`, do not commit broken tests or mid-edit state, and push only if `CHECKPOINT_PUSH` is `"true"`. Do not announce each WIP commit.
 
-`/context-restore` reads `[cgstack-context]`; `/ship` squashes WIP commits into clean commits.
+`$context-restore` reads `[cgstack-context]`; `$ship` squashes WIP commits into clean commits.
 
 If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user asks to commit.
 
@@ -670,11 +670,11 @@ If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user
 
 During long-running skill sessions, periodically write a brief `[PROGRESS]` summary: done, next, surprises.
 
-If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or /context-save. Progress summaries must NEVER mutate git state.
+If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or $context-save. Progress summaries must NEVER mutate git state.
 
 ## Question Tuning (skip entirely if `QUESTION_TUNING: false`)
 
-Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." `ASK_NORMALLY` means ask.
+Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with $plan-tune." `ASK_NORMALLY` means ask.
 
 After answer, log best-effort:
 ```bash
@@ -743,9 +743,9 @@ Replace `SKILL_NAME`, `OUTCOME`, and `USED_BROWSE` before running.
 
 ## Plan Status Footer
 
-Skills that run plan reviews (`/plan-*-review`, Codex review) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `/ship`, `/qa`, `/review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
+Plan-review skills (`$plan-ceo-review`, `$plan-eng-review`, `$plan-design-review`, and `$plan-devex-review`) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `$ship`, `$qa`, `$review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
 
-# /setup-gbrain — Coding-Agent Onboarding for gbrain
+# $setup-gbrain — Coding-Agent Onboarding for gbrain
 
 You are setting up gbrain (https://github.com/garrytan/gbrain), a persistent
 knowledge base, on the user's local Mac so that this coding agent (typically
@@ -761,14 +761,14 @@ docker containers with their own gbrain; "sharing" a brain between them and
 local Codex is only possible through shared Postgres (Supabase).
 
 ## User-invocable
-When the user types `/setup-gbrain`, run this skill. Three shortcut modes:
+When the user types `$setup-gbrain`, run this skill. Three shortcut modes:
 
-- `/setup-gbrain` — full flow (default)
-- `/setup-gbrain --repo` — only flip the per-remote policy for the current repo
-- `/setup-gbrain --switch` — only migrate the engine (PGLite ↔ Supabase)
-- `/setup-gbrain --resume-provision <ref>` — re-enter a previously interrupted
+- `$setup-gbrain` — full flow (default)
+- `$setup-gbrain --repo` — only flip the per-remote policy for the current repo
+- `$setup-gbrain --switch` — only migrate the engine (PGLite ↔ Supabase)
+- `$setup-gbrain --resume-provision <ref>` — re-enter a previously interrupted
   Supabase auto-provision at the polling step
-- `/setup-gbrain --cleanup-orphans` — list + delete in-flight Supabase projects
+- `$setup-gbrain --cleanup-orphans` — list + delete in-flight Supabase projects
 
 Parse the invocation args yourself — these are prose hints to the skill, not
 implemented as a dispatcher binary.
@@ -991,7 +991,7 @@ orgs=$(~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-provision list-orgs -
 
 If the `.orgs` array is empty, surface: "Your Supabase account has no
 organizations. Create one at https://supabase.com/dashboard, then re-run
-`/setup-gbrain`." STOP.
+`$setup-gbrain`." STOP.
 
 Ask the user for a region (default `us-east-1`; valid values are the 18
 enum values in the Supabase Management API — list a few common ones, let
@@ -1007,7 +1007,7 @@ Set up a SIGINT trap (D12 basic recovery):
 
 ```bash
 trap 'echo ""; echo "cgstack-gbrain: interrupted. In-flight ref: $INFLIGHT_REF"; \
-      echo "Resume: /setup-gbrain --resume-provision $INFLIGHT_REF"; \
+      echo "Resume: \$setup-gbrain --resume-provision $INFLIGHT_REF"; \
       echo "Delete: https://supabase.com/dashboard/project/$INFLIGHT_REF"; \
       unset SUPABASE_ACCESS_TOKEN DB_PASS; exit 130' INT TERM
 ```
@@ -1093,7 +1093,7 @@ status=$(echo "$verify_json" | jq -r .status)
 If `status != "success"`, the helper has already classified the failure
 into NETWORK / AUTH / MALFORMED and emitted a one-line remediation hint.
 Surface the hint above the raw error from `error_text` and **STOP** with
-a clear "fix and re-run /setup-gbrain" message. Do NOT continue to Step 5a
+a clear "fix and re-run $setup-gbrain" message. Do NOT continue to Step 5a
 on a failed verify — partial registration would leave the user with a
 half-broken state.
 
@@ -1137,7 +1137,7 @@ fi
 if ! gbrain init --pglite --json; then
   if [ -n "${BACKUP:-}" ] && [ -f "$BACKUP" ]; then mv "$BACKUP" "$HOME/.gbrain/config.json"; fi
   echo "gbrain init failed. Existing config (if any) was restored. PGLite at ~/.gbrain/pglite/ may be in a partial state — \`rm -rf ~/.gbrain/pglite\` to reset." >&2
-  echo "Continuing setup without local code search; you can re-run /setup-gbrain to retry." >&2
+  echo "Continuing setup without local code search; you can re-run \$setup-gbrain to retry." >&2
 fi
 ```
 
@@ -1148,7 +1148,7 @@ for code-def/refs/callers).
 
 **If B (No)**: skip the install + init. The local engine stays absent.
 `gbrain_local_status` will be `missing-config` (or `no-cli` if gbrain isn't
-installed). `/sync-gbrain` will SKIP the code stage cleanly per plan D12.
+installed). `$sync-gbrain` will SKIP the code stage cleanly per plan D12.
 
 **4e. Skip Steps 3, 4 (other paths) and 5 (local doctor) when B was picked.**
 When A was picked, Step 3 already ran (via cgstack-gbrain-install) and Step 4
@@ -1175,7 +1175,7 @@ timeout 180s gbrain migrate --to pglite --json
 If `timeout` returns 124 (exit code for timeout): surface D9 message
 ("Migration didn't complete in 3 minutes — another cgstack session may be
 holding a lock on the source brain. Close other workspaces and re-run
-`/setup-gbrain --switch`. Your original brain is untouched."). STOP.
+`$setup-gbrain --switch`. Your original brain is untouched."). STOP.
 
 ---
 
@@ -1285,14 +1285,14 @@ Branches:
 
 If outside a git repo OR no origin remote: skip this step with a note.
 
-For `/setup-gbrain --repo` invocations, execute ONLY Step 6 and exit.
+For `$setup-gbrain --repo` invocations, execute ONLY Step 6 and exit.
 
 ---
 
 ## Step 7: Offer artifacts sync + wire it into gbrain
 
 Renamed from "session memory sync" in v1.27.0.0 — the on-disk concept is
-artifacts (CEO plans, designs, /investigate reports, retros) rather than
+artifacts (CEO plans, designs, $investigate reports, retros) rather than
 "session memory," which was a confusing name for what was always a
 human-readable artifact bucket. Behavioral transcript ingest is its own
 step (7.5) with its own option set.
@@ -1448,7 +1448,7 @@ Find-and-replace (or append) the section. Block format depends on mode:
 ### Path 4 (Remote MCP)
 
 ```markdown
-## GBrain Configuration (configured by /setup-gbrain)
+## GBrain Configuration (configured by $setup-gbrain)
 - Mode: remote-http
 - MCP URL: {MCP_URL}
 - Server version: gbrain v{SERVER_VERSION}  (from Step 4c verify)
@@ -1467,7 +1467,7 @@ in to git in many projects). It lives only in `~/.codex.json` where
 ### Paths 1, 2a, 2b, 3 (Local stdio)
 
 ```markdown
-## GBrain Configuration (configured by /setup-gbrain)
+## GBrain Configuration (configured by $setup-gbrain)
 - Mode: local-stdio
 - Engine: {pglite|postgres}
 - Config file: ~/.gbrain/config.json (mode 0600)
@@ -1490,7 +1490,7 @@ block content is machine-AGNOSTIC — no engine type, no page counts, no
 last-sync time. Machine state stays in the Configuration block above.
 
 ```markdown
-## GBrain Search Guidance (configured by /sync-gbrain)
+## GBrain Search Guidance (configured by $sync-gbrain)
 <!-- cgstack-gbrain-search-guidance:start -->
 
 GBrain is set up and synced on this machine. The agent should prefer gbrain
@@ -1512,13 +1512,13 @@ Prefer gbrain when:
 
 Grep is still right for known exact strings, regex, multiline patterns, and
 file globs. The brain auto-syncs incrementally on every cgstack skill start.
-Run `/sync-gbrain` to force-refresh, `/sync-gbrain --full` for full reindex.
+Run `$sync-gbrain` to force-refresh, `$sync-gbrain --full` for full reindex.
 
 <!-- cgstack-gbrain-search-guidance:end -->
 ```
 
 If Step 9 smoke test fails, skip the guidance block write entirely. The user's
-next `/sync-gbrain` run will re-evaluate capability and write the block when
+next `$sync-gbrain` run will re-evaluate capability and write the block when
 the round-trip works.
 
 ---
@@ -1555,7 +1555,7 @@ Do NOT print the actual token in the curl command — leave the placeholder
 
 ```bash
 SLUG="setup-gbrain-smoke-test-$(date +%s)"
-echo "Set up on $(date). Smoke test for /setup-gbrain." | gbrain put "$SLUG"
+echo "Set up on $(date). Smoke test for \$setup-gbrain." | gbrain put "$SLUG"
 gbrain search "smoke test" | grep -i "$SLUG"
 ```
 
@@ -1566,7 +1566,7 @@ and STOP with a NEEDS_CONTEXT escalation.
 
 ## Step 10: GREEN/YELLOW/RED verdict block (idempotent doctor output)
 
-After Steps 1-9 complete, summarize. Re-running `/setup-gbrain` on a
+After Steps 1-9 complete, summarize. Re-running `$setup-gbrain` on a
 configured Mac is a first-class doctor path: every step detects existing
 state, repairs only what's missing, and reports here.
 
@@ -1598,7 +1598,7 @@ gbrain status: GREEN  (mode: remote-http)
   Smoke test ...... INFO printed for post-restart manual verification
 
 Restart Codex to pick up the `mcp__gbrain__*` tools.
-Re-run `/setup-gbrain` any time the bearer rotates or the URL moves.
+Re-run `$setup-gbrain` any time the bearer rotates or the URL moves.
 ```
 
 The **Code search** row reflects the choice at Step 4d:
@@ -1627,7 +1627,7 @@ gbrain status: GREEN  (mode: local-stdio)
   AGENTS.md ....... OK
   Smoke test ...... OK   put → search → delete round-trip
 
-Run `/setup-gbrain` again any time gbrain feels off; it's safe and idempotent.
+Run `$setup-gbrain` again any time gbrain feels off; it's safe and idempotent.
 ```
 
 If any row is YELLOW or RED, the verdict line says so and the failing rows
@@ -1639,7 +1639,7 @@ as markdown + git, recoverable manually via `gbrain import` from a clone.
 
 ---
 
-## `/setup-gbrain --cleanup-orphans` (D20)
+## `$setup-gbrain --cleanup-orphans` (D20)
 
 Re-collect a PAT (Step 4 path-2a scope disclosure), then:
 
@@ -1701,7 +1701,7 @@ this at build time.
 - **STOP points are hard.** Gbrain doctor not healthy, D19 PATH shadow, D9
   migrate timeout, smoke test failure — each is a STOP. Do not paper over.
 - **Concurrent-run lock.** At skill start, `mkdir ~/.cgstack/.setup-gbrain.lock.d`
-  (atomic). If the mkdir fails, abort with: "Another `/setup-gbrain` instance
+  (atomic). If the mkdir fails, abort with: "Another `$setup-gbrain` instance
   is running. Wait for it, or `rm -rf ~/.cgstack/.setup-gbrain.lock.d` if
   you're sure it's stale." Release on normal exit AND in the SIGINT trap.
 - **AGENTS.md is the audit trail.** Always update it in Step 8 after a

@@ -1,5 +1,5 @@
 /**
- * AskUserQuestion format regression test for /plan-ceo-review and /plan-eng-review
+ * AskUserQuestion format regression test for $plan-ceo-review and $plan-eng-review
  * running under Codex CLI (GPT-5.4).
  *
  * Context: GPT-class models under the "No preamble / Prefer doing over listing"

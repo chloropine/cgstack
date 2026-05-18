@@ -275,7 +275,7 @@ do_wireup() {
   case "$ew_rc" in
     0) : ;;  # success
     2)
-      [ "$STRICT" = "1" ] && die "no $CGSTACK_HOME/.git; run /setup-gbrain Step 7 (cgstack-brain-init) first" 2
+      [ "$STRICT" = "1" ] && die "no $CGSTACK_HOME/.git; run \$setup-gbrain Step 7 (cgstack-brain-init) first" 2
       warn "no $CGSTACK_HOME/.git; skipping (benign skip)"
       exit 0
       ;;

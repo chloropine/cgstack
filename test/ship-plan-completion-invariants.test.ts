@@ -26,7 +26,7 @@ describe('ship/SKILL.md — Plan Completion gate invariants (VAS-449 remediation
   });
 
   test('Subagent failure: fail-closed, not silent fail-open', () => {
-    expect(skill).not.toMatch(/Never block \/ship on subagent failure\.\s*$/m);
+    expect(skill).not.toMatch(/Never block \$ship on subagent failure\.\s*$/m);
     expect(skill).toMatch(/Silent fail-open is the failure shape that VAS-449 surfaced/);
     expect(skill).toMatch(/Stop and fix the audit/);
   });

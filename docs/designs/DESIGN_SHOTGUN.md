@@ -135,7 +135,7 @@ feedback and click Submit again. Nothing happens because the server is gone.
 - Disables ALL inputs (buttons, radios, textareas, star ratings)
 - Hides the Regenerate bar entirely
 - Replaces the Submit button with: "Feedback received! Return to your coding agent."
-- Shows: "Want to make more changes? Run `/design-shotgun` again."
+- Shows: "Want to make more changes? Run `$design-shotgun` again."
 - The page becomes a read-only record of what was submitted
 
 **Implemented in:** `compare.ts:showPostSubmitState()` (line 484)
@@ -161,7 +161,7 @@ spinner spins forever.
 **Fix:** Progress polling has a hard 5-minute timeout (150 polls x 2s interval).
 After 5 minutes:
 - Spinner replaced with: "Something went wrong."
-- Shows: "Run `/design-shotgun` again in your coding agent."
+- Shows: "Run `$design-shotgun` again in your coding agent."
 - Polling stops. Page becomes informational.
 
 **Implemented in:** `compare.ts:startProgressPolling()` (line 511)

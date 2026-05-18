@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # cgstack-gbrain-supabase-provision — Supabase Management API wrapper for
-# /setup-gbrain path 2a (auto-provision).
+# $setup-gbrain path 2a (auto-provision).
 #
 # Subcommands:
 #   list-orgs
@@ -32,7 +32,7 @@
 #     (default "gbrain") AND whose ref does NOT match the one in the local
 #     active ~/.gbrain/config.json pooler URL. Those are the gbrain-shaped
 #     projects that aren't pointed at by a working local config — candidates
-#     for /setup-gbrain --cleanup-orphans.
+#     for $setup-gbrain --cleanup-orphans.
 #     Output: {"active_ref","orphans":[{"ref","name","created_at","region"}, ...]}.
 #
 #   delete-project <ref>
@@ -311,7 +311,7 @@ cmd_wait() {
 
     if [ "$elapsed" -ge "$timeout" ]; then
       echo "cgstack-gbrain-supabase-provision: wait timed out after ${timeout}s (last status: $status)" >&2
-      echo "cgstack-gbrain-supabase-provision: re-run with /setup-gbrain --resume-provision $ref" >&2
+      echo "cgstack-gbrain-supabase-provision: re-run with \$setup-gbrain --resume-provision $ref" >&2
       exit 6
     fi
     sleep "$POLL_INTERVAL"

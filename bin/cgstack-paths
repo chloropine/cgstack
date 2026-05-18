@@ -29,7 +29,7 @@ else
   _state_root=".cgstack"
 fi
 
-# Plan root: where /context-save and Codex review flows write plan files.
+# Plan root: where $context-save and Codex review flows write plan files.
 if [ -n "${CGSTACK_PLAN_DIR:-}" ]; then
   _plan_root="$CGSTACK_PLAN_DIR"
 elif [ -n "${CODEX_PLANS_DIR:-}" ]; then

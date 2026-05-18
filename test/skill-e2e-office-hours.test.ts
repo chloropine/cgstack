@@ -1,5 +1,5 @@
 /**
- * E2E tests for /office-hours mode-posture regression (V1.1 gate).
+ * E2E tests for $office-hours mode-posture regression (V1.1 gate).
  *
  * Exercises startup mode Q3 (forcing energy) and builder mode (generative wildness).
  * Both cases detect whether preamble Writing Style rules have flattened the
@@ -76,7 +76,7 @@ Write Q3 output — the forcing question you would ask this founder — to ${wor
       model: 'gpt-5.4',
     });
 
-    logCost('/office-hours (FORCING)', result);
+    logCost('$office-hours (FORCING)', result);
     recordE2E(evalCollector, '/office-hours-forcing-energy', 'Office Hours Forcing Energy E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -147,7 +147,7 @@ Write your response — the three adjacent unlocks — to ${workDir}/unlocks.md.
       model: 'gpt-5.4',
     });
 
-    logCost('/office-hours (BUILDER)', result);
+    logCost('$office-hours (BUILDER)', result);
     recordE2E(evalCollector, '/office-hours-builder-wildness', 'Office Hours Builder Wildness E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });

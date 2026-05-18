@@ -58,13 +58,13 @@ Write your report to ${qaDir}/qa-reports/qa-report.md`,
       runId,
     });
 
-    logCost('/qa quick', result);
-    recordE2E(evalCollector, '/qa quick', 'QA skill E2E', result, {
+    logCost('$qa quick', result);
+    recordE2E(evalCollector, '$qa quick', 'QA skill E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // browseErrors can include false positives from hallucinated paths
     if (result.browseErrors.length > 0) {
-      console.warn('/qa quick browse errors (non-fatal):', result.browseErrors);
+      console.warn('$qa quick browse errors (non-fatal):', result.browseErrors);
     }
     // Accept error_max_turns — the agent doing thorough QA work is not a failure
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -128,7 +128,7 @@ Write your report to ${qaOnlyDir}/qa-reports/qa-only-report.md`,
       runId,
     });
 
-    logCost('/qa-only', result);
+    logCost('$qa-only', result);
 
     // Verify Edit was not used — the critical guardrail for report-only mode.
     // Glob is read-only and may be used for file discovery (e.g. finding SKILL.md).
@@ -138,7 +138,7 @@ Write your report to ${qaOnlyDir}/qa-reports/qa-only-report.md`,
     }
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
-    recordE2E(evalCollector, '/qa-only no-fix', 'QA-Only skill E2E', result, {
+    recordE2E(evalCollector, '$qa-only no-fix', 'QA-Only skill E2E', result, {
       passed: exitOk && editCalls.length === 0,
     });
 
@@ -250,8 +250,8 @@ This is a test+fix loop: find bugs, fix them in the source code, commit each fix
       runId,
     });
 
-    logCost('/qa fix loop', result);
-    recordE2E(evalCollector, '/qa fix loop', 'QA Fix Loop E2E', result, {
+    logCost('$qa fix loop', result);
+    recordE2E(evalCollector, '$qa fix loop', 'QA Fix Loop E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -263,7 +263,7 @@ This is a test+fix loop: find bugs, fix them in the source code, commit each fix
       cwd: qaFixDir, stdio: 'pipe',
     });
     const commits = gitLog.stdout.toString().trim().split('\n');
-    console.log(`/qa fix loop: ${commits.length} commits total (1 initial + ${commits.length - 1} fixes)`);
+    console.log(`$qa fix loop: ${commits.length} commits total (1 initial + ${commits.length - 1} fixes)`);
     expect(commits.length).toBeGreaterThan(1);
 
     // Verify Edit tool was used (agent actually modified source code)
@@ -387,14 +387,14 @@ Do NOT fix any bugs. Do NOT use AskUserQuestion — just pick vitest.`,
       runId,
     });
 
-    logCost('/qa bootstrap', result);
+    logCost('$qa bootstrap', result);
 
     const hasTestConfig = fs.existsSync(path.join(bsDir, 'vitest.config.ts'))
       || fs.existsSync(path.join(bsDir, 'vitest.config.js'));
     const hasTestFile = fs.readdirSync(bsDir).some(f => f.includes('.test.'));
     const hasTestingMd = fs.existsSync(path.join(bsDir, 'TESTING.md'));
 
-    recordE2E(evalCollector, '/qa bootstrap', 'Test Bootstrap E2E', result, {
+    recordE2E(evalCollector, '$qa bootstrap', 'Test Bootstrap E2E', result, {
       passed: hasTestConfig && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 

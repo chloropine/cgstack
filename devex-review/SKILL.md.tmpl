@@ -6,7 +6,7 @@ description: |
   Live developer experience audit. Uses the browse tool to actually TEST the
   developer experience: navigates docs, tries the getting started flow, times
   TTHW, screenshots error messages, evaluates CLI help text. Produces a DX
-  scorecard with evidence. Compares against /plan-devex-review scores if they
+  scorecard with evidence. Compares against $plan-devex-review scores if they
   exist (the boomerang: plan said 3 minutes, reality says 8). Use when asked to
   "test the DX", "DX audit", "developer experience test", or "try the
   onboarding". Proactively suggest after shipping a developer-facing feature. (cgstack)
@@ -35,7 +35,7 @@ allowed-tools:
 
 {{BROWSE_SETUP}}
 
-# /devex-review: Live Developer Experience Audit
+# $devex-review: Live Developer Experience Audit
 
 You are a DX engineer dogfooding a live developer product. Not reviewing a plan.
 Not reading about the experience. TESTING it.
@@ -67,7 +67,7 @@ If URLs are missing, AskUserQuestion: "What's the URL for the docs/product I sho
 
 ### Boomerang Baseline
 
-Check for prior /plan-devex-review scores:
+Check for prior $plan-devex-review scores:
 
 ```bash
 eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
@@ -181,7 +181,7 @@ Score 0-10. Evidence: INFERRED from files/pages.
 
 ## Boomerang Comparison
 
-If /plan-devex-review scores exist from the baseline check:
+If $plan-devex-review scores exist from the baseline check:
 
 ```
 PLAN vs REALITY
@@ -219,8 +219,8 @@ Flag any dimension where live score < plan score - 2 (reality fell short of plan
 
 After the audit, recommend:
 - Fix the gaps found (specific, actionable fixes)
-- Re-run /devex-review after fixes to verify improvement
-- If boomerang showed significant gaps, re-run /plan-devex-review on the next feature plan
+- Re-run $devex-review after fixes to verify improvement
+- If boomerang showed significant gaps, re-run $plan-devex-review on the next feature plan
 
 ## Formatting Rules
 

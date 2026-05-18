@@ -1,7 +1,7 @@
 /**
  * Plan-mode-info no-op regression (gate tier, paid, real-PTY).
  *
- * Asserts: when /plan-ceo-review is invoked OUTSIDE plan mode (no
+ * Asserts: when $plan-ceo-review is invoked OUTSIDE plan mode (no
  * --permission-mode plan flag, no plan-mode reminder injected), the skill
  * still reaches a terminal outcome ('asked' or 'plan_ready'). This is the
  * negative coverage to the per-skill plan-mode smokes — if the

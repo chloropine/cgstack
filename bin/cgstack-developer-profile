@@ -6,7 +6,7 @@
 #
 # Subcommands:
 #   --read              (default)  emit KEY: VALUE pairs in builder-profile format
-#                                  for /office-hours compatibility.
+#                                  for $office-hours compatibility.
 #   --derive            recompute inferred dimensions from question events;
 #                       write updated ~/.cgstack/developer-profile.json.
 #   --profile           emit the full profile as JSON (all fields).
@@ -155,7 +155,7 @@ EOF
 }
 
 # -----------------------------------------------------------------------
-# Read: emit legacy KEY: VALUE output for /office-hours compat.
+# Read: emit legacy KEY: VALUE output for $office-hours compat.
 # -----------------------------------------------------------------------
 do_read() {
   ensure_profile
@@ -408,7 +408,7 @@ do_check_mismatch() {
 # Narrative + Vibe (v2 stubs)
 # -----------------------------------------------------------------------
 do_narrative() {
-  echo "NARRATIVE: (v2 — not yet implemented; use /plan-tune profile for now)"
+  echo "NARRATIVE: (v2 — not yet implemented; use \$plan-tune profile for now)"
 }
 
 do_vibe() {

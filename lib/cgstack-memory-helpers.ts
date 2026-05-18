@@ -129,7 +129,7 @@ function gitleaksAvailable(): boolean {
     // Only warn once per process — Lane E will vendor the binary.
     process.stderr.write(
       "[cgstack-memory-helpers] gitleaks not in PATH; secret scanning disabled. " +
-      "Run /setup-gbrain to install (or `brew install gitleaks`).\n"
+      "Run $setup-gbrain to install (or `brew install gitleaks`).\n"
     );
   }
   return _gitleaksAvailability;

@@ -128,9 +128,9 @@ In plan mode, allowed because they inform the plan: `$B`, `$D`, `codex exec`/`co
 
 If the user invokes a skill in plan mode, the skill takes precedence over generic plan mode behavior. **Treat the skill file as executable instructions, not reference.** Follow it step by step starting from Step 0; the first AskUserQuestion is the workflow entering plan mode, not a violation of it. AskUserQuestion (any variant — `mcp__*__AskUserQuestion` or native; see "AskUserQuestion Format → Tool resolution") satisfies plan mode's end-of-turn requirement. If no variant is callable, the skill is BLOCKED — stop and report `BLOCKED — AskUserQuestion unavailable` per the AskUserQuestion Format rule. At a STOP point, stop immediately. Do not continue the workflow or call ExitPlanMode there. Commands marked "PLAN MODE EXCEPTION — ALWAYS RUN" execute. Call ExitPlanMode only after the skill workflow completes, or if the user tells you to cancel the skill or leave plan mode.
 
-If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think /skillname might help here — want me to run it?"
+If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think $skillname might help here — want me to run it?"
 
-If `SKILL_PREFIX` is `"true"`, suggest/invoke `/cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
+If `SKILL_PREFIX` is `"true"`, suggest/invoke `$cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
 
 If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.codex/skills/cgstack/cgstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined).
 
@@ -200,11 +200,11 @@ Skip if `TEL_PROMPTED` is `yes`.
 
 If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: ask once:
 
-> Let cgstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
+> Let cgstack proactively suggest skills, like $qa for "does this work?" or $investigate for bugs?
 
 Options:
 - A) Keep it on (recommended)
-- B) Turn it off — I'll type /commands myself
+- B) Turn it off — I'll invoke skills myself
 
 If A: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive true`
 If B: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive false`
@@ -236,18 +236,18 @@ If A: Append this section to the end of AGENTS.md:
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
 
 Key routing rules:
-- Product ideas/brainstorming → invoke /office-hours
-- Strategy/scope → invoke /plan-ceo-review
-- Architecture → invoke /plan-eng-review
-- Design system/plan review → invoke /design-consultation or /plan-design-review
-- Full review pipeline → invoke /autoplan
-- Bugs/errors → invoke /investigate
-- QA/testing site behavior → invoke /qa or /qa-only
-- Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
-- Ship/deploy/PR → invoke /ship or /land-and-deploy
-- Save progress → invoke /context-save
-- Resume context → invoke /context-restore
+- Product ideas/brainstorming → invoke $office-hours
+- Strategy/scope → invoke $plan-ceo-review
+- Architecture → invoke $plan-eng-review
+- Design system/plan review → invoke $design-consultation or $plan-design-review
+- Full review pipeline → invoke $autoplan
+- Bugs/errors → invoke $investigate
+- QA/testing site behavior → invoke $qa or $qa-only
+- Code review/diff check → invoke $review
+- Visual polish → invoke $design-review
+- Ship/deploy/PR → invoke $ship or $land-and-deploy
+- Save progress → invoke $context-save
+- Resume context → invoke $context-restore
 ```
 
 Then commit the change: `git add AGENTS.md && git commit -m "chore: add cgstack skill routing rules to AGENTS.md"`
@@ -297,7 +297,7 @@ AI orchestrator (e.g., Codex). In spawned sessions:
 
 **Rule:** if any `mcp__*__AskUserQuestion` variant is in your tool list, prefer it. Hosts may disable native AUQ via `--disallowedTools AskUserQuestion` (Conductor does, by default) and route through their MCP variant; calling native there silently fails. Same questions/options shape; same decision-brief format applies.
 
-**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `/plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
+**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `$plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
 
 ### Format
 
@@ -383,7 +383,7 @@ fi
 _BRAIN_SYNC_BIN="~/.codex/skills/cgstack/bin/cgstack-brain-sync"
 _BRAIN_CONFIG_BIN="~/.codex/skills/cgstack/bin/cgstack-config"
 
-# /sync-gbrain context-load: teach the agent to use gbrain when it's available.
+# $sync-gbrain context-load: teach the agent to use gbrain when it's available.
 # Per-worktree pin: post-spike redesign uses kubectl-style `.gbrain-source` in the
 # git toplevel to scope queries. Look for the pin in the worktree (not a global
 # state file) so that opening worktree B without a pin doesn't claim "indexed"
@@ -402,9 +402,9 @@ if [ -f "$_GBRAIN_CONFIG" ] && command -v gbrain >/dev/null 2>&1; then
       echo "GBrain configured. Prefer \`gbrain search\`/\`gbrain query\` over Grep for"
       echo "semantic questions; use \`gbrain code-def\`/\`code-refs\`/\`code-callers\` for"
       echo "symbol-aware code lookup. See \"## GBrain Search Guidance\" in AGENTS.md."
-      echo "Run /sync-gbrain to refresh."
+      echo "Run \$sync-gbrain to refresh."
     else
-      echo "GBrain configured but this worktree isn't pinned yet. Run \`/sync-gbrain --full\`"
+      echo "GBrain configured but this worktree isn't pinned yet. Run \`\$sync-gbrain --full\`"
       echo "before relying on \`gbrain search\` for code questions in this worktree."
       echo "Falls back to Grep until pinned."
     fi
@@ -413,7 +413,7 @@ fi
 
 _BRAIN_SYNC_MODE=$("$_BRAIN_CONFIG_BIN" get artifacts_sync_mode 2>/dev/null || echo off)
 
-# Detect remote-MCP mode (Path 4 of /setup-gbrain). Local artifacts sync is
+# Detect remote-MCP mode (Path 4 of $setup-gbrain). Local artifacts sync is
 # a no-op in remote mode; the brain server pulls from GitHub/GitLab on its
 # own cadence. Read codex.json directly to keep this preamble fast (no
 # subprocess to codex CLI on every skill start).
@@ -499,7 +499,7 @@ At skill END before telemetry:
 
 The following nudges are tuned for the codex model family. They are
 **subordinate** to skill workflow, STOP points, AskUserQuestion gates, plan-mode
-safety, and /ship review gates. If a nudge below conflicts with skill instructions,
+safety, and $ship review gates. If a nudge below conflicts with skill instructions,
 the skill wins. Treat these as preferences, not rules.
 
 **Todo-list discipline.** When working through a multi-step plan, mark each task
@@ -671,13 +671,13 @@ WIP: <concise description of what changed>
 Decisions: <key choices made this step>
 Remaining: <what's left in the logical unit>
 Tried: <failed approaches worth recording> (omit if none)
-Skill: </skill-name-if-running>
+Skill: <$skill-name-if-running>
 [/cgstack-context]
 ```
 
 Rules: stage only intentional files, NEVER `git add -A`, do not commit broken tests or mid-edit state, and push only if `CHECKPOINT_PUSH` is `"true"`. Do not announce each WIP commit.
 
-`/context-restore` reads `[cgstack-context]`; `/ship` squashes WIP commits into clean commits.
+`$context-restore` reads `[cgstack-context]`; `$ship` squashes WIP commits into clean commits.
 
 If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user asks to commit.
 
@@ -685,11 +685,11 @@ If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user
 
 During long-running skill sessions, periodically write a brief `[PROGRESS]` summary: done, next, surprises.
 
-If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or /context-save. Progress summaries must NEVER mutate git state.
+If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or $context-save. Progress summaries must NEVER mutate git state.
 
 ## Question Tuning (skip entirely if `QUESTION_TUNING: false`)
 
-Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." `ASK_NORMALLY` means ask.
+Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with $plan-tune." `ASK_NORMALLY` means ask.
 
 After answer, log best-effort:
 ```bash
@@ -758,7 +758,7 @@ Replace `SKILL_NAME`, `OUTCOME`, and `USED_BROWSE` before running.
 
 ## Plan Status Footer
 
-Skills that run plan reviews (`/plan-*-review`, Codex review) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `/ship`, `/qa`, `/review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
+Plan-review skills (`$plan-ceo-review`, `$plan-eng-review`, `$plan-design-review`, and `$plan-devex-review`) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `$ship`, `$qa`, `$review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
 
 ## Step 0: Detect platform and base branch
 
@@ -799,22 +799,22 @@ branch name wherever the instructions say "the base branch" or `<default>`.
 
 ---
 
-# /retro — Weekly Engineering Retrospective
+# $retro — Weekly Engineering Retrospective
 
 Generates a comprehensive engineering retrospective analyzing commit history, work patterns, and code quality metrics. Team-aware: identifies the user running the command, then analyzes every contributor with per-person praise and growth opportunities. Designed for a senior IC/CTO-level builder using Codex as a force multiplier.
 
 ## User-invocable
-When the user types `/retro`, run this skill.
+When the user types `$retro`, run this skill.
 
 ## Arguments
-- `/retro` — default: last 7 days
-- `/retro 24h` — last 24 hours
-- `/retro 14d` — last 14 days
-- `/retro 30d` — last 30 days
-- `/retro compare` — compare current window vs prior same-length window
-- `/retro compare 14d` — compare with explicit window
-- `/retro global` — cross-project retro across all AI coding tools (7d default)
-- `/retro global 14d` — cross-project retro with explicit window
+- `$retro` — default: last 7 days
+- `$retro 24h` — last 24 hours
+- `$retro 14d` — last 14 days
+- `$retro 30d` — last 30 days
+- `$retro compare` — compare current window vs prior same-length window
+- `$retro compare 14d` — compare with explicit window
+- `$retro global` — cross-project retro across all AI coding tools (7d default)
+- `$retro global 14d` — cross-project retro with explicit window
 
 
 
@@ -826,15 +826,15 @@ Parse the argument to determine the time window. Default to 7 days if no argumen
 
 **Argument validation:** If the argument doesn't match a number followed by `d`, `h`, or `w`, the word `compare` (optionally followed by a window), or the word `global` (optionally followed by a window), show this usage and stop:
 ```
-Usage: /retro [window | compare | global]
-  /retro              — last 7 days (default)
-  /retro 24h          — last 24 hours
-  /retro 14d          — last 14 days
-  /retro 30d          — last 30 days
-  /retro compare      — compare this period vs prior period
-  /retro compare 14d  — compare with explicit window
-  /retro global       — cross-project retro across all AI tools (7d default)
-  /retro global 14d   — cross-project retro with explicit window
+Usage: $retro [window | compare | global]
+  $retro              — last 7 days (default)
+  $retro 24h          — last 24 hours
+  $retro 14d          — last 14 days
+  $retro 30d          — last 30 days
+  $retro compare      — compare this period vs prior period
+  $retro compare 14d  — compare with explicit window
+  $retro global       — cross-project retro across all AI tools (7d default)
+  $retro global 14d   — cross-project retro with explicit window
 ```
 
 **If the first argument is `global`:** Skip the normal repo-scoped retro (Steps 1-14). Instead, follow the **Global Retrospective** flow at the end of this document. The optional second argument is the time window (default 7d). This mode does NOT require being inside a git repo.
@@ -1004,7 +1004,7 @@ If TODOS.md doesn't exist, skip the Backlog Health row.
 **Skill Usage (if analytics exist):** Read `~/.cgstack/analytics/skill-usage.jsonl` if it exists. Filter entries within the retro time window by `ts` field. Separate skill activations (no `event` field) from hook fires (`event: "hook_fire"`). Aggregate by skill name. Present as:
 
 ```
-| Skill Usage | /ship(12) /qa(8) /review(5) · 3 safety hook fires |
+| Skill Usage | $ship(12) $qa(8) $review(5) · 3 safety hook fires |
 ```
 
 If the JSONL file doesn't exist or has no entries in the window, skip the Skill Usage row.
@@ -1017,8 +1017,8 @@ If the JSONL file doesn't exist or has no entries in the window, skip the Skill 
 
 If moments exist, list them:
 ```
-  EUREKA /office-hours (branch: garrytan/auth-rethink): "Session tokens don't need server storage — browser crypto API makes client-side JWT validation viable"
-  EUREKA /plan-eng-review (branch: garrytan/cache-layer): "Redis isn't needed here — Bun's built-in LRU cache handles this workload"
+  EUREKA $office-hours (branch: garrytan/auth-rethink): "Session tokens don't need server storage — browser crypto API makes client-side JWT validation viable"
+  EUREKA $plan-eng-review (branch: garrytan/cache-layer): "Redis isn't needed here — Bun's built-in LRU cache handles this workload"
 ```
 
 If the JSONL file doesn't exist or has no entries in the window, skip the Eureka Moments row.
@@ -1320,7 +1320,7 @@ Narrative covering:
 - If test ratio < 20%: flag as growth area — "100% test coverage is the goal. Tests make vibe coding safe."
 
 ### Plan Completion
-Check review JSONL logs for plan completion data from /ship runs this period:
+Check review JSONL logs for plan completion data from $ship runs this period:
 
 ```bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
@@ -1395,7 +1395,7 @@ Small, practical, realistic. Each must be something that takes <5 minutes to ado
 
 ## Global Retrospective Mode
 
-When the user runs `/retro global` (or `/retro global 14d`), follow this flow instead of the repo-scoped Steps 1-14. This mode works from any directory — it does NOT require being inside a git repo.
+When the user runs `$retro global` (or `$retro global 14d`), follow this flow instead of the repo-scoped Steps 1-14. This mode works from any directory — it does NOT require being inside a git repo.
 
 ### Global Step 1: Compute time window
 
@@ -1423,7 +1423,7 @@ $DISCOVER_BIN --since "<window>" --format json 2>/tmp/cgstack-discover-stderr
 
 Read the stderr output from `/tmp/cgstack-discover-stderr` for diagnostic info. Parse the JSON output from stdout.
 
-If `total_sessions` is 0, say: "No AI coding sessions found in the last <window>. Try a longer window: `/retro global 30d`" and stop.
+If `total_sessions` is 0, say: "No AI coding sessions found in the last <window>. Try a longer window: `$retro global 30d`" and stop.
 
 ### Global Step 3: Run git log on each discovered repo
 
@@ -1543,8 +1543,8 @@ align cleanly. Never truncate project names.
 - Ship of the Week: the user's single highest-LOC PR across ALL repos.
 - Top Work: 3 bullet points summarizing the user's major themes, inferred from
   commit messages. Not individual commits — synthesize into themes.
-  E.g., "Built /retro global — cross-project retrospective with AI session discovery"
-  not "feat: cgstack-global-discover" + "feat: /retro global template".
+  E.g., "Built $retro global — cross-project retrospective with AI session discovery"
+  not "feat: cgstack-global-discover" + "feat: $retro global template".
 - The card must be self-contained. Someone seeing ONLY this block should understand
   the user's week without any surrounding context.
 - Do NOT include team members, project totals, or context switching data here.
@@ -1684,7 +1684,7 @@ Use the Write tool to save JSON to `~/.cgstack/retros/global-${today}-${next}.js
 
 ## Compare Mode
 
-When the user runs `/retro compare` (or `/retro compare 14d`):
+When the user runs `$retro compare` (or `$retro compare 14d`):
 
 1. Compute metrics for the current window (default 7d) using the midnight-aligned start date (same logic as the main retro — e.g., if today is 2026-03-18 and window is 7d, use `--since="2026-03-11T00:00:00"`)
 2. Compute metrics for the immediately prior same-length window using both `--since` and `--until` with midnight-aligned dates to avoid overlap (e.g., for a 7d window starting 2026-03-11: prior window is `--since="2026-03-04T00:00:00" --until="2026-03-11T00:00:00"`)

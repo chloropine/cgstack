@@ -274,7 +274,7 @@ fi
 mkdir -p "$HOME/.cgstack"
 [ "$CURRENT_VERSION" != "unknown" ] && echo "$CURRENT_VERSION" > "$HOME/.cgstack/.last-setup-version"
 if [ ! -f "$HOME/.cgstack/.welcome-seen" ]; then
-  log "  Welcome! Run /cgstack-upgrade anytime to stay current."
+  log "  Welcome! Run \$cgstack-upgrade anytime to stay current."
   touch "$HOME/.cgstack/.welcome-seen"
 fi
 rm -f /tmp/cgstack-latest-version

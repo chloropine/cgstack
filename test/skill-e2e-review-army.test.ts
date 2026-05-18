@@ -87,8 +87,8 @@ Write your findings to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review army migration', result);
-    recordE2E(evalCollector, '/review army migration safety', 'Review Army', result);
+    logCost('$review army migration', result);
+    recordE2E(evalCollector, '$review army migration safety', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     // Verify migration issues were caught
@@ -152,8 +152,8 @@ Write your findings to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review army n+1', result);
-    recordE2E(evalCollector, '/review army N+1 detection', 'Review Army', result);
+    logCost('$review army n+1', result);
+    recordE2E(evalCollector, '$review army N+1 detection', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const outputPath = path.join(dir, 'review-output.md');
@@ -254,8 +254,8 @@ Write your completion audit to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review army delivery', result);
-    recordE2E(evalCollector, '/review army delivery audit', 'Review Army', result);
+    logCost('$review army delivery', result);
+    recordE2E(evalCollector, '$review army delivery audit', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const outputPath = path.join(dir, 'review-output.md');
@@ -329,8 +329,8 @@ Include the line: "PR Quality Score: X/10" where X is the computed score.`,
       runId,
     });
 
-    logCost('/review army quality', result);
-    recordE2E(evalCollector, '/review army quality score', 'Review Army', result);
+    logCost('$review army quality', result);
+    recordE2E(evalCollector, '$review army quality score', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const outputPath = path.join(dir, 'review-output.md');
@@ -394,8 +394,8 @@ Write ONLY JSON findings (no preamble) to ${dir}/findings.json`,
       runId,
     });
 
-    logCost('/review army json', result);
-    recordE2E(evalCollector, '/review army JSON findings', 'Review Army', result);
+    logCost('$review army json', result);
+    recordE2E(evalCollector, '$review army JSON findings', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const findingsPath = path.join(dir, 'findings.json');
@@ -472,8 +472,8 @@ Start the file with "RED TEAM REVIEW" on the first line.`,
       runId,
     });
 
-    logCost('/review army red-team', result);
-    recordE2E(evalCollector, '/review army red team', 'Review Army', result);
+    logCost('$review army red-team', result);
+    recordE2E(evalCollector, '$review army red team', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const outputPath = path.join(dir, 'review-output.md');
@@ -539,8 +539,8 @@ Write findings to ${dir}/review-output.md`,
       runId,
     });
 
-    logCost('/review army consensus', result);
-    recordE2E(evalCollector, '/review army consensus', 'Review Army', result);
+    logCost('$review army consensus', result);
+    recordE2E(evalCollector, '$review army consensus', 'Review Army', result);
     expect(result.exitReason).toBe('success');
 
     const outputPath = path.join(dir, 'review-output.md');

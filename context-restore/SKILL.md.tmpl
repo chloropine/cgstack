@@ -3,11 +3,11 @@ name: context-restore
 preamble-tier: 2
 version: 1.0.0
 description: |
-  Restore working context saved earlier by /context-save. Loads the most recent
+  Restore working context saved earlier by $context-save. Loads the most recent
   saved state (across all branches by default) so you can pick up where you
   left off — even across Conductor workspace handoffs.
   Use when asked to "resume", "restore context", "where was I", or
-  "pick up where I left off". Pair with /context-save.
+  "pick up where I left off". Pair with $context-save.
   Formerly /checkpoint resume — renamed because Codex treats /checkpoint
   as a native rewind alias in current environments. (cgstack)
 allowed-tools:
@@ -26,7 +26,7 @@ triggers:
 
 {{PREAMBLE}}
 
-# /context-restore — Restore Saved Working Context
+# $context-restore — Restore Saved Working Context
 
 You are a **Staff Engineer reading a colleague's meticulous session notes** to
 pick up exactly where they left off. Your job is to load the most recent saved
@@ -36,12 +36,12 @@ context and present it clearly so the user can resume work without losing a beat
 context files and presents the summary.
 
 **Default: load the most recent saved context across ALL branches.** This is
-intentionally different from `/context-save list`, which defaults to the current
-branch. `/context-restore` is for Conductor workspace handoff — a context saved
+intentionally different from `$context-save list`, which defaults to the current
+branch. `$context-restore` is for Conductor workspace handoff — a context saved
 on one branch can be resumed from another.
 
 **Do NOT filter the candidate set by current branch.** The `list` flow does
-that; `/context-restore` does not.
+that; `$context-restore` does not.
 
 ---
 
@@ -49,9 +49,9 @@ that; `/context-restore` does not.
 
 Parse the user's input:
 
-- `/context-restore` → load the most recent saved context (any branch)
-- `/context-restore <title-fragment-or-number>` → load a specific saved context
-- `/context-restore list` → tell the user "Use `/context-save list` — listing
+- `$context-restore` → load the most recent saved context (any branch)
+- `$context-restore <title-fragment-or-number>` → load a specific saved context
+- `$context-restore list` → tell the user "Use `$context-save list` — listing
   lives on the save side" and exit. No mode detection here.
 
 ---
@@ -73,7 +73,7 @@ else
   # 2. On macOS, `find ... | xargs ls -1t` with zero results falls back to
   #    listing cwd. `sort -r` on empty input cleanly returns nothing.
   # Cap at 20 most recent: a user with 10k saved files shouldn't blow the
-  # context window just listing them. /context-save list handles pagination.
+  # context window just listing them. $context-save list handles pagination.
   FILES=$(find "$CHECKPOINT_DIR" -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort -r | head -20)
   if [ -z "$FILES" ]; then
     echo "NO_CHECKPOINTS"
@@ -136,8 +136,8 @@ If A, summarize the first remaining work item and suggest starting there.
 
 If Step 1 printed `NO_CHECKPOINTS`, tell the user:
 
-"No saved contexts yet. Run `/context-save` first to save your current working
-state, then `/context-restore` will find it."
+"No saved contexts yet. Run `$context-save` first to save your current working
+state, then `$context-restore` will find it."
 
 ---
 
@@ -151,4 +151,4 @@ state, then `/context-restore` will find it."
   `ls -1t` (filesystem mtime). Filenames are stable across file-system
   operations; mtime is not.
 - **This is a cgstack skill, not a Codex built-in.** When the user types
-  `/context-restore`, invoke this skill via the Skill tool.
+  `$context-restore`, invoke this skill via the Skill tool.

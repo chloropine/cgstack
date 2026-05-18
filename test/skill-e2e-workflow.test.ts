@@ -64,7 +64,7 @@ describeIfSelected('Document-Release skill E2E', ['document-release'], () => {
     const result = await runSkillTest({
       prompt: `Read the file document-release/SKILL.md for the document-release workflow instructions.
 
-Run the /document-release workflow on this repo. The base branch is "main".
+Run the $document-release workflow on this repo. The base branch is "main".
 
 IMPORTANT:
 - Do NOT use AskUserQuestion — auto-approve everything or skip if unsure.
@@ -82,7 +82,7 @@ IMPORTANT:
       runId,
     });
 
-    logCost('/document-release', result);
+    logCost('$document-release', result);
 
     // Read CHANGELOG to verify it was NOT clobbered
     const changelog = fs.readFileSync(path.join(docReleaseDir, 'CHANGELOG.md'), 'utf-8');
@@ -98,7 +98,7 @@ IMPORTANT:
     const readmeUpdated = readme.includes('Feature C') || readme.includes('feature-c') || readme.includes('feature C');
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
-    recordE2E(evalCollector, '/document-release', 'Document-Release skill E2E', result, {
+    recordE2E(evalCollector, '$document-release', 'Document-Release skill E2E', result, {
       passed: exitOk && hasOriginalEntries,
     });
 
@@ -173,7 +173,7 @@ describeIfSelected('Ship workflow E2E', ['ship-local-workflow'], () => {
       runId,
     });
 
-    logCost('/ship local workflow', result);
+    logCost('$ship local workflow', result);
 
     // Check push succeeded — verify the feature branch exists on the bare remote
     const branchCheck = spawnSync('git', ['branch', '--list', 'feature/ship-test'], { cwd: shipRemoteDir, stdio: 'pipe' });
@@ -184,7 +184,7 @@ describeIfSelected('Ship workflow E2E', ['ship-local-workflow'], () => {
       ? fs.readFileSync(path.join(shipWorkDir, 'VERSION'), 'utf-8').trim() : '';
     const versionBumped = versionContent !== '0.1.0.0';
 
-    recordE2E(evalCollector, '/ship local workflow', 'Ship workflow E2E', result, {
+    recordE2E(evalCollector, '$ship local workflow', 'Ship workflow E2E', result, {
       passed: branchExists && versionBumped && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -276,7 +276,7 @@ describeIfSelected('cgstack-upgrade E2E', ['cgstack-upgrade-happy-path'], () => 
     const result = await runSkillTest({
       prompt: `Read cgstack-upgrade/SKILL.md for the upgrade workflow.
 
-You are running /cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
+You are running $cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
 
 Current version: 0.5.0. A new version 0.6.0 is available on origin/main.
 
@@ -296,7 +296,7 @@ IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exa
       runId,
     });
 
-    logCost('/cgstack-upgrade happy path', result);
+    logCost('$cgstack-upgrade happy path', result);
 
     // Check that the version was updated
     const versionAfter = fs.readFileSync(path.join(mockGstack, 'VERSION'), 'utf-8').trim();
@@ -305,7 +305,7 @@ IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exa
       output.toLowerCase().includes('upgrade') ||
       output.toLowerCase().includes('updated');
 
-    recordE2E(evalCollector, '/cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
+    recordE2E(evalCollector, '$cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
       passed: versionAfter === '0.6.0' && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -417,8 +417,8 @@ Output the diagram directly.`,
       runId,
     });
 
-    logCost('/ship coverage audit', result);
-    recordE2E(evalCollector, '/ship Step 3.4 coverage audit', 'Test Coverage Audit E2E', result, {
+    logCost('$ship coverage audit', result);
+    recordE2E(evalCollector, '$ship Step 3.4 coverage audit', 'Test Coverage Audit E2E', result, {
       passed: result.exitReason === 'success',
     });
 

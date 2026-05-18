@@ -67,7 +67,7 @@ unrelated work.
 Skills live in two places:
 
 - **Per-project**: `~/.cgstack/projects/<slug>/learnings.jsonl` — same JSONL
-  file the `/learn` skill uses. Domain skills are `type:"domain"` rows.
+  file the `$learn` skill uses. Domain skills are `type:"domain"` rows.
 - **Global**: `~/.cgstack/global-domain-skills.jsonl` — only `state:"global"`
   rows.
 

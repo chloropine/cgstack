@@ -273,7 +273,7 @@ describe('v1.27.0.0 migration — AGENTS.md block field rewrite', () => {
     );
     const codexMd = `# Project notes
 
-## GBrain Configuration (configured by /setup-gbrain)
+## GBrain Configuration (configured by $setup-gbrain)
 - Engine: pglite
 - Memory sync: full
 - Current repo policy: read-write

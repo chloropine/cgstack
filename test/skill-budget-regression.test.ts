@@ -9,7 +9,7 @@
  *
  * First-run grace: if there's no prior run, the test passes vacuously.
  * The purpose is to catch a SECOND-run regression — a real-world scenario
- * is "preamble change shipped, /qa eval went from 30 tool calls to 90".
+ * is "preamble change shipped, $qa eval went from 30 tool calls to 90".
  *
  * Why two metrics (tools and turns): a regression that adds tool calls
  * usually reflects an inefficient skill prompt; a regression that adds

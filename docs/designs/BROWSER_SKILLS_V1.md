@@ -2,7 +2,7 @@
 
 **Status:** Phase 1 shipped on `garrytan/browserharness`. Phases 2-4 enumerated below.
 **Last updated:** 2026-04-26
-**Authors:** garrytan (with /plan-eng-review and Codex CLI outside-voice review)
+**Authors:** garrytan (with $plan-eng-review and Codex CLI outside-voice review)
 
 ## What this is
 
@@ -60,8 +60,8 @@ The plan as approved replaces the existing P1.
 | Phase | Branch | Scope |
 |-------|--------|-------|
 | **1** | `garrytan/browserharness` | SDK, storage, `$B skill list/run/show/test/rm` subcommands, scoped-token model, bundled `hackernews-frontpage` reference. **Shipped (v1.19.0.0, consolidated with Phase 2a).** |
-| **2a** | `garrytan/browserharness` (continues) | `/scrape <intent>` (read-only, single entry point with match/prototype paths) + `/skillify` (codifies prototype into permanent skill). Adds `browse/src/browser-skill-write.ts` D3 atomic-write helper. **Shipping v1.19.0.0.** |
-| **2b** | new (`browser-skills-automate`) | `/automate` skill template (mutating-flow sibling of `/scrape`). Reuses `/skillify` and the D3 helper. Per-mutating-step confirmation gate when running non-codified. P0 in TODOS. |
+| **2a** | `garrytan/browserharness` (continues) | `$scrape <intent>` (read-only, single entry point with match/prototype paths) + `$skillify` (codifies prototype into permanent skill). Adds `browse/src/browser-skill-write.ts` D3 atomic-write helper. **Shipping v1.19.0.0.** |
+| **2b** | new (`browser-skills-automate`) | `/automate` skill template (mutating-flow sibling of `$scrape`). Reuses `$skillify` and the D3 helper. Per-mutating-step confirmation gate when running non-codified. P0 in TODOS. |
 | **3** | new (`browser-skills-resolver`) | Resolver injection at session start (per-host browser-skill discovery). Mirrors domain-skill injection. `cgstack-config browser_skillify_prompts` knob. |
 | **4** | new | Eval test infrastructure (LLM-judge), fixture-staleness detection, periodic re-validation against live pages, OS-level FS sandbox for untrusted spawns. |
 
@@ -72,8 +72,8 @@ The plan as approved replaces the existing P1.
 ### Decisions locked (13)
 
 1. **Phase 1 = full storage + SDK + subcommands + bundled reference.** No agent
-   authoring yet. Phase 2 lands `/scrape` and `/automate`.
-2. **Two verbs in Phase 2: `/scrape` (read-only) and `/automate` (mutating).**
+   authoring yet. Phase 2 lands `$scrape` and `/automate`.
+2. **Two verbs in Phase 2: `$scrape` (read-only) and `/automate` (mutating).**
    They share skillify approval-gate machinery but live as separate skill
    templates.
 3. **Replaces the existing self-authoring-`$B` P1 in TODOS.md.** Same
@@ -206,36 +206,36 @@ The Codex review flagged 8 findings. The plan addresses them as follows:
 
 ---
 
-## Phase 2a — `/scrape` + `/skillify` (shipping v1.19.0.0)
+## Phase 2a — `$scrape` + `$skillify` (shipping v1.19.0.0)
 
-Two skill templates plus one helper module. `/scrape <intent>` is the single
+Two skill templates plus one helper module. `$scrape <intent>` is the single
 entry point for pulling page data; first call on a new intent prototypes via
 `$B` primitives and returns JSON, subsequent calls on a matching intent route
-to a codified browser-skill in ~200ms. `/skillify` codifies the most recent
+to a codified browser-skill in ~200ms. `$skillify` codifies the most recent
 successful prototype into a permanent browser-skill on disk. Mutating-flow
 sibling `/automate` deferred to Phase 2b (P0 in TODOS).
 
-### Decisions locked during the v1.19.0.0 plan review (`/plan-eng-review`)
+### Decisions locked during the v1.19.0.0 plan review (`$plan-eng-review`)
 
 | ID | Decision | Locked behavior |
 |----|----------|-----------------|
-| **D1** | `/skillify` provenance guard | Walk back ≤10 agent turns looking for a clearly-bounded `/scrape` invocation (the prototype's intent line + its trailing JSON output). If not found, refuse with: *"No recent /scrape result found in this conversation. Run /scrape <intent> first, then say /skillify."* No silent fallback. |
+| **D1** | `$skillify` provenance guard | Walk back ≤10 agent turns looking for a clearly-bounded `$scrape` invocation (the prototype's intent line + its trailing JSON output). If not found, refuse with: *"No recent $scrape result found in this conversation. Run $scrape <intent> first, then say $skillify."* No silent fallback. |
 | **D2** | Synthesis input slice | Template instructs the agent to extract ONLY the final-attempt `$B` calls that produced the JSON the user accepted, plus the user's stated intent string. Drop failed selector attempts, drop unrelated chat, drop earlier-session content. Closes Codex finding #6 by picking option (b) (re-prompt from agent's own context, not a structured recorder). |
-| **D3** | Atomic write discipline | `/skillify` writes to `~/.cgstack/.tmp/skillify-<spawnId>/`, runs `$B skill test` against the temp dir, and only renames into the final tier path on success + user approval. On test failure or approval rejection: `rm -rf` the temp dir entirely (no tombstone for never-approved skills). New module `browse/src/browser-skill-write.ts` (`stageSkill` / `commitSkill` / `discardStaged`) with `realpath`/`lstat` discipline per Codex finding #5. |
+| **D3** | Atomic write discipline | `$skillify` writes to `~/.cgstack/.tmp/skillify-<spawnId>/`, runs `$B skill test` against the temp dir, and only renames into the final tier path on success + user approval. On test failure or approval rejection: `rm -rf` the temp dir entirely (no tombstone for never-approved skills). New module `browse/src/browser-skill-write.ts` (`stageSkill` / `commitSkill` / `discardStaged`) with `realpath`/`lstat` discipline per Codex finding #5. |
 | **D4** | Test scope | 5 gate-tier E2E (scrape match, scrape prototype, skillify happy, skillify provenance refusal, approval-gate reject) + 1 unit test (atomic-write helper failure cleanup) + 1 hand-verified smoke (mutating-intent refusal). Registered in `test/helpers/touchfiles.ts`. |
 
 ### Carry-overs
 
 - **Default tier: global.** Lean global for procedures, with per-project
-  override at `/skillify` time (mirrors domain-skill scope). Phase 1 storage
+  override at `$skillify` time (mirrors domain-skill scope). Phase 1 storage
   helpers support both lookup paths.
 - **Bun runtime distribution.** Codex finding #7 stays open. Phase 2a assumes
   Bun is on PATH (cgstack already requires it via `setup:6-15`). Documented
-  in `/skillify` SKILL.md "Limits". Real fix lands in Phase 4.
+  in `$skillify` SKILL.md "Limits". Real fix lands in Phase 4.
 
 ## Phase 2b — `/automate` sketch
 
-Mutating-flow sibling of `/scrape`. Same skillify pattern (reuses `/skillify`
+Mutating-flow sibling of `$scrape`. Same skillify pattern (reuses `$skillify`
 and the D3 helper as-is). Difference: per-mutating-step UNTRUSTED-wrapped
 summary + `AskUserQuestion` confirmation gate when run non-codified. After
 codification, the skill runs unattended (the codified script enumerates exactly
@@ -257,7 +257,7 @@ if (browserSkillsBlock) {
 `host` field matches, and emits an UNTRUSTED-wrapped block listing them.
 
 `cgstack-config browser_skillify_prompts` (default off): when on, end-of-task
-nudges in `/qa`, `/design-review`, etc. fire when activity feed shows ≥N
+nudges in `$qa`, `$design-review`, etc. fire when activity feed shows ≥N
 commands on a single host AND no skill exists yet for that host+intent.
 
 ## Phase 4 sketch

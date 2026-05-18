@@ -1,11 +1,11 @@
 /**
- * Tier-1 live-fire E2E for /context-save and /context-restore.
+ * Tier-1 live-fire E2E for $context-save and $context-restore.
  *
- * These spawn `codex -p "/context-save ..."` with the Skill tool enabled
+ * These spawn `codex -p "$context-save ..."` with the Skill tool enabled
  * and the skill installed in the workdir's .codex/skills/. Unlike the
  * older hand-fed-section tests, these exercise the ROUTING path — the
  * exact thing that broke with the /checkpoint name collision and the
- * whole reason this rename exists. If /context-save stops routing to
+ * whole reason this rename exists. If $context-save stops routing to
  * the skill (e.g., upstream ships a built-in by that name), these fail.
  *
  * Periodic tier. ~$0.20-$0.40 per test, ~$2 total per run.
@@ -144,17 +144,17 @@ describeIfSelected('Context Skills E2E (live-fire)', [
 ], () => {
   afterAll(() => { finalizeEvalCollector(evalCollector); });
 
-  // ── 1. Routing: /context-save actually invokes the Skill tool ────────
+  // ── 1. Routing: $context-save actually invokes the Skill tool ────────
   testConcurrentIfSelected('context-save-routing', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('routing');
 
-    // Prompt pattern: the slash command + explicit "invoke via Skill tool"
+    // Prompt pattern: the dollar skill mention + explicit "invoke via Skill tool"
     // instruction. The CGSTACK_HOME / ./bin bash setup that used to be in
     // the prompt now comes via env:. Prompt without the Skill-tool hint
-    // causes the agent to interpret /context-save as a shell token and
+    // causes the agent to interpret $context-save as a shell token and
     // skip Skill routing entirely — which defeats this test's purpose.
     const result = await runSkillTest({
-      prompt: `Run /context-save wintermute progress. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-save wintermute progress. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 12,
@@ -188,14 +188,14 @@ describeIfSelected('Context Skills E2E (live-fire)', [
     const { workDir, cgstackHome, slug } = setupWorkdir('roundtrip');
     const magicMarker = 'wintermute-roundtrip-MX7FQZ';
 
-    // Stage a change so /context-save has something to capture.
+    // Stage a change so $context-save has something to capture.
     fs.writeFileSync(path.join(workDir, 'feature.ts'), `// ${magicMarker}\nexport const X = 1;\n`);
     spawnSync('git', ['add', 'feature.ts'], { cwd: workDir, stdio: 'pipe', timeout: 5000 });
 
     const result = await runSkillTest({
       prompt: `Two steps:
-1. Run /context-save ${magicMarker} — invoke via the Skill tool.
-2. Run /context-restore — invoke via the Skill tool. Report what it loaded.
+1. Run $context-save ${magicMarker} — invoke via the Skill tool.
+2. Run $context-restore — invoke via the Skill tool. Report what it loaded.
 Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
@@ -230,7 +230,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 240_000);
 
-  // ── 3. /context-restore <fragment> loads the matching save ───────────
+  // ── 3. $context-restore <fragment> loads the matching save ───────────
   testConcurrentIfSelected('context-restore-fragment-match', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('fragment');
 
@@ -246,7 +246,7 @@ Do NOT use AskUserQuestion.`,
       '## Working on: omega release\n\n### Summary\nOmega content FRAGMATCH_OMEGA_BUILD\n');
 
     const result = await runSkillTest({
-      prompt: `Run /context-restore payments — load the saved context whose title contains "payments". Invoke via the Skill tool. Report what was loaded. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-restore payments — load the saved context whose title contains "payments". Invoke via the Skill tool. Report what was loaded. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 10,
@@ -277,7 +277,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 180_000);
 
-  // ── 4. /context-restore with zero saves → graceful empty-state ───────
+  // ── 4. $context-restore with zero saves → graceful empty-state ───────
   testConcurrentIfSelected('context-restore-empty-state', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('empty');
     // Ensure the storage dir is empty or missing — setupWorkdir doesn't seed.
@@ -285,7 +285,7 @@ Do NOT use AskUserQuestion.`,
     expect(fs.existsSync(checkpointDir)).toBe(false);
 
     const result = await runSkillTest({
-      prompt: `Run /context-restore — there are no saved contexts yet. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-restore — there are no saved contexts yet. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 8,
@@ -317,7 +317,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 150_000);
 
-  // ── 5. /context-restore list redirects to /context-save list ─────────
+  // ── 5. $context-restore list redirects to $context-save list ─────────
   testConcurrentIfSelected('context-restore-list-delegates', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('delegates');
     seedSave(cgstackHome, slug, '20260101-120000-seed.md',
@@ -325,7 +325,7 @@ Do NOT use AskUserQuestion.`,
       '## Working on: seed\n');
 
     const result = await runSkillTest({
-      prompt: `Run /context-restore list. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-restore list. Invoke via the Skill tool. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 8,
@@ -338,10 +338,10 @@ Do NOT use AskUserQuestion.`,
     logCost('context-restore-list-delegates', result);
 
     // Broader surface — agent sometimes stops after the Skill call without
-    // producing text output. The "use /context-save list" hint may only
+    // producing text output. The "use $context-save list" hint may only
     // appear in tool inputs / transcript.
     const out = fullOutputSurface(result);
-    const mentionsSaveList = /context-save list/i.test(out);
+    const mentionsSaveList = /\$context-save list/i.test(out);
     const routedToRestore = skillCalls(result).includes('context-restore');
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
 
@@ -372,7 +372,7 @@ Do NOT use AskUserQuestion.`,
       '## Working on: legacy pre-rename work\n\n### Summary\nWork saved by OLD_CHECKPOINT_SKILL_LEGACYCOMPAT before the rename.\n\n### Remaining Work\n1. Item from the before-times.\n');
 
     const result = await runSkillTest({
-      prompt: `Run /context-restore — load the most recent saved context. Invoke via the Skill tool. Report the content of the loaded file. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-restore — load the most recent saved context. Invoke via the Skill tool. Report the content of the loaded file. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 8,
@@ -402,7 +402,7 @@ Do NOT use AskUserQuestion.`,
     const routedToRestore = skillCalls(result).includes('context-restore');
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
 
-    recordE2E(evalCollector, 'legacy /checkpoint file loads via /context-restore', 'Context Skills E2E', result, {
+    recordE2E(evalCollector, 'legacy /checkpoint file loads via $context-restore', 'Context Skills E2E', result, {
       passed: exitOk && routedToRestore && loadedLegacy,
     });
 
@@ -412,7 +412,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 180_000);
 
-  // ── 7. /context-save list: default filters to current branch ─────────
+  // ── 7. $context-save list: default filters to current branch ─────────
   testConcurrentIfSelected('context-save-list-current-branch', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('list-current');
 
@@ -428,7 +428,7 @@ Do NOT use AskUserQuestion.`,
       '## Working on: beta LISTCURR_BETA_TOKEN\n');
 
     const result = await runSkillTest({
-      prompt: `Run /context-save list — list saved contexts for the CURRENT branch only (default, no --all). Invoke via the Skill tool. The current branch is "main". Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-save list — list saved contexts for the CURRENT branch only (default, no --all). Invoke via the Skill tool. The current branch is "main". Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 10,
@@ -464,7 +464,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 180_000);
 
-  // ── 8. /context-save list --all: shows every branch ──────────────────
+  // ── 8. $context-save list --all: shows every branch ──────────────────
   testConcurrentIfSelected('context-save-list-all-branches', async () => {
     const { workDir, cgstackHome, slug } = setupWorkdir('list-all');
 
@@ -479,7 +479,7 @@ Do NOT use AskUserQuestion.`,
       '## Working on: beta LISTALL_BETA_TOKEN\n');
 
     const result = await runSkillTest({
-      prompt: `Run /context-save list --all — list saved contexts from ALL branches (not just the current one). Invoke via the Skill tool. Report the full list. Do NOT use AskUserQuestion.`,
+      prompt: `Run $context-save list --all — list saved contexts from ALL branches (not just the current one). Invoke via the Skill tool. Report the full list. Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
       maxTurns: 10,

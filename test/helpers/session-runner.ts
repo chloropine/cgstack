@@ -15,9 +15,9 @@ const CGSTACK_DEV_DIR = path.join(os.homedir(), '.cgstack-dev');
 const HEARTBEAT_PATH = path.join(CGSTACK_DEV_DIR, 'e2e-live.json'); // heartbeat stays global
 const PROJECT_DIR = path.dirname(getProjectEvalDir()); // ~/.cgstack/projects/$SLUG/
 
-/** Sanitize test name for use as filename: strip leading slashes, replace / with - */
+/** Sanitize test name for use as filename: strip leading skill markers, replace separators with - */
 export function sanitizeTestName(name: string): string {
-  return name.replace(/^\/+/, '').replace(/\//g, '-');
+  return name.replace(/^[/$]+/, '').replace(/[/$]+/g, '-').replace(/^-+/, '');
 }
 
 /** Atomic write: write to .tmp then rename. Non-fatal on error. */

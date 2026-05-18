@@ -1,7 +1,7 @@
 /**
  * Psychographic Signal Map — hand-crafted {question_id, user_choice} → {dimension, delta}.
  *
- * Consumed in v1 ONLY to compute inferred dimension values for /plan-tune
+ * Consumed in v1 ONLY to compute inferred dimension values for $plan-tune
  * inspection output. No skill behavior adapts to these signals in v1.
  *
  * When v2 wires 5 skills to consume the profile, this map is the source of

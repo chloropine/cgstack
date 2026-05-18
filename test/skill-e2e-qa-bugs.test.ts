@@ -103,7 +103,7 @@ CRITICAL RULES:
       model: 'gpt-5.4',
     });
 
-    logCost(`/qa ${label}`, result);
+    logCost(`$qa ${label}`, result);
 
     // Phase 1: browse mechanics. Accept error_max_turns — agent may have written
     // a partial report before running out of turns. What matters is detection rate.
@@ -143,7 +143,7 @@ CRITICAL RULES:
 
     if (!report) {
       dumpOutcomeDiagnostic(testWorkDir, label, '(no report file found)', { error: 'missing report' });
-      recordE2E(evalCollector, `/qa ${label}`, 'Planted-bug outcome evals', result, { error: 'no report generated' } as any);
+      recordE2E(evalCollector, `$qa ${label}`, 'Planted-bug outcome evals', result, { error: 'no report generated' } as any);
       throw new Error(`No report file found in ${reportDir}`);
     }
 
@@ -151,7 +151,7 @@ CRITICAL RULES:
     console.log(`${label} outcome:`, JSON.stringify(judgeResult, null, 2));
 
     // Record to eval collector with outcome judge results
-    recordE2E(evalCollector, `/qa ${label}`, 'Planted-bug outcome evals', result, {
+    recordE2E(evalCollector, `$qa ${label}`, 'Planted-bug outcome evals', result, {
       passed: judgePassed(judgeResult, groundTruth),
       detection_rate: judgeResult.detection_rate,
       false_positives: judgeResult.false_positives,

@@ -198,7 +198,7 @@ describe('Submit: browser click → feedback.json on disk', () => {
     ], bm);
     expect(successVisible).toBe('block');
 
-    // Success message should mention /design-shotgun
+    // Success message should mention $design-shotgun
     const successText = await handleReadCommand('js', [
       'document.getElementById("success-msg").textContent'
     ], bm);

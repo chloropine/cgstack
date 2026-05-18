@@ -1,7 +1,7 @@
 /**
- * /plan-devex-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
+ * $plan-devex-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
  *
- * Same shape as skill-e2e-plan-ceo-finding-count: drives /plan-devex-review
+ * Same shape as skill-e2e-plan-ceo-finding-count: drives $plan-devex-review
  * against a 5-finding seeded plan and asserts review-phase AUQ count ∈ [N-1, N+2].
  * Plus D19: review report at bottom of produced plan file.
  *
@@ -52,7 +52,7 @@ const PLAN_DEVEX_5_FINDINGS = [
 
 const PLAN_DEVEX_PATH = '/tmp/cgstack-test-plan-devex.md';
 
-describeE2E('/plan-devex-review per-finding AskUserQuestion count (periodic)', () => {
+describeE2E('$plan-devex-review per-finding AskUserQuestion count (periodic)', () => {
   test(
     `5-finding plan emits ${FLOOR}-${CEILING} review-phase AskUserQuestions`,
     async () => {
@@ -64,7 +64,7 @@ describeE2E('/plan-devex-review per-finding AskUserQuestion count (periodic)', (
 
       const obs = await runPlanSkillCounting({
         skillName: 'plan-devex-review',
-        slashCommand: '/plan-devex-review',
+        slashCommand: '$plan-devex-review',
         followUpPrompt: PLAN_DEVEX_5_FINDINGS,
         isLastStep0AUQ: devexStep0Boundary,
         reviewCountCeiling: CEILING + 1,

@@ -25,7 +25,7 @@ hooks:
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
-# /careful — Destructive Command Guardrails
+# $careful — Destructive Command Guardrails
 
 Safety mode is now **active**. Every bash command will be checked for destructive
 patterns before running. If a destructive command is detected, you'll be warned

@@ -1,5 +1,5 @@
 /**
- * Review Army resolver — parallel specialist reviewers for /review
+ * Review Army resolver — parallel specialist reviewers for $review
  *
  * Generates template prose that instructs Codex to:
  * 1. Detect stack and scope (via cgstack-diff-scope)

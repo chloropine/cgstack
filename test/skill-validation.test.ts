@@ -908,7 +908,7 @@ describe('CEO review mode validation', () => {
   // Skill chaining (benefits-from)
   test('contains prerequisite skill offer for office-hours', () => {
     expect(content).toContain('Prerequisite Skill Offer');
-    expect(content).toContain('/office-hours');
+    expect(content).toContain('$office-hours');
   });
 
   test('contains mid-session detection', () => {
@@ -1028,7 +1028,7 @@ describe('Test Bootstrap ({{TEST_BOOTSTRAP}}) integration', () => {
     expect(content).not.toContain('Test Framework Bootstrap');
     // But should have the recommendation note
     expect(content).toContain('No test framework detected');
-    expect(content).toContain('Run `/qa` to bootstrap');
+    expect(content).toContain('Run `$qa` to bootstrap');
   });
 
   test('bootstrap includes framework knowledge table', () => {
@@ -1096,7 +1096,7 @@ describe('Phase 8e.5 regression test generation', () => {
   test('regression test includes full attribution comment format', () => {
     const content = fs.readFileSync(path.join(ROOT, 'qa', 'SKILL.md'), 'utf-8');
     expect(content).toContain('// Regression: ISSUE-NNN');
-    expect(content).toContain('// Found by /qa on');
+    expect(content).toContain('// Found by $qa on');
     expect(content).toContain('// Report: .cgstack/qa-reports/');
   });
 
@@ -1214,7 +1214,7 @@ describe('ship step numbering', () => {
 
   test('review/SKILL.md step numbers unchanged (regression guard for resolver conditionals)', () => {
     const skill = fs.readFileSync(path.join(ROOT, 'review', 'SKILL.md'), 'utf-8');
-    // /review uses its own fractional numbering: 1.5, 2.5, 4.5, 5.5, 5.6, 5.7, 5.8
+    // $review uses its own fractional numbering: 1.5, 2.5, 4.5, 5.5, 5.6, 5.7, 5.8
     // If the ship-side renumber accidentally touched the review-side of resolver conditionals,
     // these would vanish. This test catches that.
     expect(skill).toContain('## Step 1.5: Scope Drift Detection');
@@ -1270,7 +1270,7 @@ describe('QA report template', () => {
 
 describe('Review skill', () => {
 
-  test('adversarial review in /review always runs both passes', () => {
+  test('adversarial review in $review always runs both passes', () => {
     const content = fs.readFileSync(path.join(ROOT, 'review', 'SKILL.md'), 'utf-8');
     expect(content).toContain('Adversarial review (always-on)');
     // Always-on: multiple Codex passes adversarial
@@ -1293,7 +1293,7 @@ describe('Review skill', () => {
     expect(content).toContain('200');
   });
 
-  test('adversarial review in /ship always runs both passes', () => {
+  test('adversarial review in $ship always runs both passes', () => {
     const content = fs.readFileSync(path.join(ROOT, 'ship', 'SKILL.md'), 'utf-8');
     expect(content).toContain('Adversarial review (always-on)');
     expect(content).toContain('adversarial-review');
@@ -1302,7 +1302,7 @@ describe('Review skill', () => {
     expect(content).toContain('Codex adversarial subagent (always runs)');
   });
 
-  test('scope drift detection in /review and /ship', () => {
+  test('scope drift detection in $review and $ship', () => {
     const reviewContent = fs.readFileSync(path.join(ROOT, 'review', 'SKILL.md'), 'utf-8');
     const shipContent = fs.readFileSync(path.join(ROOT, 'ship', 'SKILL.md'), 'utf-8');
     // Both should contain scope drift from the shared resolver
@@ -1332,13 +1332,13 @@ describe('Review skill', () => {
     expect(reviewContent).not.toContain('Investigate and fix');
   });
 
-  test('codex integration in /plan-eng-review offers plan critique', () => {
+  test('codex integration in $plan-eng-review offers plan critique', () => {
     const content = fs.readFileSync(path.join(ROOT, 'plan-eng-review', 'SKILL.md'), 'utf-8');
     expect(content).toContain('Codex');
     expect(content).toContain('codex exec');
   });
 
-  test('/review persists a review-log entry for ship readiness', () => {
+  test('$review persists a review-log entry for ship readiness', () => {
     const content = fs.readFileSync(path.join(ROOT, 'review', 'SKILL.md'), 'utf-8');
     expect(content).toContain('"skill":"review"');
     expect(content).toContain('"issues_found":N');
@@ -1452,11 +1452,11 @@ describe('Private-path leak detection', () => {
 //
 // Every skill directory (with a SKILL.md.tmpl) must appear in both AGENTS.md
 // and docs/skills.md. Catches the inventory drift codex flagged (/debug
-// → /investigate; missing /autoplan, /context-save, /plan-devex-review, etc.).
+// → $investigate; missing $autoplan, $context-save, $plan-devex-review, etc.).
 
 describe('Doc inventory cross-check', () => {
   // Skills that don't get user-invocation lines in agent-facing docs.
-  // - 'qa-only' is a sub-mode of /qa with shared docs.
+  // - 'qa-only' is a sub-mode of $qa with shared docs.
   // - The 5 listed below are infrastructure (model overlays, shipped binary,
   //   hosts) that don't show up in the user-facing skill table.
   const DOC_INVENTORY_EXCLUDE = new Set([
@@ -1481,8 +1481,8 @@ describe('Doc inventory cross-check', () => {
     const agents = fs.readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf-8');
     const missing: string[] = [];
     for (const skill of discoverSkillDirs()) {
-      // Match `/skill-name` as a token boundary.
-      if (!new RegExp(`/${skill}\\b`).test(agents)) missing.push(skill);
+      // Match `$skill-name` as a token boundary.
+      if (!new RegExp(`\\$${skill}\\b`).test(agents)) missing.push(skill);
     }
     expect(missing).toEqual([]);
   });
@@ -1491,7 +1491,7 @@ describe('Doc inventory cross-check', () => {
     const docs = fs.readFileSync(path.join(ROOT, 'docs', 'skills.md'), 'utf-8');
     const missing: string[] = [];
     for (const skill of discoverSkillDirs()) {
-      if (!new RegExp(`/${skill}\\b`).test(docs)) missing.push(skill);
+      if (!new RegExp(`\\$${skill}\\b`).test(docs)) missing.push(skill);
     }
     expect(missing).toEqual([]);
   });

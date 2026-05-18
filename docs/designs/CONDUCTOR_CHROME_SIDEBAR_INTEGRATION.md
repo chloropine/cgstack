@@ -34,7 +34,7 @@ When `$B connect` launches, it creates a git worktree for file isolation. We wan
 
 ## Why this matters
 
-Today, `/qa` and `/design-review` feel like a black box. Codex says "I found 3 issues" but you can't see what it's looking at. With the sidebar connected to Conductor:
+Today, `$qa` and `$design-review` feel like a black box. Codex says "I found 3 issues" but you can't see what it's looking at. With the sidebar connected to Conductor:
 
 - **You watch Codex test your app** in real time — every click, every navigation, every screenshot appears in Chrome while you watch
 - **You can interrupt** — "no, test the mobile view" or "skip that page" — without switching windows

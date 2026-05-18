@@ -22,7 +22,7 @@ VERSION_FILE="$CGSTACK_DIR/VERSION"
 REMOTE_URL="${CGSTACK_REMOTE_URL:-https://raw.githubusercontent.com/chloropine/cgstack/main/VERSION}"
 REMOTE_REPO="${CGSTACK_REMOTE_REPO:-https://github.com/chloropine/cgstack.git}"
 
-# ─── Force flag (busts cache + snooze for standalone /cgstack-upgrade) ──
+# ─── Force flag (busts cache + snooze for standalone $cgstack-upgrade) ──
 if [ "${1:-}" = "--force" ]; then
   rm -f "$CACHE_FILE"
   rm -f "$SNOOZE_FILE"
@@ -38,7 +38,7 @@ fi
 # Existing installs may have .agents/skills/cgstack/SKILL.md with oversized
 # descriptions (>1024 chars) that Codex rejects. We can't regenerate from
 # the runtime root (no bun/scripts), so delete oversized files — the next
-# ./setup or /cgstack-upgrade will regenerate them properly.
+# ./setup or $cgstack-upgrade will regenerate them properly.
 # Marker file ensures this runs at most once per install.
 if [ ! -f "$STATE_DIR/.codex-desc-healed" ]; then
   for _AGENTS_SKILL in "$CGSTACK_DIR"/.agents/skills/*/SKILL.md; do
@@ -183,7 +183,7 @@ fi
 # Resolve VERSION via a SHA-pinned raw URL. GitHub's branch-raw CDN
 # (raw.githubusercontent.com/<owner>/<repo>/<branch>/...) can serve stale
 # content for several minutes after a push, which previously caused
-# /cgstack-upgrade to silently report "up to date" right after a release
+# $cgstack-upgrade to silently report "up to date" right after a release
 # landed. git ls-remote always returns the live HEAD; SHA-pinned raw URLs
 # are immediately consistent.
 #

@@ -1,5 +1,5 @@
 /**
- * Question-tuning resolver — preamble injection for /plan-tune v1.
+ * Question-tuning resolver — preamble injection for $plan-tune v1.
  *
  * v1 exports THREE generators, but only the combined `generateQuestionTuning`
  * is injected by preamble.ts. The individual functions remain exported for
@@ -23,7 +23,7 @@ export function generateQuestionTuning(ctx: TemplateContext): string {
   const bin = binDir(ctx);
   return `## Question Tuning (skip entirely if \`QUESTION_TUNING: false\`)
 
-Before each AskUserQuestion, choose \`question_id\` from \`scripts/question-registry.ts\` or \`{skill}-{slug}\`, then run \`${bin}/cgstack-question-preference --check "<id>"\`. \`AUTO_DECIDE\` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." \`ASK_NORMALLY\` means ask.
+Before each AskUserQuestion, choose \`question_id\` from \`scripts/question-registry.ts\` or \`{skill}-{slug}\`, then run \`${bin}/cgstack-question-preference --check "<id>"\`. \`AUTO_DECIDE\` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with $plan-tune." \`ASK_NORMALLY\` means ask.
 
 After answer, log best-effort:
 \`\`\`bash

@@ -6,7 +6,7 @@
  * callers welcome). gbrain has no `sources update` — drift recovery is
  * `sources remove` followed by `sources add`.
  *
- * Per /plan-eng-review D3 (DRY extraction).
+ * Per $plan-eng-review D3 (DRY extraction).
  */
 
 import { execFileSync, spawnSync } from "child_process";
@@ -64,7 +64,7 @@ export function probeSource(id: string, env?: NodeJS.ProcessEnv): SourceState {
       throw new Error("gbrain CLI not on PATH");
     }
     if (stderr.includes("Cannot connect to database") || stderr.includes("config.json")) {
-      throw new Error("gbrain not configured (run /setup-gbrain)");
+      throw new Error("gbrain not configured (run $setup-gbrain)");
     }
     throw err;
   }

@@ -1,4 +1,4 @@
-# Design: slop-scan integration in /review and /ship
+# Design: slop-scan integration in $review and $ship
 
 Status: deferred
 Created: 2026-04-09
@@ -12,7 +12,7 @@ and trust boundary checks do.
 
 ## Integration points
 
-### /review (Step 4, after checklist pass)
+### $review (Step 4, after checklist pass)
 
 Run `bun run slop:diff` after the critical/informational checklist pass. Show new
 findings inline with other review output:
@@ -33,9 +33,9 @@ Fix-First heuristic applies: if the finding is an empty catch around a file op,
 auto-fix with `safeUnlink()`. If it's a catch-and-log in extension code, skip
 (that's the correct pattern per AGENTS.md guidelines).
 
-### /ship (Step 3.5, pre-landing review + PR body)
+### $ship (Step 3.5, pre-landing review + PR body)
 
-Same integration as /review. Additionally, show a one-line summary in the PR body:
+Same integration as $review. Additionally, show a one-line summary in the PR body:
 
 ```markdown
 ## Pre-Landing Review

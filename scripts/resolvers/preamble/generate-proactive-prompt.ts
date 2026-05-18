@@ -3,11 +3,11 @@ import type { TemplateContext } from '../types';
 export function generateProactivePrompt(ctx: TemplateContext): string {
   return `If \`PROACTIVE_PROMPTED\` is \`no\` AND \`TEL_PROMPTED\` is \`yes\`: ask once:
 
-> Let cgstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
+> Let cgstack proactively suggest skills, like $qa for "does this work?" or $investigate for bugs?
 
 Options:
 - A) Keep it on (recommended)
-- B) Turn it off — I'll type /commands myself
+- B) Turn it off — I'll invoke skills myself
 
 If A: run \`${ctx.paths.binDir}/cgstack-config set proactive true\`
 If B: run \`${ctx.paths.binDir}/cgstack-config set proactive false\`

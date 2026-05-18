@@ -205,7 +205,7 @@ describe('v1.38.1.0 migration', () => {
 // ──────────────────────────────────────────────────────────────────────────
 // v1.40.0.0 — `projects/*/*-eng-review-test-plan-*.md` follow-on for #1452.
 // v1.38.1.0 shipped the design + test-plan patterns but missed
-// /plan-eng-review's filename. Codex review #5 flagged that
+// $plan-eng-review's filename. Codex review #5 flagged that
 // v1.38.1.0's done-marker prevents users who already upgraded from picking
 // up #1465's allowlist edit, so v1.40.0.0 needs its own migration.
 // ──────────────────────────────────────────────────────────────────────────

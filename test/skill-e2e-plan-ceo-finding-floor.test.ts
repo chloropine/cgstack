@@ -1,5 +1,5 @@
 /**
- * /plan-ceo-review AskUserQuestion floor regression (gate, paid, real-PTY).
+ * $plan-ceo-review AskUserQuestion floor regression (gate, paid, real-PTY).
  *
  * See test/skill-e2e-plan-eng-finding-floor.test.ts for the contract.
  */
@@ -11,13 +11,13 @@ import { FORCING_FLOOR_CEO } from './fixtures/forcing-finding-seeds';
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
 
-describeE2E('/plan-ceo-review AskUserQuestion floor (gate)', () => {
+describeE2E('$plan-ceo-review AskUserQuestion floor (gate)', () => {
   test(
     'seeded forcing finding causes the agent to fire at least one AskUserQuestion',
     async () => {
       const obs = await runPlanSkillFloorCheck({
         skillName: 'plan-ceo-review',
-        slashCommand: '/plan-ceo-review',
+        slashCommand: '$plan-ceo-review',
         followUpPrompt: FORCING_FLOOR_CEO,
         cwd: process.cwd(),
         timeoutMs: 600_000,

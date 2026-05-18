@@ -29,7 +29,7 @@ afterEach(() => {
 
 describe('session-runner observability', () => {
   test('1: sanitizeTestName strips slashes and leading dashes', () => {
-    expect(sanitizeTestName('/plan-ceo-review')).toBe('plan-ceo-review');
+    expect(sanitizeTestName('$plan-ceo-review')).toBe('plan-ceo-review');
     expect(sanitizeTestName('browse-basic')).toBe('browse-basic');
     expect(sanitizeTestName('/qa/deep/test')).toBe('qa-deep-test');
     expect(sanitizeTestName('///leading')).toBe('leading');
@@ -214,7 +214,7 @@ describe('eval-watch dashboard', () => {
     const partial: PartialData = {
       tests: [
         { name: 'browse basic', passed: true, cost_usd: 0.07, duration_ms: 24000, turns_used: 6 },
-        { name: '/review', passed: true, cost_usd: 0.17, duration_ms: 63000, turns_used: 13 },
+        { name: '$review', passed: true, cost_usd: 0.17, duration_ms: 63000, turns_used: 13 },
       ],
       total_cost_usd: 0.24,
       _partial: true,
@@ -227,7 +227,7 @@ describe('eval-watch dashboard', () => {
 
     // Should show completed tests
     expect(output).toContain('browse basic');
-    expect(output).toContain('/review');
+    expect(output).toContain('$review');
     expect(output).toContain('$0.07');
     expect(output).toContain('$0.17');
 

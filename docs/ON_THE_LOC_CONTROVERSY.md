@@ -105,11 +105,11 @@ Fair. Here's the data:
 
 The real insight: testing at multiple levels is what makes AI-assisted coding actually work. Unit tests, E2E tests, LLM-as-judge evals, smoke tests, slop scans. Without those layers, you're just generating confident garbage at high speed. With them, you have a verification loop that lets the AI iterate until the code is actually correct.
 
-cgstack's core real-code feature — the thing that isn't just markdown prompts — is a **Playwright-based CLI browser** I wrote specifically so I could stop manually black-box testing my stuff. `/qa` opens a real browser, navigates your staging URL, and runs automated checks. That's 2,000+ lines of real systems code (server, CDP inspector, snapshot engine, content security, cookie management) that exists because testing is the unlock, not the overhead.
+cgstack's core real-code feature — the thing that isn't just markdown prompts — is a **Playwright-based CLI browser** I wrote specifically so I could stop manually black-box testing my stuff. `$qa` opens a real browser, navigates your staging URL, and runs automated checks. That's 2,000+ lines of real systems code (server, CDP inspector, snapshot engine, content security, cookie management) that exists because testing is the unlock, not the overhead.
 
 **Slop scan.** A third party — [Ben Vinegar](https://x.com/bentlegen), founding engineer at Sentry — built a tool called [slop-scan](https://github.com/benvinegar/slop-scan) specifically to measure AI code patterns. Deterministic rules, calibrated against mature OSS baselines. Higher score = more slop. He ran it on cgstack and we scored 5.24, the worst he'd measured at the time. I took the findings seriously, refactored, and cut the score by 62% in one session. Run `bun test` and watch 2,000+ tests pass.
 
-**Review rigor.** Every cgstack branch goes through CEO review, Codex outside-voice review, DX review, and eng review. Often 2-3 passes of each. The `/plan-tune` skill I just shipped had a scope ROLLBACK from the CEO expansion plan because Codex's outside-voice review surfaced 15+ findings my four Codex reviews missed. The review infrastructure catches the slop. It's visible in the repo. Anyone can read it.
+**Review rigor.** Every cgstack branch goes through CEO review, Codex outside-voice review, DX review, and eng review. Often 2-3 passes of each. The `$plan-tune` skill I just shipped had a scope ROLLBACK from the CEO expansion plan because Codex's outside-voice review surfaced 15+ findings my four Codex reviews missed. The review infrastructure catches the slop. It's visible in the repo. Anyone can read it.
 
 ## What I'll concede
 
@@ -134,20 +134,20 @@ cgstack is not a hypothetical. It's a product with real users:
 - **305,309 skill invocations** recorded since January 2026
 - **~7,000 weekly active users** at peak
 - **95.2% success rate** across all skill runs (290,624 successes / 305,309 total)
-- **57,650 /qa runs**, **28,014 /plan-eng-review runs**, **24,817 /office-hours sessions**, **18,899 /ship workflows**
+- **57,650 $qa runs**, **28,014 $plan-eng-review runs**, **24,817 $office-hours sessions**, **18,899 $ship workflows**
 - **27,157 sessions used the browser** (real Playwright, not toy)
 - Median session duration: **2 minutes**. Average: **6.4 minutes**.
 
 Top skills by usage:
 
 ```
-/qa               57,650  ████████████████████████████
-/plan-eng-review  28,014  ██████████████
-/office-hours     24,817  ████████████
-/ship             18,899  █████████
-/browse           13,675  ██████
-/review           13,459  ██████
-/plan-ceo-review  12,357  ██████
+$qa               57,650  ████████████████████████████
+$plan-eng-review  28,014  ██████████████
+$office-hours     24,817  ████████████
+$ship             18,899  █████████
+$browse           13,675  ██████
+$review           13,459  ██████
+$plan-ceo-review  12,357  ██████
 ```
 
 These aren't scaffolds sitting in a drawer. Thousands of developers run these skills every day.

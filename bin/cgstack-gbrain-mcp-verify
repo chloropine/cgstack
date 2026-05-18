@@ -97,12 +97,12 @@ fi
 # --- AUTH class: 401, 403, or 500 with stale-token-shaped body ---
 case "$HTTP_CODE" in
   401|403)
-    emit "auth" "" "" "AUTH" "rotate token on the brain host, re-run /setup-gbrain (HTTP $HTTP_CODE)" false "$BODY"
+    emit "auth" "" "" "AUTH" "rotate token on the brain host, re-run \$setup-gbrain (HTTP $HTTP_CODE)" false "$BODY"
     exit 1
     ;;
   500)
     if echo "$BODY" | grep -qiE '"(error_description|message)":[[:space:]]*"[^"]*(auth|token|unauthorized)' 2>/dev/null; then
-      emit "auth" "" "" "AUTH" "rotate token on the brain host, re-run /setup-gbrain (HTTP 500 stale-token shape)" false "$BODY"
+      emit "auth" "" "" "AUTH" "rotate token on the brain host, re-run \$setup-gbrain (HTTP 500 stale-token shape)" false "$BODY"
       exit 1
     fi
     ;;

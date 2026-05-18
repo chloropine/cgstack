@@ -157,7 +157,7 @@ export async function generateLlmsTxt(opts: GenerateOptions = {}): Promise<Gener
   lines.push("> cgstack is CGStack: AI coding skills + a fast headless browser binary + a design CLI. This file indexes every capability so agents can discover and invoke them without crawling individual SKILL.md files.");
   lines.push('');
   lines.push('Conventions:');
-  lines.push('- Skills are invoked by name (e.g. `/ship`, `/plan-ceo-review`).');
+  lines.push('- Skills are invoked by name (e.g. `$ship`, `$plan-ceo-review`).');
   lines.push('- Browse commands run as `browse <command> [args]` (or `$B` shorthand).');
   lines.push('- Design commands run as `design <command> [args]` (or `$D`).');
   lines.push('- Project-specific config lives in `AGENTS.md`. Always read it first.');
@@ -167,7 +167,7 @@ export async function generateLlmsTxt(opts: GenerateOptions = {}): Promise<Gener
   lines.push('');
   for (const skill of skills) {
     const summary = oneLine(skill.description);
-    lines.push(`- [/${skill.name}](${skill.name}/SKILL.md): ${summary}`);
+    lines.push(`- [$${skill.name}](${skill.name}/SKILL.md): ${summary}`);
   }
   lines.push('');
 

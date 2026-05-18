@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# cgstack-codex-probe: shared helper for Codex CLI review and /autoplan flows.
+# cgstack-codex-probe: shared helper for Codex CLI review and $autoplan flows.
 # Sourced from template bash blocks; never execute directly.
 #
 # Functions (all prefixed with _cgstack_codex_ for namespace hygiene):
@@ -90,7 +90,7 @@ _cgstack_codex_log_event() {
 
 _cgstack_codex_log_hang() {
   # Invoked when a codex invocation times out (exit 124). Records an
-  # operational learning so future /investigate sessions surface the pattern.
+  # operational learning so future $investigate sessions surface the pattern.
   # Best-effort: errors swallowed.
   local _mode="${1:-unknown}"
   local _prompt_size="${2:-0}"

@@ -147,9 +147,9 @@ describe('formatReport', () => {
       { skill: 'qa', ts: '2026-03-18T16:30:00Z', repo: 'app' },
     ];
     const report = formatReport(events);
-    expect(report).toContain('/ship');
+    expect(report).toContain('$ship');
     expect(report).toContain('2 invocations');
-    expect(report).toContain('/qa');
+    expect(report).toContain('$qa');
     expect(report).toContain('1 invocation');
   });
 
@@ -234,11 +234,11 @@ describe('integration via runScript helper', () => {
       '{"skill":"review","ts":"2026-03-18T16:30:00Z","repo":"my-api"}',
     ]);
     const output = runScript(p);
-    expect(output).toContain('/ship');
+    expect(output).toContain('$ship');
     expect(output).toContain('2 invocations');
-    expect(output).toContain('/qa');
+    expect(output).toContain('$qa');
     expect(output).toContain('1 invocation');
-    expect(output).toContain('/review');
+    expect(output).toContain('$review');
     expect(output).toContain('Total: 4 skill invocations, 0 hook fires');
   });
 
@@ -253,10 +253,10 @@ describe('integration via runScript helper', () => {
     ]);
     const output = runScript(p, '--period 7d');
     expect(output).toContain('Period: last 7 days');
-    expect(output).toContain('/ship');
+    expect(output).toContain('$ship');
     expect(output).toContain('Total: 1 skill invocation, 0 hook fires');
     // qa should be filtered out
-    expect(output).not.toContain('/qa');
+    expect(output).not.toContain('$qa');
   });
 
   test('hook fire events counted in full pipeline', () => {

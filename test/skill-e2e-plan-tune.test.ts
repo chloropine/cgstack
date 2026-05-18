@@ -14,10 +14,10 @@ import * as os from 'os';
 const evalCollector = createEvalCollector('e2e-plan-tune');
 
 // ---------------------------------------------------------------------------
-// /plan-tune E2E: verify the skill recognizes plain-English intent and hits
+// $plan-tune E2E: verify the skill recognizes plain-English intent and hits
 // the right binary paths without CLI subcommand syntax.
 //
-// This is a gate-tier test — if /plan-tune requires memorized subcommands or
+// This is a gate-tier test — if $plan-tune requires memorized subcommands or
 // fails on plain English, that is a regression of the core v1 DX promise.
 // ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
     run('git', ['add', '.']);
     run('git', ['commit', '-m', 'initial']);
 
-    // Copy the /plan-tune skill (extract the flow section only — full template
+    // Copy the $plan-tune skill (extract the flow section only — full template
     // is ~45KB and includes preamble boilerplate the agent doesn't need).
     copyDirSync(path.join(ROOT, 'plan-tune'), path.join(workDir, 'plan-tune'));
 
@@ -136,9 +136,9 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
   // -------------------------------------------------------------------------
   testConcurrentIfSelected('plan-tune-inspect', async () => {
     const result = await runSkillTest({
-      prompt: `Read ./plan-tune/SKILL.md for the /plan-tune skill instructions.
+      prompt: `Read ./plan-tune/SKILL.md for the $plan-tune skill instructions.
 
-The user has invoked /plan-tune and says: "Review the questions I've been asked recently."
+The user has invoked $plan-tune and says: "Review the questions I've been asked recently."
 
 IMPORTANT:
 - Use CGSTACK_HOME="${cgstackHome}" as an environment variable for all bin calls.
@@ -156,7 +156,7 @@ IMPORTANT:
       runId,
     });
 
-    logCost('/plan-tune review', result);
+    logCost('$plan-tune review', result);
 
     const output = result.output.toLowerCase();
 
@@ -174,7 +174,7 @@ IMPORTANT:
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
 
-    recordE2E(evalCollector, '/plan-tune', 'Plan-tune inspection flow (plain English)', result, {
+    recordE2E(evalCollector, '$plan-tune', 'Plan-tune inspection flow (plain English)', result, {
       passed: exitOk && foundCount >= 2,
     });
 

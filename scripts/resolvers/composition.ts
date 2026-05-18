@@ -37,9 +37,9 @@ export function generateInvokeSkill(ctx: TemplateContext, args?: string[]): stri
 
   const allSkips = [...DEFAULT_SKIPS, ...extraSkips];
 
-  return `Read the \`/${skillName}\` skill file at \`${ctx.paths.skillRoot}/${skillName}/SKILL.md\` using the Read tool.
+  return `Read the \`$${skillName}\` skill file at \`${ctx.paths.skillRoot}/${skillName}/SKILL.md\` using the Read tool.
 
-**If unreadable:** Skip with "Could not load /${skillName} — skipping." and continue.
+**If unreadable:** Skip with "Could not load $${skillName} — skipping." and continue.
 
 Follow its instructions from top to bottom, **skipping these sections** (already handled by the parent skill):
 ${allSkips.map(s => `- ${s}`).join('\n')}

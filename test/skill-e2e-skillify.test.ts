@@ -1,25 +1,25 @@
 /**
- * Browser-skills Phase 2a — gate-tier E2E for /scrape and /skillify.
+ * Browser-skills Phase 2a — gate-tier E2E for $scrape and $skillify.
  *
  * Five scenarios cover the productivity loop and the contracts locked
  * during the v1.19.0.0 plan review:
  *
- *   D1 — /skillify provenance guard (scenario 4)
+ *   D1 — $skillify provenance guard (scenario 4)
  *   D2 — synthesis input slice (covered indirectly by scenario 3 — the
  *        committed SKILL.md must not contain conversation prose)
  *   D3 — atomic write discipline (scenarios 3 and 5)
  *
- *   1. scrape-match-path — /scrape with intent matching bundled
+ *   1. scrape-match-path — $scrape with intent matching bundled
  *      hackernews-frontpage routes via $B skill run, no prototype.
- *   2. scrape-prototype-path — /scrape against a local file:// fixture
+ *   2. scrape-prototype-path — $scrape against a local file:// fixture
  *      (no matching skill) drives $B primitives, returns JSON, suggests
- *      /skillify.
- *   3. skillify-happy-path — /scrape then /skillify in one session.
+ *      $skillify.
+ *   3. skillify-happy-path — $scrape then $skillify in one session.
  *      Skill written to ~/.cgstack/browser-skills/<name>/ with full
  *      file tree, $B skill test passes.
- *   4. skillify-provenance-refusal — cold /skillify with no prior
- *      /scrape refuses with the D1 message; nothing on disk.
- *   5. skillify-approval-reject — /scrape then /skillify but reject in
+ *   4. skillify-provenance-refusal — cold $skillify with no prior
+ *      $scrape refuses with the D1 message; nothing on disk.
+ *   5. skillify-approval-reject — $scrape then $skillify but reject in
  *      the approval gate; temp dir is removed, nothing at final path.
  *
  * All five run gate-tier (~$0.50–$1.50 each, ~$5 total per CI).
@@ -51,7 +51,7 @@ interface Workdir {
 
 /**
  * Build a working directory that has:
- *   - The /scrape and /skillify skills installed under .codex/skills/
+ *   - The $scrape and $skillify skills installed under .codex/skills/
  *   - The browse binary symlinked + find-browse shim (via setupBrowseShims)
  *   - bin/ scripts referenced by the preamble
  *   - A scoped CGSTACK_HOME under the workdir so on-disk artifacts are
@@ -59,7 +59,7 @@ interface Workdir {
  *   - A AGENTS.md routing block instructing Skill-tool invocation
  *
  * `installSkills` lets each test pick the minimum surface (e.g., the
- * provenance-refusal scenario doesn't need /scrape).
+ * provenance-refusal scenario doesn't need $scrape).
  */
 function setupSkillifyWorkdir(suffix: string, installSkills: string[] = ['scrape', 'skillify']): Workdir {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `skill-e2e-skillify-${suffix}-`));
@@ -108,8 +108,8 @@ When the user's request matches an available skill, ALWAYS invoke it via
 the Skill tool as your FIRST action.
 
 Key routing rules:
-- /scrape, "scrape", "get data from", "extract from" → invoke scrape
-- /skillify, "skillify", "codify this scrape" → invoke skillify
+- $scrape, "scrape", "get data from", "extract from" → invoke scrape
+- $skillify, "skillify", "codify this scrape" → invoke skillify
 
 Environment:
 - CGSTACK_HOME="${cgstackHome}" for all cgstack bin scripts.
@@ -174,7 +174,7 @@ const PROTOTYPE_FIXTURE_HTML = `<!doctype html>
 
 // ─── Live-fire suite ────────────────────────────────────────────
 
-describeIfSelected('Browser-skills Phase 2a E2E (/scrape + /skillify)', [
+describeIfSelected('Browser-skills Phase 2a E2E ($scrape + $skillify)', [
   'scrape-match-path',
   'scrape-prototype-path',
   'skillify-happy-path',
@@ -183,13 +183,13 @@ describeIfSelected('Browser-skills Phase 2a E2E (/scrape + /skillify)', [
 ], () => {
   afterAll(() => { finalizeEvalCollector(evalCollector); });
 
-  // ── 1. /scrape match path: bundled hackernews-frontpage matches ──────
+  // ── 1. $scrape match path: bundled hackernews-frontpage matches ──────
   testConcurrentIfSelected('scrape-match-path', async () => {
     const { workDir, cgstackHome } = setupSkillifyWorkdir('match', ['scrape']);
     installBundledHackernewsSkill(workDir);
 
     const result = await runSkillTest({
-      prompt: `Run /scrape latest hacker news stories. Invoke /scrape via the Skill tool.
+      prompt: `Run $scrape latest hacker news stories. Invoke $scrape via the Skill tool.
 You MUST follow the skill's match-phase logic:
 1. Run \`$B skill list\` to see what browser-skills are available
 2. Recognize that "latest hacker news stories" matches the bundled
@@ -222,7 +222,7 @@ Do NOT enter the prototype phase. Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 180_000);
 
-  // ── 2. /scrape prototype path: drive $B primitives against fixture ────
+  // ── 2. $scrape prototype path: drive $B primitives against fixture ────
   testConcurrentIfSelected('scrape-prototype-path', async () => {
     const { workDir, cgstackHome } = setupSkillifyWorkdir('prototype', ['scrape']);
 
@@ -232,13 +232,13 @@ Do NOT enter the prototype phase. Do NOT use AskUserQuestion.`,
     const fileUrl = `file://${fixturePath}`;
 
     const result = await runSkillTest({
-      prompt: `Run /scrape titles and scores from ${fileUrl}.
-Invoke /scrape via the Skill tool. Follow the skill's prototype-phase logic:
+      prompt: `Run $scrape titles and scores from ${fileUrl}.
+Invoke $scrape via the Skill tool. Follow the skill's prototype-phase logic:
 1. \`$B skill list\` finds NO matching skill
 2. Drive: \`$B goto ${fileUrl}\` then \`$B html\` (or \`$B text\`)
 3. Parse the items (each has a title and a score)
 4. Emit JSON of the form {"items": [{"title": "...", "score": N}, ...], "count": N}
-5. Suggest /skillify in one line
+5. Suggest $skillify in one line
 Do NOT use AskUserQuestion.`,
       workingDirectory: workDir,
       env: { CGSTACK_HOME: cgstackHome },
@@ -281,7 +281,7 @@ Do NOT use AskUserQuestion.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 240_000);
 
-  // ── 3. /skillify happy path: scrape then skillify in one session ─────
+  // ── 3. $skillify happy path: scrape then skillify in one session ─────
   testConcurrentIfSelected('skillify-happy-path', async () => {
     const { workDir, cgstackHome } = setupSkillifyWorkdir('happy', ['scrape', 'skillify']);
     const fixturePath = path.join(workDir, 'fixture.html');
@@ -291,11 +291,11 @@ Do NOT use AskUserQuestion.`,
     const result = await runSkillTest({
       prompt: `Two steps in this session:
 
-1. Run /scrape titles and scores from ${fileUrl} via the Skill tool.
+1. Run $scrape titles and scores from ${fileUrl} via the Skill tool.
    Drive the prototype path; return JSON with items[].
 
-2. Run /skillify via the Skill tool. Follow ALL 11 steps including:
-   - D1 provenance guard (you have a recent /scrape, proceed)
+2. Run $skillify via the Skill tool. Follow ALL 11 steps including:
+   - D1 provenance guard (you have a recent $scrape, proceed)
    - D2 synthesis: include ONLY the final-attempt $B calls (goto + html)
    - D3 atomic write: stage to temp dir, run test, then commit on approval
    - When AskUserQuestion fires, choose the recommended option (A)
@@ -308,7 +308,7 @@ Do NOT halt for clarification.`,
       workingDirectory: workDir,
       env: {
         CGSTACK_HOME: cgstackHome,
-        HOME: workDir,  // /skillify writes to $HOME/.cgstack/browser-skills/
+        HOME: workDir,  // $skillify writes to $HOME/.cgstack/browser-skills/
       },
       maxTurns: 40,
       allowedTools: ['Skill', 'Bash', 'Read', 'Write'],
@@ -358,14 +358,14 @@ Do NOT halt for clarification.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 420_000);
 
-  // ── 4. /skillify provenance refusal: D1 contract ─────────────────────
+  // ── 4. $skillify provenance refusal: D1 contract ─────────────────────
   testConcurrentIfSelected('skillify-provenance-refusal', async () => {
     const { workDir, cgstackHome } = setupSkillifyWorkdir('refusal', ['skillify']);
 
     const result = await runSkillTest({
-      prompt: `Run /skillify via the Skill tool. There has been NO prior /scrape
+      prompt: `Run $skillify via the Skill tool. There has been NO prior $scrape
 in this conversation. Follow the skill's Step 1 (D1 provenance guard) literally:
-walk back through agent turns, find no /scrape result, refuse with the exact
+walk back through agent turns, find no $scrape result, refuse with the exact
 message the skill specifies, and stop. Do NOT synthesize anything. Do NOT
 write any files.`,
       workingDirectory: workDir,
@@ -383,7 +383,7 @@ write any files.`,
     logCost('skillify-provenance-refusal', result);
 
     const surface = fullSurface(result);
-    const refusalText = /no recent \/?scrape result|run \/scrape.*first|no prior \/?scrape/i.test(surface);
+    const refusalText = /no recent \/?scrape result|run \$scrape.*first|no prior \/?scrape/i.test(surface);
 
     // Critical: nothing on disk. No staged dir, no committed skill.
     const skillsRoot = path.join(workDir, '.cgstack', 'browser-skills');
@@ -406,7 +406,7 @@ write any files.`,
     try { fs.rmSync(workDir, { recursive: true, force: true }); } catch {}
   }, 120_000);
 
-  // ── 5. /skillify approval-gate reject: D3 cleanup ────────────────────
+  // ── 5. $skillify approval-gate reject: D3 cleanup ────────────────────
   testConcurrentIfSelected('skillify-approval-reject', async () => {
     const { workDir, cgstackHome } = setupSkillifyWorkdir('reject', ['scrape', 'skillify']);
     const fixturePath = path.join(workDir, 'fixture.html');
@@ -416,9 +416,9 @@ write any files.`,
     const result = await runSkillTest({
       prompt: `Two steps:
 
-1. Run /scrape titles and scores from ${fileUrl} via the Skill tool.
+1. Run $scrape titles and scores from ${fileUrl} via the Skill tool.
 
-2. Run /skillify via the Skill tool. Follow steps 1-9. When the approval
+2. Run $skillify via the Skill tool. Follow steps 1-9. When the approval
    gate AskUserQuestion fires (Step 9), choose option C (Discard) instead
    of A (Commit). The D3 contract says the temp dir must be removed and
    nothing should land at the final tier path.

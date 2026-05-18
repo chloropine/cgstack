@@ -2,7 +2,7 @@
 # cgstack-builder-profile — LEGACY SHIM.
 #
 # Superseded by bin/cgstack-developer-profile. This binary now delegates to
-# `cgstack-developer-profile --read` to keep /office-hours working during the
+# `cgstack-developer-profile --read` to keep $office-hours working during the
 # transition. When all call sites have been updated, this file can be removed.
 #
 # The migration from ~/.cgstack/builder-profile.jsonl to the unified

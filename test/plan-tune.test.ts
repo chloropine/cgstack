@@ -1,7 +1,7 @@
 /**
- * /plan-tune tests (gate tier)
+ * $plan-tune tests (gate tier)
  *
- * Covers the foundation of /plan-tune v1:
+ * Covers the foundation of $plan-tune v1:
  *   - Question registry schema validation
  *   - Registry completeness (every AskUserQuestion pattern has an id)
  *   - Id uniqueness (no duplicates)
@@ -217,7 +217,7 @@ describe('registry breadth', () => {
     expect(getQuestion('preamble-routing-injection')).toBeDefined();
   });
 
-  test('/plan-tune itself registers its enable + setup + mutation-confirm', () => {
+  test('$plan-tune itself registers its enable + setup + mutation-confirm', () => {
     expect(getQuestion('plan-tune-enable-setup')).toBeDefined();
     expect(getQuestion('plan-tune-declared-dimension')).toBeDefined();
     expect(getQuestion('plan-tune-confirm-mutation')).toBeDefined();

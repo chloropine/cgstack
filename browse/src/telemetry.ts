@@ -1,5 +1,5 @@
 /**
- * Lightweight telemetry — DX D9 from /plan-devex-review.
+ * Lightweight telemetry — DX D9 from $plan-devex-review.
  *
  * Piggybacks on ~/.cgstack/analytics/skill-usage.jsonl pattern (existing
  * cgstack telemetry). Hostname + aggregate counters only; no body content,

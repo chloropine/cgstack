@@ -103,7 +103,7 @@ The protocol-token path is what the browser actually uses.
 
 | Token | Lives in | Used for | Lifetime |
 |-------|----------|----------|----------|
-| `AUTH_TOKEN` | `<stateDir>/browse.json`; in-memory in server.ts | `/pty-session` POST (mint cookie + token) | server lifetime |
+| `AUTH_TOKEN` | `<stateDir>$browse.json`; in-memory in server.ts | `/pty-session` POST (mint cookie + token) | server lifetime |
 | `cgstack-pty.<...>` (Sec-WebSocket-Protocol) | Browser memory only; agent `validTokens` Set | `/ws` upgrade auth | 30 min, auto-revoked on WS close |
 | `INTERNAL_TOKEN` | `<stateDir>/terminal-internal-token`; in agent memory | server → agent loopback `/internal/grant` | agent lifetime |
 
@@ -191,7 +191,7 @@ to `display:flex`, so sidepanel-terminal.js runs a `MutationObserver` on
 | PTY agent | `browse/src/terminal-agent.ts` | Bun (non-compiled) |
 | PTY token store | `browse/src/pty-session-cookie.ts` | Bun (compiled, in server.ts) |
 | CLI entry | `browse/src/cli.ts` | Bun (compiled binary) |
-| State file | `<stateDir>/browse.json` | Filesystem |
+| State file | `<stateDir>$browse.json` | Filesystem |
 | Terminal port | `<stateDir>/terminal-port` | Filesystem |
 | Internal token | `<stateDir>/terminal-internal-token` | Filesystem |
 | Codex probe | `<stateDir>Codex CLI-available.json` | Filesystem |

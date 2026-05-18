@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-// E2E for /autoplan's dual-voice (Codex subagent + Codex). Periodic tier:
+// E2E for $autoplan's dual-voice (Codex subagent + Codex). Periodic tier:
 // non-deterministic, costs ~$1/run, not a gate. The purpose is to catch
 // regressions where one of the two voices fails silently post-hardening.
 
@@ -33,14 +33,14 @@ describeIfSelected('Autoplan dual-voice E2E', ['autoplan-dual-voice'], () => {
     run('git', ['add', '.']);
     run('git', ['commit', '-m', 'initial']);
 
-    // Copy /autoplan + its review-skill dependencies (they're loaded from disk).
+    // Copy $autoplan + its review-skill dependencies (they're loaded from disk).
     copyDirSync(path.join(ROOT, 'autoplan'), path.join(workDir, 'autoplan'));
     copyDirSync(path.join(ROOT, 'plan-ceo-review'), path.join(workDir, 'plan-ceo-review'));
     copyDirSync(path.join(ROOT, 'plan-eng-review'), path.join(workDir, 'plan-eng-review'));
     copyDirSync(path.join(ROOT, 'plan-design-review'), path.join(workDir, 'plan-design-review'));
     copyDirSync(path.join(ROOT, 'plan-devex-review'), path.join(workDir, 'plan-devex-review'));
 
-    // Write a tiny plan file for /autoplan to review.
+    // Write a tiny plan file for $autoplan to review.
     planPath = path.join(workDir, 'TEST_PLAN.md');
     fs.writeFileSync(planPath, `# Test Plan: add /greet skill
 
@@ -65,16 +65,16 @@ Add a new /greet skill that prints a welcome message.
   test.skipIf(!evalsEnabled)(
     'both Codex + Codex voices produce output in Phase 1 (within timeout)',
     async () => {
-      // Fire /autoplan with a 5-min hard timeout on the spawn itself.
+      // Fire $autoplan with a 5-min hard timeout on the spawn itself.
       // The skill itself has 10-min phase timeouts + auth-gate failfast.
       // If Codex is unavailable on the test machine, the skill should print
       // [codex-unavailable] and still complete the Codex subagent half.
       const result = await runSkillTest({
         testName: 'autoplan-dual-voice',
         workingDirectory: workDir,
-        prompt: `/autoplan ${planPath}`,
+        prompt: `$autoplan ${planPath}`,
         timeout: 300_000, // 5 min
-        // /autoplan spawns subagents and calls codex via Bash; it needs the
+        // $autoplan spawns subagents and calls codex via Bash; it needs the
         // full tool set to get past Phase 1. Bash+Read+Write alone wasn't
         // enough — the skill stalled trying to invoke Agent/Skill.
         allowedTools: ['Bash', 'Read', 'Write', 'Edit', 'Grep', 'Glob', 'Agent', 'Skill'],

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # cgstack-artifacts-init — set up ~/.cgstack/ as a git repo synced to a private
 # git host (GitHub or GitLab) so a remote gbrain can ingest your artifacts
-# (CEO plans, designs, /investigate reports) as a federated source.
+# (CEO plans, designs, $investigate reports) as a federated source.
 #
 # Replaces cgstack-brain-init in v1.27.0.0 (per D4 hard-delete; no compat
 # shim). Existing users are migrated by cgstack-upgrade/migrations/v1.27.0.0.sh.
@@ -227,8 +227,8 @@ projects/*/ceo-plans/*.md
 projects/*/ceo-plans/*/*.md
 projects/*/designs/*.md
 projects/*/designs/*/*.md
-# Project-root design / test-plan artifacts written by /office-hours,
-# /plan-eng-review, and /autoplan. The skills emit
+# Project-root design / test-plan artifacts written by $office-hours,
+# $plan-eng-review, and $autoplan. The skills emit
 # `{user}-{branch}-design-{datetime}.md`,
 # `{user}-{branch}-test-plan-{datetime}.md`, and
 # `{user}-{branch}-eng-review-test-plan-{datetime}.md` at the project

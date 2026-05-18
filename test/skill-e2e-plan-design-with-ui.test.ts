@@ -1,8 +1,8 @@
 /**
- * /plan-design-review with UI scope (gate, paid, real-PTY).
+ * $plan-design-review with UI scope (gate, paid, real-PTY).
  *
  * Counterpart to the existing no-UI early-exit test. When the input plan
- * DOES describe UI changes, /plan-design-review must NOT early-exit and
+ * DOES describe UI changes, $plan-design-review must NOT early-exit and
  * must reach a real skill numbered-option AskUserQuestion (its first design-rating
  * question), with the captured evidence NOT echoing the early-exit phrase.
  *
@@ -12,7 +12,7 @@
  * test is the positive coverage.
  *
  * How: launch codex in plan mode in the cgstack repo cwd (so the skill
- * registry is loaded). Send /plan-design-review with the fixture path
+ * registry is loaded). Send $plan-design-review with the fixture path
  * inline so the skill reviews the UI-heavy plan rather than git diff or
  * .codex/plans/. Drive past permission dialogs. Wait for a numbered-
  * option list that is NOT a permission dialog. Assert evidence does NOT
@@ -35,7 +35,7 @@ const describeE2E = shouldRun ? describe : describe.skip;
 const ROOT = path.resolve(import.meta.dir, '..');
 const FIXTURE = path.join(ROOT, 'test', 'fixtures', 'plans', 'ui-heavy-feature.md');
 
-describeE2E('/plan-design-review with UI scope (gate)', () => {
+describeE2E('$plan-design-review with UI scope (gate)', () => {
   test(
     'reaches a real skill AskUserQuestion (or plan_ready) without echoing the no-UI early-exit phrase',
     async () => {
@@ -54,10 +54,9 @@ describeE2E('/plan-design-review with UI scope (gate)', () => {
       try {
         await Bun.sleep(8000);
         const since = session.mark();
-        // Send the slash command alone first; then provide the UI-heavy
-        // plan content as a follow-up message. Codex rejects slash
-        // commands with trailing arguments unless the skill defines them.
-        session.send('/plan-design-review\r');
+        // Send the skill mention alone first; then provide the UI-heavy
+        // plan content as a follow-up message.
+        session.send('$plan-design-review\r');
         await Bun.sleep(3000);
         session.send(
           `Please review this plan for UI scope:\n\n` +

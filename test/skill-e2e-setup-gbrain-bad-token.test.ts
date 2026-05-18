@@ -1,4 +1,4 @@
-// E2E: /setup-gbrain Path 4 with a bad bearer token via Agent SDK.
+// E2E: $setup-gbrain Path 4 with a bad bearer token via Agent SDK.
 //
 // Drives the skill against a stub HTTP MCP server that returns 401
 // (auth-shape body). Asserts that the AUTH classifier hint shows up
@@ -60,7 +60,7 @@ exit 0
   return callLog;
 }
 
-describeE2E('/setup-gbrain Path 4 — bad token STOPs cleanly', () => {
+describeE2E('$setup-gbrain Path 4 — bad token STOPs cleanly', () => {
   test('AUTH classifier fires, no MCP registration, no AGENTS.md mutation', async () => {
     const stubServer = await startStub401();
     const cgstackHome = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-gbrain-bad-'));

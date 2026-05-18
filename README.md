@@ -28,7 +28,7 @@ cgstack is not a compatibility layer. It is a Codex-only fork.
 - **Claude Code support was removed**: skills, setup paths, docs, and runtime
   assumptions now target Codex only.
 - **Codex skill installation is first-class**: generated skills install under
-  `~/.codex/skills/`, with flat slash-command names like `/review` and `/qa`.
+  `~/.codex/skills/`, with dollar-prefixed skill mentions like `$review` and `$qa`.
 - **Project guidance moved to `AGENTS.md`**: cgstack uses Codex's project
   instruction file instead of `CLAUDE.md`.
 - **Invocation paths were rewritten for Codex**: model handoffs, review flows,
@@ -64,35 +64,35 @@ After installing cgstack, open Codex in a project repo and use the skills as a
 software delivery loop:
 
 ```text
-/office-hours I want to build a small billing dashboard for usage-based pricing.
+$office-hours I want to build a small billing dashboard for usage-based pricing.
 ```
 
 Use the result to sharpen the product direction, then ask for planning review:
 
 ```text
-/plan-ceo-review docs/designs/billing-dashboard.md
-/plan-eng-review docs/designs/billing-dashboard.md
-/plan-design-review docs/designs/billing-dashboard.md
+$plan-ceo-review docs/designs/billing-dashboard.md
+$plan-eng-review docs/designs/billing-dashboard.md
+$plan-design-review docs/designs/billing-dashboard.md
 ```
 
 Implement the plan with Codex, then run review and browser QA:
 
 ```text
-/review
-/qa
+$review
+$qa
 ```
 
 When the branch is ready:
 
 ```text
-/document-release
-/ship
+$document-release
+$ship
 ```
 
 For live browser work, launch the visible browser integration:
 
 ```text
-/open-cgstack-browser
+$open-cgstack-browser
 ```
 
 ## Install
@@ -137,26 +137,26 @@ without requiring it.
 
 | Skill | Purpose |
 |-------|---------|
-| `/office-hours` | Reframe a product idea before implementation. |
-| `/plan-ceo-review` | Founder-level scope and strategy review. |
-| `/plan-eng-review` | Architecture, data flow, edge cases, and tests. |
-| `/plan-design-review` | Design review before code. |
-| `/autoplan` | Runs the plan review pipeline. |
-| `/review` | Pre-landing code review focused on production bugs. |
-| `/investigate` | Root-cause debugging with a no-fix-before-investigation rule. |
-| `/qa` | Browser-based QA with fixes and verification. |
-| `/qa-only` | Browser-based QA report without edits. |
-| `/ship` | Test, review, push, and prepare a PR. |
-| `/land-and-deploy` | Merge, wait for CI/deploy, and verify production health. |
-| `/browse` | Headless Chromium browser control. |
-| `/open-cgstack-browser` | Visible browser with sidebar and cookie tooling. |
-| `/document-release` | Update docs for shipped changes. |
-| `/document-generate` | Generate missing docs from code. |
-| `/cso` | OWASP Top 10 + STRIDE security audit. |
-| `/benchmark` | Performance regression checks. |
-| `/learn` | Manage project learnings. |
-| `/context-save` | Save working context. |
-| `/context-restore` | Restore saved context. |
+| `$office-hours` | Reframe a product idea before implementation. |
+| `$plan-ceo-review` | Founder-level scope and strategy review. |
+| `$plan-eng-review` | Architecture, data flow, edge cases, and tests. |
+| `$plan-design-review` | Design review before code. |
+| `$autoplan` | Runs the plan review pipeline. |
+| `$review` | Pre-landing code review focused on production bugs. |
+| `$investigate` | Root-cause debugging with a no-fix-before-investigation rule. |
+| `$qa` | Browser-based QA with fixes and verification. |
+| `$qa-only` | Browser-based QA report without edits. |
+| `$ship` | Test, review, push, and prepare a PR. |
+| `$land-and-deploy` | Merge, wait for CI/deploy, and verify production health. |
+| `$browse` | Headless Chromium browser control. |
+| `$open-cgstack-browser` | Visible browser with sidebar and cookie tooling. |
+| `$document-release` | Update docs for shipped changes. |
+| `$document-generate` | Generate missing docs from code. |
+| `$cso` | OWASP Top 10 + STRIDE security audit. |
+| `$benchmark` | Performance regression checks. |
+| `$learn` | Manage project learnings. |
+| `$context-save` | Save working context. |
+| `$context-restore` | Restore saved context. |
 
 ## Development
 

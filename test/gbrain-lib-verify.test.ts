@@ -1,5 +1,5 @@
 /**
- * cgstack-gbrain-supabase-verify + cgstack-gbrain-lib.sh — Slice 3 of /setup-gbrain.
+ * cgstack-gbrain-supabase-verify + cgstack-gbrain-lib.sh — Slice 3 of $setup-gbrain.
  *
  * verify: structural URL check (scheme, userinfo, host, port). No network
  * call; pure regex. Rejects direct-connection URLs with a distinct exit

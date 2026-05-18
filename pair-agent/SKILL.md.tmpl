@@ -26,7 +26,7 @@ allowed-tools:
 
 {{PREAMBLE}}
 
-# /pair-agent — Share Your Browser With Another Codex Session
+# $pair-agent — Share Your Browser With Another Codex Session
 
 You're sitting in Codex with a browser running. You also have another Codex
 session open. You want that session to browse the web using YOUR browser. This
@@ -163,7 +163,7 @@ browser to the internet securely).
    - Linux: `snap install ngrok` or download from ngrok.com/download
 3. Auth it: `ngrok config add-authtoken YOUR_TOKEN`
    (get your token from https://dashboard.ngrok.com/get-started/your-authtoken)
-4. Come back here and run `/pair-agent` again."
+4. Come back here and run `$pair-agent` again."
 
 STOP here. Wait for the user to install ngrok and re-invoke.
 
@@ -202,7 +202,7 @@ domain access or no domain restrictions.
 **"Rate limit exceeded"** — The agent is sending > 10 requests/second. It should
 wait for the Retry-After header and slow down.
 
-**"Token expired"** — The 24-hour session expired. Run `/pair-agent` again to
+**"Token expired"** — The 24-hour session expired. Run `$pair-agent` again to
 generate a new setup key.
 
 **Agent can't reach the server** — If remote, check the ngrok tunnel is running

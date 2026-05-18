@@ -46,7 +46,7 @@ describeIfSelected('Land-and-Deploy skill E2E', ['land-and-deploy-workflow'], ()
 
   testConcurrentIfSelected('land-and-deploy-workflow', async () => {
     const result = await runSkillTest({
-      prompt: `Read land-and-deploy/SKILL.md for the /land-and-deploy skill instructions.
+      prompt: `Read land-and-deploy/SKILL.md for the $land-and-deploy skill instructions.
 
 You are on branch feat/add-deploy with changes against main. This repo has a fly.toml
 with app = "test-app", indicating a Fly.io deployment.
@@ -69,8 +69,8 @@ Do NOT use AskUserQuestion. Do NOT run gh or fly commands.`,
       runId,
     });
 
-    logCost('/land-and-deploy', result);
-    recordE2E(evalCollector, '/land-and-deploy workflow', 'Land-and-Deploy skill E2E', result);
+    logCost('$land-and-deploy', result);
+    recordE2E(evalCollector, '$land-and-deploy workflow', 'Land-and-Deploy skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     const codexMd = path.join(landDir, 'AGENTS.md');
@@ -118,9 +118,9 @@ describeIfSelected('Land-and-Deploy first-run E2E', ['land-and-deploy-first-run'
 
   testConcurrentIfSelected('land-and-deploy-first-run', async () => {
     const result = await runSkillTest({
-      prompt: `Read land-and-deploy/SKILL.md for the /land-and-deploy skill instructions.
+      prompt: `Read land-and-deploy/SKILL.md for the $land-and-deploy skill instructions.
 
-You are on branch feat/first-deploy. This is the FIRST TIME running /land-and-deploy
+You are on branch feat/first-deploy. This is the FIRST TIME running $land-and-deploy
 for this project — there is NO land-deploy-confirmed file.
 
 This repo has a fly.toml with app = "first-run-app", indicating a Fly.io deployment.
@@ -147,8 +147,8 @@ Just demonstrate the first-run dry-run output.`,
       runId,
     });
 
-    logCost('/land-and-deploy first-run', result);
-    recordE2E(evalCollector, '/land-and-deploy first-run', 'Land-and-Deploy first-run E2E', result);
+    logCost('$land-and-deploy first-run', result);
+    recordE2E(evalCollector, '$land-and-deploy first-run', 'Land-and-Deploy first-run E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify dry-run report was created
@@ -198,7 +198,7 @@ describeIfSelected('Land-and-Deploy review gate E2E', ['land-and-deploy-review-g
 
   testConcurrentIfSelected('land-and-deploy-review-gate', async () => {
     const result = await runSkillTest({
-      prompt: `Read land-and-deploy/SKILL.md for the /land-and-deploy skill instructions.
+      prompt: `Read land-and-deploy/SKILL.md for the $land-and-deploy skill instructions.
 
 Focus on Step 3.5a and Step 3.5a-bis (the review staleness check and inline review offer).
 
@@ -222,8 +222,8 @@ Show what the readiness gate output would look like.`,
       runId,
     });
 
-    logCost('/land-and-deploy review-gate', result);
-    recordE2E(evalCollector, '/land-and-deploy review-gate', 'Land-and-Deploy review gate E2E', result);
+    logCost('$land-and-deploy review-gate', result);
+    recordE2E(evalCollector, '$land-and-deploy review-gate', 'Land-and-Deploy review gate E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Verify readiness report was created
@@ -267,7 +267,7 @@ describeIfSelected('Canary skill E2E', ['canary-workflow'], () => {
 
   testConcurrentIfSelected('canary-workflow', async () => {
     const result = await runSkillTest({
-      prompt: `Read canary/SKILL.md for the /canary skill instructions.
+      prompt: `Read canary/SKILL.md for the $canary skill instructions.
 
 You are simulating a canary check. There is NO browse daemon available and NO production URL.
 
@@ -290,8 +290,8 @@ Just create the directory structure and report files showing the correct schema.
       runId,
     });
 
-    logCost('/canary', result);
-    recordE2E(evalCollector, '/canary workflow', 'Canary skill E2E', result);
+    logCost('$canary', result);
+    recordE2E(evalCollector, '$canary workflow', 'Canary skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     expect(fs.existsSync(path.join(canaryDir, '.cgstack', 'canary-reports'))).toBe(true);
@@ -328,7 +328,7 @@ describeIfSelected('Benchmark skill E2E', ['benchmark-workflow'], () => {
 
   testConcurrentIfSelected('benchmark-workflow', async () => {
     const result = await runSkillTest({
-      prompt: `Read benchmark/SKILL.md for the /benchmark skill instructions.
+      prompt: `Read benchmark/SKILL.md for the $benchmark skill instructions.
 
 You are simulating a benchmark run. There is NO browse daemon available and NO production URL.
 
@@ -353,8 +353,8 @@ Just create the files showing the correct schema and report format.`,
       runId,
     });
 
-    logCost('/benchmark', result);
-    recordE2E(evalCollector, '/benchmark workflow', 'Benchmark skill E2E', result);
+    logCost('$benchmark', result);
+    recordE2E(evalCollector, '$benchmark workflow', 'Benchmark skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     expect(fs.existsSync(path.join(benchDir, '.cgstack', 'benchmark-reports'))).toBe(true);
@@ -394,9 +394,9 @@ describeIfSelected('Setup-Deploy skill E2E', ['setup-deploy-workflow'], () => {
 
   testConcurrentIfSelected('setup-deploy-workflow', async () => {
     const result = await runSkillTest({
-      prompt: `Read setup-deploy/SKILL.md for the /setup-deploy skill instructions.
+      prompt: `Read setup-deploy/SKILL.md for the $setup-deploy skill instructions.
 
-This repo has a fly.toml with app = "my-cool-app". Run the /setup-deploy workflow:
+This repo has a fly.toml with app = "my-cool-app". Run the $setup-deploy workflow:
 1. Detect the platform from fly.toml (should be Fly.io)
 2. Extract the app name: my-cool-app
 3. Infer production URL: https://my-cool-app.fly.dev
@@ -414,8 +414,8 @@ Just detect the platform and write the config.`,
       runId,
     });
 
-    logCost('/setup-deploy', result);
-    recordE2E(evalCollector, '/setup-deploy workflow', 'Setup-Deploy skill E2E', result);
+    logCost('$setup-deploy', result);
+    recordE2E(evalCollector, '$setup-deploy workflow', 'Setup-Deploy skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     const codexMd = path.join(setupDir, 'AGENTS.md');

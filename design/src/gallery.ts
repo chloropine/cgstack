@@ -229,7 +229,7 @@ function generateEmptyGallery(): string {
 <body>
 <div class="empty">
   <h2>No design history yet</h2>
-  <p>Run <code>/design-shotgun</code> to start exploring design directions.</p>
+  <p>Run <code>$design-shotgun</code> to start exploring design directions.</p>
 </div>
 </body>
 </html>`;

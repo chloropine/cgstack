@@ -8,7 +8,7 @@
 # their URLs into a stub builder-profile entry so existing users don't lose
 # their dedup history. Idempotent — safe to run multiple times.
 #
-# Affected: users who ran /office-hours before this version
+# Affected: users who ran $office-hours before this version
 set -euo pipefail
 
 CGSTACK_HOME="${CGSTACK_HOME:-$HOME/.cgstack}"

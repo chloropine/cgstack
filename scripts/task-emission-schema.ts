@@ -5,7 +5,7 @@
  * plan-devex-review) writes one JSONL line per task during its synthesis step
  * to `~/.cgstack/projects/$SLUG/tasks-{phase}-{datetime}.jsonl`.
  *
- * `/autoplan`'s Phase 4 aggregator reads ALL phase JSONL files, scopes them
+ * `$autoplan`'s Phase 4 aggregator reads ALL phase JSONL files, scopes them
  * by branch + commit window, dedupes by exact (component, sorted(files), title),
  * and renders an `## Implementation Tasks (aggregated across phases)` section
  * inside the Final Approval Gate output.

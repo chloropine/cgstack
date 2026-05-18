@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-freeze.sh — PreToolUse hook for /freeze skill
+# check-freeze.sh — PreToolUse hook for $freeze skill
 # Reads JSON from stdin, checks if file_path is within the freeze boundary.
 # Returns {"permissionDecision":"deny","message":"..."} to block, or {} to allow.
 set -euo pipefail

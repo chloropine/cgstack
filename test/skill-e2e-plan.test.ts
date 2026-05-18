@@ -85,8 +85,8 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-ceo-review', result);
-    recordE2E(evalCollector, '/plan-ceo-review', 'Plan CEO Review E2E', result, {
+    logCost('$plan-ceo-review', result);
+    recordE2E(evalCollector, '$plan-ceo-review', 'Plan CEO Review E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     // Accept error_max_turns — the CEO review is very thorough and may exceed turns
@@ -170,7 +170,7 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-ceo-review (SELECTIVE)', result);
+    logCost('$plan-ceo-review (SELECTIVE)', result);
     recordE2E(evalCollector, '/plan-ceo-review-selective', 'Plan CEO Review SELECTIVE EXPANSION E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -236,7 +236,7 @@ Write your expansion proposals to ${planDir}/proposals.md with ONLY the proposal
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-ceo-review (EXPANSION ENERGY)', result);
+    logCost('$plan-ceo-review (EXPANSION ENERGY)', result);
     recordE2E(evalCollector, '/plan-ceo-review-expansion-energy', 'Plan CEO Review Expansion Energy E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -336,8 +336,8 @@ Focus on architecture, code quality, tests, and performance sections.`,
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-eng-review', result);
-    recordE2E(evalCollector, '/plan-eng-review', 'Plan Eng Review E2E', result, {
+    logCost('$plan-eng-review', result);
+    recordE2E(evalCollector, '$plan-eng-review', 'Plan Eng Review E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
@@ -462,8 +462,8 @@ Write your review to ${planDir}/review-output.md`,
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-eng-review artifact', result);
-    recordE2E(evalCollector, '/plan-eng-review test-plan artifact', 'Plan-Eng-Review Test-Plan Artifact E2E', result, {
+    logCost('$plan-eng-review artifact', result);
+    recordE2E(evalCollector, '$plan-eng-review test-plan artifact', 'Plan-Eng-Review Test-Plan Artifact E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -537,7 +537,7 @@ Write your summary to ${ohDir}/spec-review-summary.md`,
       runId,
     });
 
-    logCost('/office-hours spec review', result);
+    logCost('$office-hours spec review', result);
     recordE2E(evalCollector, '/office-hours-spec-review', 'Office Hours Spec Review E2E', result);
     expect(result.exitReason).toBe('success');
 
@@ -584,7 +584,7 @@ describeIfSelected('Plan CEO Review Benefits-From E2E', ['plan-ceo-review-benefi
       prompt: `Read plan-ceo-review/SKILL.md. Search for sections about "Prerequisite" or "office-hours" or "design doc found".
 
 Summarize what happens when no design doc is found — specifically:
-1. Is /office-hours offered as a prerequisite?
+1. Is $office-hours offered as a prerequisite?
 2. What options does the user get?
 3. Is there a mid-session detection for when the user seems lost?
 
@@ -596,7 +596,7 @@ Write your summary to ${benefitsDir}/benefits-summary.md`,
       runId,
     });
 
-    logCost('/plan-ceo-review benefits-from', result);
+    logCost('$plan-ceo-review benefits-from', result);
     recordE2E(evalCollector, '/plan-ceo-review-benefits', 'Plan CEO Review Benefits-From E2E', result);
     expect(result.exitReason).toBe('success');
 
@@ -662,7 +662,7 @@ We're building a real-time notification system for our SaaS app.
     try { fs.rmSync(planDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-eng-review writes CGSTACK REVIEW REPORT to plan file', async () => {
+  test('$plan-eng-review writes CGSTACK REVIEW REPORT to plan file', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-eng-review/SKILL.md for the review workflow.
 
@@ -682,7 +682,7 @@ This review report at the bottom of the plan is the MOST IMPORTANT deliverable o
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-eng-review report', result);
+    logCost('$plan-eng-review report', result);
     recordE2E(evalCollector, '/plan-review-report', 'Plan Review Report E2E', result, {
       passed: ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -767,8 +767,8 @@ Write your summary to ${testDir}/${testName}-summary.md`,
       runId,
     });
 
-    logCost(`/${skill} codex offering`, result);
-    recordE2E(evalCollector, `/${testName}`, 'Codex Offering E2E', result);
+    logCost(`$${skill} codex offering`, result);
+    recordE2E(evalCollector, `$${testName}`, 'Codex Offering E2E', result);
     expect(result.exitReason).toBe('success');
 
     const summaryPath = path.join(testDir, `${testName}-summary.md`);

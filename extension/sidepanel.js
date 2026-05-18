@@ -893,10 +893,10 @@ document.getElementById('conn-reconnect').addEventListener('click', () => {
 });
 
 document.getElementById('conn-copy').addEventListener('click', () => {
-  navigator.clipboard.writeText('/open-cgstack-browser').then(() => {
+  navigator.clipboard.writeText('$open-cgstack-browser').then(() => {
     const btn = document.getElementById('conn-copy');
     btn.textContent = 'copied!';
-    setTimeout(() => { btn.textContent = '/open-cgstack-browser'; }, 2000);
+    setTimeout(() => { btn.textContent = '$open-cgstack-browser'; }, 2000);
   });
 });
 
@@ -988,7 +988,7 @@ async function tryConnect() {
   } catch (e) {
     setLoadingStatus(
       `Server not reachable on port ${port} (attempt ${connectAttempts})`,
-      `GET /health failed: ${e.message}\n\nThe browse server may still be starting.\nRun /open-cgstack-browser in Codex.`
+      `GET /health failed: ${e.message}\n\nThe browse server may still be starting.\nRun $open-cgstack-browser in Codex.`
     );
   }
 

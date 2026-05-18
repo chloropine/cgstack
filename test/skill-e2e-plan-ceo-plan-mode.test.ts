@@ -1,7 +1,7 @@
 /**
  * plan-ceo-review plan-mode smoke (gate, paid, real-PTY).
  *
- * Asserts: when /plan-ceo-review is invoked in plan mode, the FIRST terminal
+ * Asserts: when $plan-ceo-review is invoked in plan mode, the FIRST terminal
  * outcome is 'asked' — a skill-question numbered list. Permission dialogs
  * (which also render numbered lists) are filtered out by `runPlanSkillObservation`
  * via its `isPermissionDialogVisible(visible.slice(-1500))` short-circuit.

@@ -1,16 +1,18 @@
 /**
- * Collision Sentinel — insurance policy against upstream slash-command collisions.
+ * Collision Sentinel — insurance policy against upstream command-name collisions.
  *
  * History: in April 2026 Codex shipped /checkpoint as a native alias
- * for /rewind, silently shadowing the cgstack /checkpoint skill. Users
+ * for /rewind, silently shadowing the old cgstack /checkpoint skill. Users
  * typed /checkpoint expecting to save state; agents routed to the built-in
  * or confabulated "this is a built-in you need to type directly" and nothing
  * was saved. We found out from users, not from tests.
  *
  * This file is the "never again" test. It enumerates every cgstack skill name
  * from every SKILL.md.tmpl file in the repo and cross-checks against a
- * per-host list of known built-in slash commands. If any cgstack skill name
- * collides with a host built-in, this test fails and names the collision.
+ * per-host list of known built-in slash commands. cgstack skills are invoked
+ * as $skill-name, but the bare names can still collide with host /commands in
+ * docs, routing, and user expectations. If any cgstack skill name collides
+ * with a host built-in, this test fails and names the collision.
  *
  * Maintenance: when Codex ships a new
  * built-in slash command, add the name to the host's KNOWN_BUILTINS list
@@ -74,7 +76,7 @@ const KNOWN_BUILTINS: Record<string, string[]> = {
 // review.
 const KNOWN_COLLISIONS_TOLERATED: Record<string, string> = {
   // skill name → one-line justification + action plan
-  'review': 'cgstack /review (pre-landing diff analysis) pre-dates the Codex built-in /review (Review a pull request). The cgstack skill is much richer (SQL safety, LLM trust boundary, specialist dispatch). Watch for user confusion reports and consider renaming to /diff-review or /pre-land if the collision bites. TODO: track user-reported incidents in TODOS.md.',
+  'review': 'cgstack $review (pre-landing diff analysis) pre-dates the Codex built-in /review (Review a pull request). The cgstack skill is much richer (SQL safety, LLM trust boundary, specialist dispatch). Watch for user confusion reports and consider renaming to $diff-review or $pre-land if the collision bites. TODO: track user-reported incidents in TODOS.md.',
 };
 
 // Generic-verb watchlist: skill names that are single common verbs, which
@@ -158,8 +160,8 @@ describe('skill-collision-sentinel', () => {
       }
       if (collisions.length > 0) {
         const msg = collisions.map(c =>
-          `  /${c.skill} collides with ${host} built-in /${c.builtin}.\n` +
-          `    Fix: rename the cgstack skill (precedent: /checkpoint → /context-save+/context-restore),\n` +
+          `  $${c.skill} shares a bare name with ${host} built-in /${c.builtin}.\n` +
+          `    Fix: rename the cgstack skill (precedent: /checkpoint → $context-save+$context-restore),\n` +
           `    OR add an entry to KNOWN_COLLISIONS_TOLERATED with a written justification.`
         ).join('\n\n');
         throw new Error(`Found ${collisions.length} unresolved collision(s) with ${host} built-ins:\n\n${msg}`);
@@ -189,9 +191,9 @@ describe('skill-collision-sentinel', () => {
     }
   });
 
-  // Self-check: the /checkpoint rename actually landed. If someone reverts
+  // Self-check: the old /checkpoint skill rename actually landed. If someone reverts
   // the rename by accident, this catches it.
-  test('the /checkpoint collision that started this file is actually resolved', () => {
+  test('the old /checkpoint collision that started this file is actually resolved', () => {
     const names = new Set(skills.map(s => s.name));
     expect(names.has('checkpoint')).toBe(false);
     // And the replacements exist.
@@ -210,7 +212,7 @@ describe('skill-collision-sentinel', () => {
     if (flagged.length > 0) {
       console.log(
         `\n⚠️  advisory: ${flagged.length} skill(s) use generic verbs that may be at risk ` +
-        `of future host built-in collisions: ${flagged.map(n => `/${n}`).join(', ')}\n` +
+        `of future host built-in collisions: ${flagged.map(n => `$${n}`).join(', ')}\n` +
         `   These are NOT current collisions — they're names to watch. If any become ` +
         `taken, the per-host test above will fail.\n`
       );

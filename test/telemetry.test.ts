@@ -329,8 +329,8 @@ describe('cgstack-analytics', () => {
     run(`${BIN}/cgstack-telemetry-log --skill ship --duration 30 --outcome error --error-class timeout --session-id a-3`);
 
     const output = run(`${BIN}/cgstack-analytics all`);
-    expect(output).toContain('/qa');
-    expect(output).toContain('/ship');
+    expect(output).toContain('$qa');
+    expect(output).toContain('$ship');
     expect(output).toContain('2 runs');
     expect(output).toContain('1 runs');
     expect(output).toContain('Success rate: 66%');
@@ -342,7 +342,7 @@ describe('cgstack-analytics', () => {
     run(`${BIN}/cgstack-telemetry-log --skill qa --duration 60 --outcome success --session-id t-1`);
 
     const output7d = run(`${BIN}/cgstack-analytics 7d`);
-    expect(output7d).toContain('/qa');
+    expect(output7d).toContain('$qa');
     expect(output7d).toContain('last 7 days');
   });
 });

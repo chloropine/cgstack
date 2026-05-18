@@ -62,7 +62,7 @@ mkdir -p "$MIGRATION_DIR"
 [ -f "$DONE" ] && exit 0
 
 # User opted out previously? exit silently. (Re-invoke via
-# `/setup-gbrain --rerun-migration` removes this marker.)
+# `$setup-gbrain --rerun-migration` removes this marker.)
 [ -f "$SKIPPED" ] && exit 0
 
 journal_done() {
@@ -101,7 +101,7 @@ if [ ! -f "$JOURNAL" ]; then
 
   [v1.27.0.0] cgstack-brain has been renamed to cgstack-artifacts.
   This is a clearer name for what it actually holds: CEO plans, designs,
-  /investigate reports, retros (i.e. artifacts, not behavioral memory).
+  \$investigate reports, retros (i.e. artifacts, not behavioral memory).
 
   This migration will:
     1. Rename your private GitHub/GitLab repo "$OLD_REPO_NAME" → "$NEW_REPO_NAME"
@@ -119,7 +119,7 @@ EOF
     read -r REPLY || REPLY=""
     case "$REPLY" in
       n|N|no|No|NO)
-        echo "  Skipping migration. Re-run via /setup-gbrain --rerun-migration." >&2
+        echo "  Skipping migration. Re-run via \$setup-gbrain --rerun-migration." >&2
         touch "$SKIPPED"
         exit 0
         ;;
@@ -275,9 +275,9 @@ fi
 # ---------------------------------------------------------------------------
 if ! journal_done "codex_md_block_rewritten"; then
   echo "  [v1.27.0.0] step 4: rewrite AGENTS.md GBrain Configuration block fields" >&2
-  # Look in cwd's AGENTS.md (where /setup-gbrain wrote it) and ~/.cgstack/AGENTS.md
+  # Look in cwd's AGENTS.md (where $setup-gbrain wrote it) and ~/.cgstack/AGENTS.md
   # if it exists. We can't know every project's AGENTS.md; users rerunning
-  # /setup-gbrain in any project will overwrite that block fresh anyway.
+  # $setup-gbrain in any project will overwrite that block fresh anyway.
   for CMD in "$PWD/AGENTS.md" "$CGSTACK_HOME/AGENTS.md"; do
     [ -f "$CMD" ] || continue
     if grep -q "## GBrain Configuration" "$CMD"; then

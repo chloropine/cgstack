@@ -17,7 +17,7 @@
  *   --full                  — first-run; full walk + reindex; honest budget per ED2
  *   --dry-run               — preview what would sync; no writes anywhere (incl. state file)
  *
- * Concurrency safety per /plan-eng-review D1:
+ * Concurrency safety per $plan-eng-review D1:
  *   - Lock file at ~/.cgstack/.sync-gbrain.lock (PID + start ts).
  *   - Stale-lock takeover after 5 min (process death).
  *   - State file written via tmp+rename for atomicity.
@@ -25,7 +25,7 @@
  *
  * --watch (V1.5 P0 TODO): file-watcher daemon. NOTE: gbrain v0.25.1 already
  * ships `gbrain sync --watch [--interval N]` and `gbrain sync --install-cron`;
- * when revisited, /sync-gbrain --watch wires through to the gbrain CLI rather
+ * when revisited, $sync-gbrain --watch wires through to the gbrain CLI rather
  * than building a cgstack-side daemon.
  */
 
@@ -203,7 +203,7 @@ function deriveCodeSourceId(repoPath: string): string {
 /**
  * Pre-pathhash source id, kept for orphan detection only.
  *
- * Earlier /sync-gbrain versions registered `cgstack-code-<slug>` (no pathhash
+ * Earlier $sync-gbrain versions registered `cgstack-code-<slug>` (no pathhash
  * suffix). On a multi-worktree repo, those collapsed onto a single source id
  * with last-sync-wins semantics. The new path-keyed id leaves the legacy
  * source orphaned in the brain — federated cross-source search would return
@@ -467,10 +467,10 @@ function releaseLock(): void {
  * verdict block tells the user exactly what's wrong without re-probing.
  *
  * Reasons mapped to user-actionable summaries:
- *   no-cli         → "gbrain CLI not on PATH; install via /setup-gbrain"
- *   missing-config → "no local engine; run /setup-gbrain to add local PGLite"
- *   broken-config  → "config file at ~/.gbrain/config.json is malformed; see /setup-gbrain Step 1.5"
- *   broken-db      → "config points at unreachable DB; see /setup-gbrain Step 1.5"
+ *   no-cli         → "gbrain CLI not on PATH; install via $setup-gbrain"
+ *   missing-config → "no local engine; run $setup-gbrain to add local PGLite"
+ *   broken-config  → "config file at ~/.gbrain/config.json is malformed; see $setup-gbrain Step 1.5"
+ *   broken-db      → "config points at unreachable DB; see $setup-gbrain Step 1.5"
  */
 function skipStageForLocalStatus(
   stage: "code" | "memory",
@@ -478,13 +478,13 @@ function skipStageForLocalStatus(
   t0: number,
 ): StageResult {
   const reasons: Record<Exclude<LocalEngineStatus, "ok">, string> = {
-    "no-cli": "gbrain CLI not on PATH; install via /setup-gbrain",
+    "no-cli": "gbrain CLI not on PATH; install via $setup-gbrain",
     "missing-config":
-      "no local engine; run /setup-gbrain to add local PGLite for code search",
+      "no local engine; run $setup-gbrain to add local PGLite for code search",
     "broken-config":
-      "config at ~/.gbrain/config.json is malformed; see /setup-gbrain Step 1.5",
+      "config at ~/.gbrain/config.json is malformed; see $setup-gbrain Step 1.5",
     "broken-db":
-      "config points at unreachable DB; see /setup-gbrain Step 1.5",
+      "config points at unreachable DB; see $setup-gbrain Step 1.5",
   };
   const reason = reasons[status as Exclude<LocalEngineStatus, "ok">];
   return {
@@ -507,7 +507,7 @@ async function runCodeImport(args: CliArgs): Promise<StageResult> {
   const sourceId = deriveCodeSourceId(root);
 
   // dry-run preview always shows the would-do steps, regardless of local
-  // engine state. Useful for "what would /sync-gbrain do" without probing
+  // engine state. Useful for "what would $sync-gbrain do" without probing
   // the engine.
   if (args.mode === "dry-run") {
     return {
@@ -522,7 +522,7 @@ async function runCodeImport(args: CliArgs): Promise<StageResult> {
 
   // Split-engine pre-flight (per plan D12): when local engine is not ok, SKIP
   // code stage cleanly. Brain-sync stage still runs because it doesn't depend
-  // on local engine. The /sync-gbrain Step 1.5 pre-flight surfaces the user
+  // on local engine. The $sync-gbrain Step 1.5 pre-flight surfaces the user
   // remediation message; this skip just keeps the orchestrator from crashing
   // when the local DB is dead. Skipped on --dry-run (above) since dry-run
   // never actually probes anything.
@@ -532,7 +532,7 @@ async function runCodeImport(args: CliArgs): Promise<StageResult> {
   }
 
   // Step 0a: Best-effort cleanup of pre-pathhash legacy source (v1.x form).
-  // Earlier /sync-gbrain versions registered `cgstack-code-<slug>` (no path
+  // Earlier $sync-gbrain versions registered `cgstack-code-<slug>` (no path
   // suffix). On a multi-worktree repo, those collapsed onto a single id
   // with last-sync-wins. Federated search would return stale duplicate
   // hits forever if we left the orphan in place. Remove the legacy id once
@@ -655,7 +655,7 @@ async function runCodeImport(args: CliArgs): Promise<StageResult> {
       ran: true,
       ok: false,
       duration_ms: Date.now() - t0,
-      summary: `${baseSummary}; attach FAILED (${reason}) — code-def queries from this worktree will hit the default source until /sync-gbrain succeeds`,
+      summary: `${baseSummary}; attach FAILED (${reason}) — code-def queries from this worktree will hit the default source until $sync-gbrain succeeds`,
       detail: {
         source_id: sourceId,
         source_path: root,
@@ -835,7 +835,7 @@ function loadSyncState(): SyncState {
 }
 
 /**
- * Atomic state file write per /plan-eng-review D1: write tmp file then rename.
+ * Atomic state file write per $plan-eng-review D1: write tmp file then rename.
  * rename(2) is atomic on POSIX filesystems.
  */
 function saveSyncState(state: SyncState): void {
@@ -874,7 +874,7 @@ async function main(): Promise<void> {
     haveLock = acquireLock();
     if (!haveLock) {
       console.error(
-        `[gbrain-sync] another /sync-gbrain is running (lock at ${LOCK_PATH}). ` +
+        `[gbrain-sync] another $sync-gbrain is running (lock at ${LOCK_PATH}). ` +
         `If that process died, the lock auto-clears after 5 min, or remove it manually.`
       );
       process.exit(2);

@@ -1,4 +1,4 @@
-// /ship Step 12: VERSION ↔ package.json drift detection + repair.
+// $ship Step 12: VERSION ↔ package.json drift detection + repair.
 // Mirrors the bash blocks in ship/SKILL.md.tmpl Step 12. When the template
 // changes, update both sides together.
 //
@@ -212,7 +212,7 @@ test("DRIFT REPAIR rejects invalid VERSION semver instead of propagating", () =>
 // --- THE critical regression test: drift-repair does NOT double-bump ---
 
 test("DRIFT REPAIR: sync path syncs pkg to VERSION without re-bumping", () => {
-  // Simulate a prior /ship that bumped VERSION but failed to touch package.json.
+  // Simulate a prior $ship that bumped VERSION but failed to touch package.json.
   writeFiles({ VERSION: "0.1.0.0\n", "package.json": pkgJson("0.0.0.0") });
   // Idempotency classifies as DRIFT_STALE_PKG.
   expect(idempotency("0.0.0.0").stdout).toBe("STATE: DRIFT_STALE_PKG");

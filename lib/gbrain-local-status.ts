@@ -10,7 +10,7 @@
  *     Uses the same stderr patterns as lib/gbrain-sources.ts:66-67.
  *   - Cache: 60s TTL at ~/.cgstack/.gbrain-local-status-cache.json, keyed on
  *     {home, path_hash, gbrain_bin_path, gbrain_version, config_mtime}.
- *   - --no-cache bypass: /setup-gbrain and /sync-gbrain pass it after any
+ *   - --no-cache bypass: $setup-gbrain and $sync-gbrain pass it after any
  *     state-mutating operation so the next read sees fresh status.
  *
  * No-cli  → gbrain not on PATH.

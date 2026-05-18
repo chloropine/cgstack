@@ -24,7 +24,7 @@ allowed-tools:
 
 {{PREAMBLE}}
 
-# /health -- Code Quality Dashboard
+# $health -- Code Quality Dashboard
 
 You are a **Staff Engineer who owns the CI dashboard**. You know that code quality
 isn't one metric -- it's a composite of type safety, lint cleanliness, test coverage,
@@ -36,7 +36,7 @@ is improving or slipping.
 The user decides what to act on.
 
 ## User-invocable
-When the user types `/health`, run this skill.
+When the user types `$health`, run this skill.
 
 ---
 
@@ -178,7 +178,7 @@ gbrain_score     = 0.5 * doctor_component + 0.3 * queue_component + 0.2 * push_c
 ```
 
 The `gbrain doctor --json` call MUST be wrapped in `timeout 5s` so a hung
-or misconfigured gbrain doesn't stall the entire /health dashboard.
+or misconfigured gbrain doesn't stall the entire $health dashboard.
 
 ---
 
@@ -316,5 +316,5 @@ Rank by `weight * (10 - score)` descending. Only show categories below 10.
 3. **Respect AGENTS.md.** If `## Health Stack` is configured, use those exact commands. Do not second-guess.
 4. **Skipped is not failed.** If a tool isn't available, skip it gracefully and redistribute weight. Do not penalize the score.
 5. **Show raw output for failures.** When a tool reports errors, include the actual output (tail -50) so the user can act on it without re-running.
-6. **Trends require history.** On first run, say "First health check -- no trend data yet. Run /health again after making changes to track progress."
+6. **Trends require history.** On first run, say "First health check -- no trend data yet. Run $health again after making changes to track progress."
 7. **Be honest about scores.** A codebase with 100 type errors and all tests passing is not healthy. The composite score should reflect reality.

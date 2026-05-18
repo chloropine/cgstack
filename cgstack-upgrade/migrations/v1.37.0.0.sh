@@ -5,7 +5,7 @@
 # Per plan D5: prints a ONE-TIME discoverability notice for existing
 # Path 4 users who don't yet have a local engine. They learn that
 # symbol-aware code search (gbrain code-def / code-refs / code-callers)
-# is now available via /setup-gbrain Step 4.5 if they want it.
+# is now available via $setup-gbrain Step 4.5 if they want it.
 #
 # When to print the notice (state match — all conditions must hold):
 #   - ~/.codex.json declares mcpServers.gbrain.{type|transport} = http|sse|url
@@ -80,7 +80,7 @@ if is_remote_http_mcp && is_local_engine_missing; then
   │  add a tiny local PGLite (~30s, no accounts) for `gbrain         │
   │  code-def` / `code-refs` / `code-callers` queries per worktree.  │
   │                                                                  │
-  │  Run /setup-gbrain to opt in at Step 4.5. Or skip this notice    │
+  │  Run \$setup-gbrain to opt in at Step 4.5. Or skip this notice   │
   │  permanently:                                                    │
   │    cgstack-config set local_code_index_offered true               │
   └──────────────────────────────────────────────────────────────────┘

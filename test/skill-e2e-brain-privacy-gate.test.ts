@@ -68,7 +68,7 @@ describeE2E('gbrain-sync privacy gate fires once via preamble', () => {
 
     try {
       // Pick a small skill with the preamble and load it via Read to force
-      // the model to execute every preamble directive. A narrow "run /learn"
+      // the model to execute every preamble directive. A narrow "run $learn"
       // prompt often gets reduced to a direct action, skipping the preamble
       // gates. Mirror the plan-mode-no-op test pattern: ask the model to
       // follow the skill's instructions in full.
@@ -181,7 +181,7 @@ describeE2E('gbrain-sync privacy gate fires once via preamble', () => {
       await runAgentSdkTest({
         systemPrompt: { type: 'preset', preset: 'codex' },
         userPrompt:
-          'Run /learn with no arguments. Just report the learnings count.',
+          'Run $learn with no arguments. Just report the learnings count.',
         workingDirectory: cgstackHome,
         maxTurns: 4,
         allowedTools: ['Read', 'Grep', 'Glob', 'Bash'],

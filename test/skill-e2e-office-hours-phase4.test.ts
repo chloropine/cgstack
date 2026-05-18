@@ -1,5 +1,5 @@
 /**
- * /office-hours Phase 4 alternatives gate regression (periodic, paid, SDK-based).
+ * $office-hours Phase 4 alternatives gate regression (periodic, paid, SDK-based).
  *
  * Reproduces the bug seen in production: agent in builder mode reaches Phase 4,
  * presents 3 architectural alternatives (A/B/C), writes "Recommendation: C" in
@@ -139,7 +139,7 @@ After writing the file with that ONE Phase 4 question, stop. Do not continue to 
       model: 'gpt-5.4',
     });
 
-    logCost('/office-hours Phase 4 fork', result);
+    logCost('$office-hours Phase 4 fork', result);
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
 
     expect(fs.existsSync(outFile)).toBe(true);

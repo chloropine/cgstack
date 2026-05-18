@@ -4,7 +4,7 @@ preamble-tier: 4
 version: 1.0.0
 description: |
   Land and deploy workflow. Merges the PR, waits for CI and deploy,
-  verifies production health via canary checks. Takes over after /ship
+  verifies production health via canary checks. Takes over after $ship
   creates the PR. Use when: "merge", "land", "deploy", "merge and verify",
   "land it", "ship it to production". (cgstack)
 allowed-tools:
@@ -108,9 +108,9 @@ In plan mode, allowed because they inform the plan: `$B`, `$D`, `codex exec`/`co
 
 If the user invokes a skill in plan mode, the skill takes precedence over generic plan mode behavior. **Treat the skill file as executable instructions, not reference.** Follow it step by step starting from Step 0; the first AskUserQuestion is the workflow entering plan mode, not a violation of it. AskUserQuestion (any variant — `mcp__*__AskUserQuestion` or native; see "AskUserQuestion Format → Tool resolution") satisfies plan mode's end-of-turn requirement. If no variant is callable, the skill is BLOCKED — stop and report `BLOCKED — AskUserQuestion unavailable` per the AskUserQuestion Format rule. At a STOP point, stop immediately. Do not continue the workflow or call ExitPlanMode there. Commands marked "PLAN MODE EXCEPTION — ALWAYS RUN" execute. Call ExitPlanMode only after the skill workflow completes, or if the user tells you to cancel the skill or leave plan mode.
 
-If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think /skillname might help here — want me to run it?"
+If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think $skillname might help here — want me to run it?"
 
-If `SKILL_PREFIX` is `"true"`, suggest/invoke `/cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
+If `SKILL_PREFIX` is `"true"`, suggest/invoke `$cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
 
 If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.codex/skills/cgstack/cgstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined).
 
@@ -180,11 +180,11 @@ Skip if `TEL_PROMPTED` is `yes`.
 
 If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: ask once:
 
-> Let cgstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
+> Let cgstack proactively suggest skills, like $qa for "does this work?" or $investigate for bugs?
 
 Options:
 - A) Keep it on (recommended)
-- B) Turn it off — I'll type /commands myself
+- B) Turn it off — I'll invoke skills myself
 
 If A: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive true`
 If B: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive false`
@@ -216,18 +216,18 @@ If A: Append this section to the end of AGENTS.md:
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
 
 Key routing rules:
-- Product ideas/brainstorming → invoke /office-hours
-- Strategy/scope → invoke /plan-ceo-review
-- Architecture → invoke /plan-eng-review
-- Design system/plan review → invoke /design-consultation or /plan-design-review
-- Full review pipeline → invoke /autoplan
-- Bugs/errors → invoke /investigate
-- QA/testing site behavior → invoke /qa or /qa-only
-- Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
-- Ship/deploy/PR → invoke /ship or /land-and-deploy
-- Save progress → invoke /context-save
-- Resume context → invoke /context-restore
+- Product ideas/brainstorming → invoke $office-hours
+- Strategy/scope → invoke $plan-ceo-review
+- Architecture → invoke $plan-eng-review
+- Design system/plan review → invoke $design-consultation or $plan-design-review
+- Full review pipeline → invoke $autoplan
+- Bugs/errors → invoke $investigate
+- QA/testing site behavior → invoke $qa or $qa-only
+- Code review/diff check → invoke $review
+- Visual polish → invoke $design-review
+- Ship/deploy/PR → invoke $ship or $land-and-deploy
+- Save progress → invoke $context-save
+- Resume context → invoke $context-restore
 ```
 
 Then commit the change: `git add AGENTS.md && git commit -m "chore: add cgstack skill routing rules to AGENTS.md"`
@@ -277,7 +277,7 @@ AI orchestrator (e.g., Codex). In spawned sessions:
 
 **Rule:** if any `mcp__*__AskUserQuestion` variant is in your tool list, prefer it. Hosts may disable native AUQ via `--disallowedTools AskUserQuestion` (Conductor does, by default) and route through their MCP variant; calling native there silently fails. Same questions/options shape; same decision-brief format applies.
 
-**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `/plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
+**If no AskUserQuestion variant appears in your tool list, this skill is BLOCKED.** Stop, report `BLOCKED — AskUserQuestion unavailable`, and wait for the user. Do not write decisions to the plan file as a substitute, do not emit them as prose and stop, and do not silently auto-decide (only `$plan-tune` AUTO_DECIDE opt-ins authorize auto-picking).
 
 ### Format
 
@@ -363,7 +363,7 @@ fi
 _BRAIN_SYNC_BIN="~/.codex/skills/cgstack/bin/cgstack-brain-sync"
 _BRAIN_CONFIG_BIN="~/.codex/skills/cgstack/bin/cgstack-config"
 
-# /sync-gbrain context-load: teach the agent to use gbrain when it's available.
+# $sync-gbrain context-load: teach the agent to use gbrain when it's available.
 # Per-worktree pin: post-spike redesign uses kubectl-style `.gbrain-source` in the
 # git toplevel to scope queries. Look for the pin in the worktree (not a global
 # state file) so that opening worktree B without a pin doesn't claim "indexed"
@@ -382,9 +382,9 @@ if [ -f "$_GBRAIN_CONFIG" ] && command -v gbrain >/dev/null 2>&1; then
       echo "GBrain configured. Prefer \`gbrain search\`/\`gbrain query\` over Grep for"
       echo "semantic questions; use \`gbrain code-def\`/\`code-refs\`/\`code-callers\` for"
       echo "symbol-aware code lookup. See \"## GBrain Search Guidance\" in AGENTS.md."
-      echo "Run /sync-gbrain to refresh."
+      echo "Run \$sync-gbrain to refresh."
     else
-      echo "GBrain configured but this worktree isn't pinned yet. Run \`/sync-gbrain --full\`"
+      echo "GBrain configured but this worktree isn't pinned yet. Run \`\$sync-gbrain --full\`"
       echo "before relying on \`gbrain search\` for code questions in this worktree."
       echo "Falls back to Grep until pinned."
     fi
@@ -393,7 +393,7 @@ fi
 
 _BRAIN_SYNC_MODE=$("$_BRAIN_CONFIG_BIN" get artifacts_sync_mode 2>/dev/null || echo off)
 
-# Detect remote-MCP mode (Path 4 of /setup-gbrain). Local artifacts sync is
+# Detect remote-MCP mode (Path 4 of $setup-gbrain). Local artifacts sync is
 # a no-op in remote mode; the brain server pulls from GitHub/GitLab on its
 # own cadence. Read codex.json directly to keep this preamble fast (no
 # subprocess to codex CLI on every skill start).
@@ -479,7 +479,7 @@ At skill END before telemetry:
 
 The following nudges are tuned for the codex model family. They are
 **subordinate** to skill workflow, STOP points, AskUserQuestion gates, plan-mode
-safety, and /ship review gates. If a nudge below conflicts with skill instructions,
+safety, and $ship review gates. If a nudge below conflicts with skill instructions,
 the skill wins. Treat these as preferences, not rules.
 
 **Todo-list discipline.** When working through a multi-step plan, mark each task
@@ -651,13 +651,13 @@ WIP: <concise description of what changed>
 Decisions: <key choices made this step>
 Remaining: <what's left in the logical unit>
 Tried: <failed approaches worth recording> (omit if none)
-Skill: </skill-name-if-running>
+Skill: <$skill-name-if-running>
 [/cgstack-context]
 ```
 
 Rules: stage only intentional files, NEVER `git add -A`, do not commit broken tests or mid-edit state, and push only if `CHECKPOINT_PUSH` is `"true"`. Do not announce each WIP commit.
 
-`/context-restore` reads `[cgstack-context]`; `/ship` squashes WIP commits into clean commits.
+`$context-restore` reads `[cgstack-context]`; `$ship` squashes WIP commits into clean commits.
 
 If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user asks to commit.
 
@@ -665,11 +665,11 @@ If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user
 
 During long-running skill sessions, periodically write a brief `[PROGRESS]` summary: done, next, surprises.
 
-If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or /context-save. Progress summaries must NEVER mutate git state.
+If you are looping on the same diagnostic, same file, or failed fix variants, STOP and reassess. Consider escalation or $context-save. Progress summaries must NEVER mutate git state.
 
 ## Question Tuning (skip entirely if `QUESTION_TUNING: false`)
 
-Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." `ASK_NORMALLY` means ask.
+Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with $plan-tune." `ASK_NORMALLY` means ask.
 
 After answer, log best-effort:
 ```bash
@@ -756,7 +756,7 @@ Replace `SKILL_NAME`, `OUTCOME`, and `USED_BROWSE` before running.
 
 ## Plan Status Footer
 
-Skills that run plan reviews (`/plan-*-review`, Codex review) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `/ship`, `/qa`, `/review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
+Plan-review skills (`$plan-ceo-review`, `$plan-eng-review`, `$plan-design-review`, and `$plan-devex-review`) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `$ship`, `$qa`, `$review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
 
 ## SETUP (run this check BEFORE any browse command)
 
@@ -833,27 +833,27 @@ branch name wherever the instructions say "the base branch" or `<default>`.
 
 ---
 
-**If the platform detected above is GitLab or unknown:** STOP with: "GitLab support for /land-and-deploy is not yet implemented. Run `/ship` to create the MR, then merge manually via the GitLab web UI." Do not proceed.
+**If the platform detected above is GitLab or unknown:** STOP with: "GitLab support for $land-and-deploy is not yet implemented. Run `$ship` to create the MR, then merge manually via the GitLab web UI." Do not proceed.
 
-# /land-and-deploy — Merge, Deploy, Verify
+# $land-and-deploy — Merge, Deploy, Verify
 
 You are a **Release Engineer** who has deployed to production thousands of times. You know the two worst feelings in software: the merge that breaks prod, and the merge that sits in queue for 45 minutes while you stare at the screen. Your job is to handle both gracefully — merge efficiently, wait intelligently, verify thoroughly, and give the user a clear verdict.
 
-This skill picks up where `/ship` left off. `/ship` creates the PR. You merge it, wait for deploy, and verify production.
+This skill picks up where `$ship` left off. `$ship` creates the PR. You merge it, wait for deploy, and verify production.
 
 ## User-invocable
-When the user types `/land-and-deploy`, run this skill.
+When the user types `$land-and-deploy`, run this skill.
 
 ## Arguments
-- `/land-and-deploy` — auto-detect PR from current branch, no post-deploy URL
-- `/land-and-deploy <url>` — auto-detect PR, verify deploy at this URL
-- `/land-and-deploy #123` — specific PR number
-- `/land-and-deploy #123 <url>` — specific PR + verification URL
+- `$land-and-deploy` — auto-detect PR from current branch, no post-deploy URL
+- `$land-and-deploy <url>` — auto-detect PR, verify deploy at this URL
+- `$land-and-deploy #123` — specific PR number
+- `$land-and-deploy #123 <url>` — specific PR + verification URL
 
-## Non-interactive philosophy (like /ship) — with one critical gate
+## Non-interactive philosophy (like $ship) — with one critical gate
 
 This is a **mostly automated** workflow. Do NOT ask for confirmation at any step except
-the ones listed below. The user said `/land-and-deploy` which means DO IT — but verify
+the ones listed below. The user said `$land-and-deploy` which means DO IT — but verify
 readiness first.
 
 **Always stop for:**
@@ -892,7 +892,7 @@ Tell the user: "Starting deploy sequence. First, let me make sure everything is 
 ```bash
 gh auth status
 ```
-If not authenticated, **STOP**: "I need GitHub CLI access to merge your PR. Run `gh auth login` to connect, then try `/land-and-deploy` again."
+If not authenticated, **STOP**: "I need GitHub CLI access to merge your PR. Run `gh auth login` to connect, then try `$land-and-deploy` again."
 
 2. Parse arguments. If the user specified `#NNN`, use that PR number. If a URL was provided, save it for canary verification in Step 7.
 
@@ -904,8 +904,8 @@ gh pr view --json number,state,title,url,mergeStateStatus,mergeable,baseRefName,
 4. Tell the user what you found: "Found PR #NNN — '{title}' (branch → base)."
 
 5. Validate the PR state:
-   - If no PR exists: **STOP.** "No PR found for this branch. Run `/ship` first to create a PR, then come back here to land and deploy it."
-   - If `state` is `MERGED`: "This PR is already merged — nothing to deploy. If you need to verify the deploy, run `/canary <url>` instead."
+   - If no PR exists: **STOP.** "No PR found for this branch. Run `$ship` first to create a PR, then come back here to land and deploy it."
+   - If `state` is `MERGED`: "This PR is already merged — nothing to deploy. If you need to verify the deploy, run `$canary <url>` instead."
    - If `state` is `CLOSED`: "This PR was closed without merging. Reopen it on GitHub first, then try again."
    - If `state` is `OPEN`: continue.
 
@@ -913,7 +913,7 @@ gh pr view --json number,state,title,url,mergeStateStatus,mergeable,baseRefName,
 
 ## Step 1.5: First-run dry-run validation
 
-Check whether this project has been through a successful `/land-and-deploy` before,
+Check whether this project has been through a successful `$land-and-deploy` before,
 and whether the deploy configuration has changed since then:
 
 ```bash
@@ -946,7 +946,7 @@ do a quick dry run to make sure I still understand how your project deploys."
 
 Then proceed to the FIRST_RUN flow below (steps 1.5a through 1.5e).
 
-**If FIRST_RUN:** This is the first time `/land-and-deploy` is running for this project. Before doing anything irreversible, show the user exactly what will happen. This is a dry run — explain, validate, and confirm.
+**If FIRST_RUN:** This is the first time `$land-and-deploy` is running for this project. Before doing anything irreversible, show the user exactly what will happen. This is a dry run — explain, validate, and confirm.
 
 Tell the user:
 
@@ -993,7 +993,7 @@ and skip manual detection. If no persisted config exists, use the auto-detected 
 to guide deploy verification. If nothing is detected, ask the user via AskUserQuestion
 in the decision tree below.
 
-If you want to persist deploy settings for future runs, suggest the user run `/setup-deploy`.
+If you want to persist deploy settings for future runs, suggest the user run `$setup-deploy`.
 
 Parse the output and record: the detected platform, production URL, deploy workflow (if any),
 and any persisted config from AGENTS.md.
@@ -1107,12 +1107,12 @@ Present the full dry-run results to the user via AskUserQuestion:
 - List any warnings from command validation, with plain-English explanations.
 - If staging was detected, note: "I found a staging environment at {url/workflow}. After we merge, I'll offer to deploy there first so you can verify everything works before it hits production."
 - If no staging was detected, note: "I didn't find a staging environment. The deploy will go straight to production — I'll run health checks right after to make sure everything looks good."
-- **RECOMMENDATION:** Choose A if all validations passed. Choose B if there are issues to fix. Choose C to run /setup-deploy for a more thorough configuration.
+- **RECOMMENDATION:** Choose A if all validations passed. Choose B if there are issues to fix. Choose C to run $setup-deploy for a more thorough configuration.
 - A) That's right — this is how my project deploys. Let's go. (Completeness: 10/10)
 - B) Something's off — let me tell you what's wrong (Completeness: 10/10)
-- C) I want to configure this more carefully first (runs /setup-deploy) (Completeness: 10/10)
+- C) I want to configure this more carefully first (runs $setup-deploy) (Completeness: 10/10)
 
-**If A:** Tell the user: "Great — I've saved this configuration. Next time you run `/land-and-deploy`, I'll skip the dry run and go straight to readiness checks. If your deploy setup changes (new platform, different workflows, updated URLs), I'll automatically re-run the dry run to make sure I still have it right."
+**If A:** Tell the user: "Great — I've saved this configuration. Next time you run `$land-and-deploy`, I'll skip the dry run and go straight to readiness checks. If your deploy setup changes (new platform, different workflows, updated URLs), I'll automatically re-run the dry run to make sure I still have it right."
 
 Save the deploy config fingerprint so we can detect future changes:
 ```bash
@@ -1123,9 +1123,9 @@ echo "${CURRENT_HASH}-${WORKFLOW_HASH}" > ~/.cgstack/projects/$SLUG/land-deploy-
 ```
 Continue to Step 2.
 
-**If B:** **STOP.** "Tell me what's different about your setup and I'll adjust. You can also run `/setup-deploy` to walk through the full configuration."
+**If B:** **STOP.** "Tell me what's different about your setup and I'll adjust. You can also run `$setup-deploy` to walk through the full configuration."
 
-**If C:** **STOP.** "Running `/setup-deploy` will walk through your deploy platform, production URL, and health checks in detail. It saves everything to AGENTS.md so I'll know exactly what to do next time. Run `/land-and-deploy` again when that's done."
+**If C:** **STOP.** "Running `$setup-deploy` will walk through your deploy platform, production URL, and health checks in detail. It saves everything to AGENTS.md so I'll know exactly what to do next time. Run `$land-and-deploy` again when that's done."
 
 ---
 
@@ -1148,7 +1148,7 @@ Also check for merge conflicts:
 ```bash
 gh pr view --json mergeable -q .mergeable
 ```
-If `CONFLICTING`: **STOP.** "This PR has merge conflicts with the base branch. Resolve the conflicts and push, then run `/land-and-deploy` again."
+If `CONFLICTING`: **STOP.** "This PR has merge conflicts with the base branch. Resolve the conflicts and push, then run `$land-and-deploy` again."
 
 ---
 
@@ -1170,7 +1170,7 @@ If timeout (15 min): **STOP.** "CI has been running for over 15 minutes — that
 
 ## Step 3.4: VERSION drift detection (workspace-aware ship)
 
-Before gathering readiness evidence, verify that the VERSION this PR claims is still the next free slot. A sibling workspace may have shipped and landed since `/ship` ran, leaving this PR's VERSION stale.
+Before gathering readiness evidence, verify that the VERSION this PR claims is still the next free slot. A sibling workspace may have shipped and landed since `$ship` ran, leaving this PR's VERSION stale.
 
 ```bash
 BRANCH_VERSION=$(git show HEAD:VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "")
@@ -1199,15 +1199,15 @@ Behavior:
    ```
    ⚠ VERSION drift detected.
      This PR claims:  v<BRANCH_VERSION>
-     Next free slot:  v<NEXT_SLOT>   (queue moved since last /ship)
+     Next free slot:  v<NEXT_SLOT>   (queue moved since last $ship)
 
-   Rerun /ship from the feature branch to reconcile. /ship's ALREADY_BUMPED
+   Rerun $ship from the feature branch to reconcile. $ship's ALREADY_BUMPED
    branch will detect the drift and rewrite VERSION + CHANGELOG header + PR title
    atomically. Do NOT merge from here — the landed PR would overwrite the other
    branch's CHANGELOG entry or land with a duplicate version header.
    ```
 
-   Exit non-zero. Do NOT auto-bump from `/land-and-deploy` — rerunning `/ship` is the clean path (it already handles VERSION + package.json + CHANGELOG header + PR title atomically via Step 12 ALREADY_BUMPED detection).
+   Exit non-zero. Do NOT auto-bump from `$land-and-deploy` — rerunning `$ship` is the clean path (it already handles VERSION + package.json + CHANGELOG header + PR title atomically via Step 12 ALREADY_BUMPED detection).
 
 ---
 
@@ -1263,7 +1263,7 @@ Use AskUserQuestion:
 - **RECOMMENDATION:** Choose A for a quick safety check. Choose B if you want the full
   review experience. Choose C only if you're confident in the code.
 - A) Run a quick review (~2 min) — I'll scan the diff for common issues like SQL safety, race conditions, and security gaps (Completeness: 7/10)
-- B) Stop and run a full `/review` first — deeper analysis, more thorough (Completeness: 10/10)
+- B) Stop and run a full `$review` first — deeper analysis, more thorough (Completeness: 10/10)
 - C) Skip the review — I've reviewed this code myself and I'm confident (Completeness: 3/10)
 
 **If A (quick checklist):** Tell the user: "Running the review checklist against your diff now..."
@@ -1272,16 +1272,16 @@ Read the review checklist:
 ```bash
 cat ~/.codex/skills/cgstack/review/checklist.md 2>/dev/null || echo "Checklist not found"
 ```
-Apply each checklist item to the current diff. This is the same quick review that `/ship`
+Apply each checklist item to the current diff. This is the same quick review that `$ship`
 runs in its Step 3.5. Auto-fix trivial issues (whitespace, imports). For critical findings
 (SQL safety, race conditions, security), ask the user.
 
 **If any code changes are made during the quick review:** Commit the fixes, then **STOP**
-and tell the user: "I found and fixed a few issues during the review. The fixes are committed — run `/land-and-deploy` again to pick them up and continue where we left off."
+and tell the user: "I found and fixed a few issues during the review. The fixes are committed — run `$land-and-deploy` again to pick them up and continue where we left off."
 
 **If no issues found:** Tell the user: "Review checklist passed — no issues found in the diff."
 
-**If B:** **STOP.** "Good call — run `/review` for a thorough pre-landing review. When that's done, run `/land-and-deploy` again and I'll pick up right where we left off."
+**If B:** **STOP.** "Good call — run `$review` for a thorough pre-landing review. When that's done, run `$land-and-deploy` again and I'll pick up right where we left off."
 
 **If C:** Tell the user: "Understood — skipping review. You know this code best." Continue. Log the user's choice to skip review.
 
@@ -1359,7 +1359,7 @@ git diff --name-only $(gh pr view --json baseRefName -q .baseRefName 2>/dev/null
 ```
 
 If CHANGELOG.md and VERSION were NOT modified on this branch and the diff includes
-new features (new files, new commands, new skills): **WARNING — /document-release
+new features (new files, new commands, new skills): **WARNING — $document-release
 likely not run. CHANGELOG and VERSION not updated despite new features.**
 
 If only docs changed (no code): skip this check.
@@ -1421,9 +1421,9 @@ Use AskUserQuestion:
 - C) Merge anyway — I understand the warnings and want to proceed (Completeness: 3/10)
 
 If the user chooses B: **STOP.** Give specific next steps:
-- If reviews are stale: "Run `/review` or `/autoplan` to review the current code, then `/land-and-deploy` again."
+- If reviews are stale: "Run `$review` or `$autoplan` to review the current code, then `$land-and-deploy` again."
 - If E2E not run: "Run your E2E tests to make sure nothing is broken, then come back."
-- If docs not updated: "Run `/document-release` to update CHANGELOG and docs."
+- If docs not updated: "Run `$document-release` to update CHANGELOG and docs."
 - If PR body stale: "The PR description doesn't match what's actually in the diff — update it on GitHub."
 
 If the user chooses A or C: Tell the user "Merging now." Continue to Step 4.
@@ -1536,7 +1536,7 @@ and skip manual detection. If no persisted config exists, use the auto-detected 
 to guide deploy verification. If nothing is detected, ask the user via AskUserQuestion
 in the decision tree below.
 
-If you want to persist deploy settings for future runs, suggest the user run `/setup-deploy`.
+If you want to persist deploy settings for future runs, suggest the user run `$setup-deploy`.
 
 Then run `cgstack-diff-scope` to classify the changes:
 
@@ -1588,8 +1588,8 @@ Steps 6-7 again against the production target.
 
 Run Steps 6-7 against the staging target. After verification,
 print the deploy report (Step 9) with verdict "STAGING VERIFIED — production deploy pending."
-Then tell the user: "Staging looks good. When you're ready for production, run `/land-and-deploy` again."
-**STOP.** The user can re-run `/land-and-deploy` later for production.
+Then tell the user: "Staging looks good. When you're ready for production, run `$land-and-deploy` again."
+**STOP.** The user can re-run `$land-and-deploy` later for production.
 
 **If no staging detected:** Skip this sub-step entirely. No question asked.
 
@@ -1817,9 +1817,9 @@ If verdict is DEPLOYED (UNVERIFIED): Tell the user "Your changes are merged and 
 If verdict is REVERTED: Tell the user "The merge was reverted. Your changes are no longer on {base}. The PR branch is still available if you need to fix and re-ship."
 
 Then suggest relevant follow-ups:
-- If a production URL was verified: "Want extended monitoring? Run `/canary <url>` to watch the site for the next 10 minutes."
-- If performance data was collected: "Want a deeper performance analysis? Run `/benchmark <url>`."
-- "Need to update docs? Run `/document-release` to sync README, CHANGELOG, and other docs with what you just shipped."
+- If a production URL was verified: "Want extended monitoring? Run `$canary <url>` to watch the site for the next 10 minutes."
+- If performance data was collected: "Want a deeper performance analysis? Run `$benchmark <url>`."
+- "Need to update docs? Run `$document-release` to sync README, CHANGELOG, and other docs with what you just shipped."
 
 ---
 
@@ -1831,7 +1831,7 @@ Then suggest relevant follow-ups:
 - **Auto-detect everything.** PR number, merge method, deploy strategy, project type, merge queues, staging environments. Only ask when information genuinely can't be inferred.
 - **Poll with backoff.** Don't hammer GitHub API. 30-second intervals for CI/deploy, with reasonable timeouts.
 - **Revert is always an option.** At every failure point, offer revert as an escape hatch. Explain what reverting does in plain English.
-- **Single-pass verification, not continuous monitoring.** `/land-and-deploy` checks once. `/canary` does the extended monitoring loop.
+- **Single-pass verification, not continuous monitoring.** `$land-and-deploy` checks once. `$canary` does the extended monitoring loop.
 - **Clean up.** Delete the feature branch after merge (via `--delete-branch`).
 - **First run = teacher mode.** Walk the user through everything. Explain what each check does and why it matters. Show them their infrastructure. Let them confirm before proceeding. Build trust through transparency.
 - **Subsequent runs = efficient mode.** Brief status updates, no re-explanations. The user already trusts the tool — just do the job and report results.

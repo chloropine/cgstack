@@ -2,7 +2,7 @@
  * DX Framework resolver
  *
  * Shared principles, characteristics, cognitive patterns, and scoring rubric
- * for /plan-devex-review and /devex-review. Compact (~150 lines).
+ * for $plan-devex-review and $devex-review. Compact (~150 lines).
  *
  * Hall of Fame examples are NOT included here. They live in
  * plan-devex-review/dx-hall-of-fame.md and are loaded on-demand per pass

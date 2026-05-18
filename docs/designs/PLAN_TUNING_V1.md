@@ -8,7 +8,7 @@
 
 ## What this document is
 
-A canonical record of what /plan-tune v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes any per-user local plan artifacts.
+A canonical record of what $plan-tune v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes any per-user local plan artifacts.
 
 ## Credit
 
@@ -50,7 +50,7 @@ The through-line: every review pass correctly narrowed the ambition until the re
 7. **`scc`-backed throughput script** (`scripts/garry-output-comparison.ts`). For each of 2013 + 2026, enumerate Garry-authored public commits, extract added lines from `git diff`, classify via `scc --stdin` (or regex fallback). Output `docs/throughput-2013-vs-2026.json` with per-language breakdown + caveats.
 8. **`scc` as standalone install script** (`scripts/setup-scc.sh`). Not a `package.json` dependency (truly optional — 95% of users never run throughput). OS-detects and runs `brew install scc` / `apt install scc` / prints GitHub releases link.
 9. **README update pipeline** (`scripts/update-readme-throughput.ts`). Reads `docs/throughput-2013-vs-2026.json` if present, replaces the anchor with computed number. If missing, writes `CGSTACK-THROUGHPUT-PENDING` marker that CI rejects — forces contributor to run the script before commit.
-10. **/retro adds logical SLOC + weighted commits above raw LOC.** Raw LOC stays for context but is visually demoted.
+10. **$retro adds logical SLOC + weighted commits above raw LOC.** Raw LOC stays for context but is visually demoted.
 11. **Upgrade migration** (`cgstack-upgrade/migrations/v<VERSION>.sh`). One-time post-upgrade interactive prompt offering to restore V0 prose via `explain_level: terse` for users who prefer it. Flag-file gated.
 12. **Documentation.** AGENTS.md gains a Writing Style section (project convention). CHANGELOG.md gets V1 entry (user-facing narrative, mentions scope reduction + V1.1 pacing). README.md gets a Writing Style explainer section (~80 words). CONTRIBUTING.md gains a note on jargon-list maintenance (PRs to add/remove terms).
 13. **Tests.** 6 new test files + extension of existing `gen-skill-docs.test.ts`. All gate tier except LLM-judge E2E (periodic).
@@ -66,7 +66,7 @@ The through-line: every review pass correctly narrowed the ambition until the re
 **To V2 (or later):**
 - Confusion-signal detection from question-log driving on-the-fly translation offers.
 - 5D psychographic-driven skill adaptation (V0 E1 item).
-- /plan-tune narrative + /plan-tune vibe (V0 E3 item).
+- $plan-tune narrative + $plan-tune vibe (V0 E3 item).
 - Per-skill or per-topic explain levels.
 - Team profiles.
 - AST-based "delivered features" metric.
@@ -81,7 +81,7 @@ The through-line: every review pass correctly narrowed the ambition until the re
 - **`devDependencies.optional` field in package.json.** Not a real npm/bun field. Eng review Pass 2 caught. Standalone install script instead.
 - **Using the same string as replacement anchor AND CI-reject marker in README.** Eng review Pass 2 / Codex Pass 2 caught that this makes the pipeline destroy its own update path. Two-string solution: `CGSTACK-THROUGHPUT-PLACEHOLDER` (anchor, stays across runs) vs `CGSTACK-THROUGHPUT-PENDING` (explicit "build didn't run" marker that CI rejects).
 - **"Every technical term gets a gloss" as acceptance criterion.** Codex Pass 2 caught the contradiction with the curated-list rule. Acceptance rewritten to match rule: "every term on `scripts/jargon-list.json` that appears gets a gloss."
-- **Acceptance criterion "≤ 12 AskUserQuestion prompts per /autoplan."** Removed from V1 — that target requires the pacing overhaul now in V1.1.
+- **Acceptance criterion "≤ 12 AskUserQuestion prompts per $autoplan."** Removed from V1 — that target requires the pacing overhaul now in V1.1.
 
 ## Architecture
 

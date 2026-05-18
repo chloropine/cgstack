@@ -1,5 +1,5 @@
 /**
- * AskUserQuestion format regression test for /plan-ceo-review and /plan-eng-review.
+ * AskUserQuestion format regression test for $plan-ceo-review and $plan-eng-review.
  *
  * Context: a user on GPT 4.7 reported the RECOMMENDATION line and the
  * `Completeness: N/10` per-option score stopped appearing on AskUserQuestion
@@ -140,7 +140,7 @@ After writing the file, stop. Do not continue the review.`,
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-ceo-review format (mode)', result);
+    logCost('$plan-ceo-review format (mode)', result);
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
 
     expect(fs.existsSync(outFile)).toBe(true);
@@ -197,7 +197,7 @@ After writing the file, stop. Do not continue the review.`,
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-ceo-review format (approach)', result);
+    logCost('$plan-ceo-review format (approach)', result);
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
 
     expect(fs.existsSync(outFile)).toBe(true);
@@ -256,7 +256,7 @@ After writing the file with that ONE question, stop. Do not continue the review.
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-eng-review format (coverage)', result);
+    logCost('$plan-eng-review format (coverage)', result);
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
 
     expect(fs.existsSync(outFile)).toBe(true);
@@ -312,7 +312,7 @@ After writing the file with that ONE question, stop. Do not continue the review.
       model: 'gpt-5.4',
     });
 
-    logCost('/plan-eng-review format (kind)', result);
+    logCost('$plan-eng-review format (kind)', result);
     expect(['success', 'error_max_turns']).toContain(result.exitReason);
 
     expect(fs.existsSync(outFile)).toBe(true);

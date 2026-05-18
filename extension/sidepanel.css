@@ -121,7 +121,7 @@
 }
 
 /* ─── Security Banner ─────────────────────────────────────────────
-   Variant A approved in /plan-design-review 2026-04-19. Centered
+   Variant A approved in $plan-design-review 2026-04-19. Centered
    alert-heavy. Fires on security_event — canary leaks + ML BLOCK
    verdicts. Trust UX: layer names + confidence scores in mono so
    the user can see exactly WHY the session was terminated.

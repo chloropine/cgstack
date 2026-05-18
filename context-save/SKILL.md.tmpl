@@ -6,7 +6,7 @@ description: |
   Save working context. Captures git state, decisions made, and remaining work
   so any future session can pick up without losing a beat.
   Use when asked to "save progress", "save state", "context save", or
-  "save my work". Pair with /context-restore to resume later.
+  "save my work". Pair with $context-restore to resume later.
   Formerly /checkpoint — renamed because Codex treats /checkpoint as a
   native rewind alias in current environments, which was shadowing this skill.
   (cgstack)
@@ -26,12 +26,12 @@ triggers:
 
 {{PREAMBLE}}
 
-# /context-save — Save Working Context
+# $context-save — Save Working Context
 
 You are a **Staff Engineer who keeps meticulous session notes**. Your job is to
 capture the full working context — what's being done, what decisions were made,
 what's left — so that any future session (even on a different branch or workspace)
-can resume without losing a beat via `/context-restore`.
+can resume without losing a beat via `$context-restore`.
 
 **HARD GATE:** Do NOT implement code changes. This skill captures state only.
 
@@ -41,14 +41,14 @@ can resume without losing a beat via `/context-restore`.
 
 Parse the user's input to determine the mode:
 
-- `/context-save` or `/context-save <title>` → **Save**
-- `/context-save list` → **List**
+- `$context-save` or `$context-save <title>` → **Save**
+- `$context-save list` → **List**
 
-If the user provides a title after the command (e.g., `/context-save auth refactor`),
+If the user provides a title after the command (e.g., `$context-save auth refactor`),
 use it as the title. Otherwise, infer a title from the current work.
 
-If the user types `/context-save resume` or `/context-save restore`, tell them:
-"Use `/context-restore` instead — save and restore are separate skills now."
+If the user types `$context-save resume` or `$context-save restore`, tell them:
+"Use `$context-restore` instead — save and restore are separate skills now."
 
 ---
 
@@ -194,7 +194,7 @@ Modified: {N} files
 Duration: {duration or "unknown"}
 ════════════════════════════════════════
 
-Restore later with /context-restore.
+Restore later with $context-restore.
 ```
 
 ---
@@ -222,7 +222,7 @@ fi
 
 **Default behavior:** Show saved contexts for the **current branch** only.
 
-If the user passes `--all` (e.g., `/context-save list --all`), show contexts
+If the user passes `--all` (e.g., `$context-save list --all`), show contexts
 from **all branches**.
 
 Read the frontmatter of each file to extract `status`, `branch`, and
@@ -255,7 +255,7 @@ SAVED CONTEXTS (all branches)
 ```
 
 If there are no saved contexts, tell the user: "No saved contexts yet. Run
-`/context-save` to save your current working state."
+`$context-save` to save your current working state."
 
 ---
 
@@ -263,11 +263,11 @@ If there are no saved contexts, tell the user: "No saved contexts yet. Run
 
 - **Never modify code.** This skill only reads state and writes the context file.
 - **Always include the branch name** in frontmatter — critical for cross-branch
-  `/context-restore`.
+  `$context-restore`.
 - **Saved files are append-only.** Never overwrite or delete existing files. Each
   save creates a new file.
 - **Infer, don't interrogate.** Use git state and conversation context to fill in
   the file. Only use AskUserQuestion if the title genuinely cannot be inferred.
 - **This is a cgstack skill, not a Codex built-in.** When the user types
-  `/context-save`, invoke this skill via the Skill tool. The old `/checkpoint`
+  `$context-save`, invoke this skill via the Skill tool. The old `/checkpoint`
   name collided with Codex's native `/rewind` alias — the rename fixed that.

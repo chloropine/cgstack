@@ -30,7 +30,7 @@ triggers:
 
 # Pre-Landing PR Review
 
-You are running the `/review` workflow. Analyze the current branch's diff against the base branch for structural issues that tests don't catch.
+You are running the `$review` workflow. Analyze the current branch's diff against the base branch for structural issues that tests don't catch.
 
 ---
 
@@ -92,7 +92,7 @@ OFFLINE=$(echo "$QUEUE_JSON" | jq -r '.offline // false')
 ```
 
 - If `OFFLINE=true`: skip this section (no signal to report).
-- Otherwise, include ONE line in the review output: `Version claimed: v<BRANCH_VERSION>. Queue: <CLAIMED_COUNT> PR(s) ahead. <VERDICT>` where VERDICT is either `Slot free` (if `BRANCH_VERSION >= NEXT_SLOT`) or `⚠ queue moved — rerun /ship to reconcile v<BRANCH_VERSION> → v<NEXT_SLOT>`.
+- Otherwise, include ONE line in the review output: `Version claimed: v<BRANCH_VERSION>. Queue: <CLAIMED_COUNT> PR(s) ahead. <VERDICT>` where VERDICT is either `Slot free` (if `BRANCH_VERSION >= NEXT_SLOT`) or `⚠ queue moved — rerun $ship to reconcile v<BRANCH_VERSION> → v<NEXT_SLOT>`.
 
 ---
 
@@ -251,9 +251,9 @@ Cross-reference the diff against documentation files. For each `.md` file in the
 
 1. Check if code changes in the diff affect features, components, or workflows described in that doc file.
 2. If the doc file was NOT updated in this branch but the code it describes WAS changed, flag it as an INFORMATIONAL finding:
-   "Documentation may be stale: [file] describes [feature/component] but code changed in this branch. Consider running `/document-release`."
+   "Documentation may be stale: [file] describes [feature/component] but code changed in this branch. Consider running `$document-release`."
 
-This is informational only — never critical. The fix action is `/document-release`.
+This is informational only — never critical. The fix action is `$document-release`.
 
 If no documentation files exist, skip this step silently.
 
@@ -263,7 +263,7 @@ If no documentation files exist, skip this step silently.
 
 ## Step 5.8: Persist Eng Review result
 
-After all review passes complete, persist the final `/review` outcome so `/ship` can
+After all review passes complete, persist the final `$review` outcome so `$ship` can
 recognize that Eng Review was run on this branch.
 
 Run:
@@ -290,7 +290,7 @@ If the review exits early before a real review completes (for example, no diff a
 ## Important Rules
 
 - **Read the FULL diff before commenting.** Do not flag issues already addressed in the diff.
-- **Fix-first, not read-only.** AUTO-FIX items are applied directly. ASK items are only applied after user approval. Never commit, push, or create PRs — that's /ship's job.
+- **Fix-first, not read-only.** AUTO-FIX items are applied directly. ASK items are only applied after user approval. Never commit, push, or create PRs — that's $ship's job.
 - **Be terse.** One line problem, one line fix. No preamble.
 - **Only flag real problems.** Skip anything that's fine.
 - **Use Greptile reply templates from greptile-triage.md.** Every reply includes evidence. Never post vague replies.

@@ -19,10 +19,10 @@ import * as os from 'os';
 //
 // Tunnel mode coverage (parent dies → shutdown because idle timeout doesn't
 // apply) is not covered by an automated test here — tunnelActive is a runtime
-// variable set by /pair-agent's tunnel-create flow, not an env var, so faking
+// variable set by $pair-agent's tunnel-create flow, not an env var, so faking
 // it would require invasive test-only hooks. The mode check is documented
 // inline at the watchdog and SIGTERM handlers, and would regress visibly for
-// /pair-agent users (server lingers after disconnect).
+// $pair-agent users (server lingers after disconnect).
 //
 // Each test spawns the real server.ts. Tests 1 and 2 verify behavior via
 // stdout log line (fast). Test 3 waits for the watchdog poll cycle to confirm

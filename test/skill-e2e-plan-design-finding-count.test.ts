@@ -1,7 +1,7 @@
 /**
- * /plan-design-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
+ * $plan-design-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
  *
- * Same shape as skill-e2e-plan-ceo-finding-count: drives /plan-design-review
+ * Same shape as skill-e2e-plan-ceo-finding-count: drives $plan-design-review
  * against a 5-finding seeded plan and asserts review-phase AUQ count ∈ [N-1, N+2].
  * Plus D19: review report at bottom of produced plan file.
  *
@@ -52,7 +52,7 @@ const PLAN_DESIGN_5_FINDINGS = [
 
 const PLAN_DESIGN_PATH = '/tmp/cgstack-test-plan-design.md';
 
-describeE2E('/plan-design-review per-finding AskUserQuestion count (periodic)', () => {
+describeE2E('$plan-design-review per-finding AskUserQuestion count (periodic)', () => {
   test(
     `5-finding plan emits ${FLOOR}-${CEILING} review-phase AskUserQuestions`,
     async () => {
@@ -64,7 +64,7 @@ describeE2E('/plan-design-review per-finding AskUserQuestion count (periodic)', 
 
       const obs = await runPlanSkillCounting({
         skillName: 'plan-design-review',
-        slashCommand: '/plan-design-review',
+        slashCommand: '$plan-design-review',
         followUpPrompt: PLAN_DESIGN_5_FINDINGS,
         isLastStep0AUQ: designStep0Boundary,
         reviewCountCeiling: CEILING + 1,

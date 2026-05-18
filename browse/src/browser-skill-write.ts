@@ -1,7 +1,7 @@
 /**
  * Atomic-write helper for agent-authored browser-skills (D3 from Phase 2 plan).
  *
- * /skillify stages a candidate skill into ~/.cgstack/.tmp/skillify-<spawnId>/,
+ * $skillify stages a candidate skill into ~/.cgstack/.tmp/skillify-<spawnId>/,
  * runs $B skill test against it, and only renames the directory into its final
  * tier path on success + user approval. On failure or rejection, the staged
  * directory is removed entirely — no half-written skill ever appears in
@@ -61,7 +61,7 @@ export interface StageSkillOptions {
  *   <tmpRoot>/.cgstack/.tmp/skillify-<spawnId>/<name>/
  *
  * The leaf <name> directory is what gets renamed during commit. The wrapper
- * skillify-<spawnId>/ is per-spawn so concurrent /skillify invocations don't
+ * skillify-<spawnId>/ is per-spawn so concurrent $skillify invocations don't
  * collide. Returns the absolute path to the staged skill dir (ending in <name>).
  */
 export function stageSkill(opts: StageSkillOptions): string {
@@ -175,7 +175,7 @@ export function commitSkill(opts: CommitSkillOptions): string {
 
 /**
  * Remove the staged skill directory and its per-spawn wrapper. Called on
- * test failure (step 8 of /skillify) or approval rejection (step 9).
+ * test failure (step 8 of $skillify) or approval rejection (step 9).
  *
  * Idempotent: missing dirs are not an error. Best-effort: failures are
  * swallowed (cleanup is fire-and-forget, not load-bearing).
@@ -191,7 +191,7 @@ export function discardStaged(stagedDir: string): void {
   const wrapperDir = path.dirname(stagedDir);
   if (path.basename(wrapperDir).startsWith('skillify-')) {
     try {
-      // Only remove the wrapper if it's now empty — concurrent /skillify
+      // Only remove the wrapper if it's now empty — concurrent $skillify
       // invocations get their own wrappers, but if a buggy caller passed
       // a stagedDir not under a skillify-<id> wrapper we should not nuke
       // an unrelated parent.
@@ -210,7 +210,7 @@ export function discardStaged(stagedDir: string): void {
 /** Per-spawn id matching the format used by skill-token.ts. */
 function generateSpawnId(): string {
   // 8 random hex chars + millis suffix — collision risk negligible across
-  // concurrent /skillify invocations on a single machine.
+  // concurrent $skillify invocations on a single machine.
   const rand = Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, '0');
   return `${rand}-${Date.now().toString(36)}`;
 }

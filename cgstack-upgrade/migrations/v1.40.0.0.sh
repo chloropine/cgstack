@@ -3,7 +3,7 @@
 # .brain-allowlist, .brain-privacy-map.json, and .gitattributes (#1452 follow-on).
 #
 # Why a second migration: v1.38.1.0 shipped two of three filenames for #1452
-# (`*-design-*.md` and `*-test-plan-*.md`) but missed `/plan-eng-review`'s
+# (`*-design-*.md` and `*-test-plan-*.md`) but missed `$plan-eng-review`'s
 # actual filename: `*-eng-review-test-plan-*.md`. The v1.38.1.0 migration has
 # a done-marker, so a "fix v1.38.1.0 and re-run" approach silently no-ops on
 # existing users. v1.40.0.0 needs its own migration to patch installs that
@@ -88,7 +88,7 @@ fi
 touch "${DONE}"
 
 if [ "${added_any}" = "1" ]; then
-  echo "  [v1.40.0.0] allowlist/privacy-map/gitattributes patched for /plan-eng-review test plans (idempotent)" >&2
+  echo "  [v1.40.0.0] allowlist/privacy-map/gitattributes patched for \$plan-eng-review test plans (idempotent)" >&2
 fi
 
 # NEVER `git commit + push` from this migration. The user controls when the

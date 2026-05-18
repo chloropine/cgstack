@@ -1418,7 +1418,7 @@ async function ingestPass(args: CliArgs): Promise<BulkResult> {
 
   if (!gbrainAvailable()) {
     const msg =
-      "gbrain CLI not in PATH or missing `import` subcommand. Run /setup-gbrain.";
+      "gbrain CLI not in PATH or missing `import` subcommand. Run $setup-gbrain.";
     console.error(`[memory-ingest] ERR: ${msg}`);
     return {
       written: 0,

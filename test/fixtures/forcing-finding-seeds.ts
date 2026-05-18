@@ -5,7 +5,7 @@
  * Used by gate-tier finding-floor tests
  * (test/skill-e2e-plan-{eng,ceo,design,devex}-finding-floor.test.ts) as
  * the minimum-cost regression for the May 2026 transcript bug:
- *   "/plan-eng-review reviewed a real PR diff, wrote a multi-section
+ *   "$plan-eng-review reviewed a real PR diff, wrote a multi-section
  *    review plan to ~/.codex/plans/ and called ExitPlanMode without
  *    ever firing AskUserQuestion."
  *

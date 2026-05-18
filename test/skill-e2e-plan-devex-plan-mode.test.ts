@@ -2,7 +2,7 @@
  * plan-devex-review plan-mode smoke (gate, paid, real-PTY).
  *
  * See test/skill-e2e-plan-ceo-plan-mode.test.ts for the shared assertion
- * contract. Exercises the same contract against /plan-devex-review.
+ * contract. Exercises the same contract against $plan-devex-review.
  */
 
 import { describe, test, expect } from 'bun:test';

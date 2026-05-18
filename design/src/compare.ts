@@ -489,7 +489,7 @@ export function generateCompareHtml(images: string[]): string {
     document.getElementById('success-msg').style.display = 'block';
     document.getElementById('success-msg').innerHTML =
       'Feedback received! Return to your coding agent.' +
-      '<br><small style="color:#666;margin-top:8px;display:block;">Want to make more changes? Run <code>/design-shotgun</code> again.</small>';
+      '<br><small style="color:#666;margin-top:8px;display:block;">Want to make more changes? Run <code>$design-shotgun</code> again.</small>';
   }
 
   function showRegeneratingState() {
@@ -519,7 +519,7 @@ export function generateCompareHtml(images: string[]): string {
         document.querySelector('.variants').innerHTML =
           '<div style="text-align:center;padding:80px 24px;color:#666;">' +
           '<div style="font-size:18px;margin-bottom:8px;">Something went wrong.</div>' +
-          '<div>Run <code>/design-shotgun</code> again in your coding agent.</div>' +
+          '<div>Run <code>$design-shotgun</code> again in your coding agent.</div>' +
           '</div>';
         return;
       }
@@ -537,7 +537,7 @@ export function generateCompareHtml(images: string[]): string {
           document.querySelector('.variants').innerHTML =
             '<div style="text-align:center;padding:80px 24px;color:#666;">' +
             '<div style="font-size:18px;margin-bottom:8px;">Connection lost.</div>' +
-            '<div>Run <code>/design-shotgun</code> again in your coding agent.</div>' +
+            '<div>Run <code>$design-shotgun</code> again in your coding agent.</div>' +
             '</div>';
         });
     }, 2000);

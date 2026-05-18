@@ -13,7 +13,7 @@ import * as os from 'os';
 
 const evalCollector = createEvalCollector('e2e-learnings');
 
-// --- Learnings E2E: seed learnings, run /learn, verify output ---
+// --- Learnings E2E: seed learnings, run $learn, verify output ---
 
 describeIfSelected('Learnings E2E', ['learnings-show'], () => {
   let workDir: string;
@@ -33,10 +33,10 @@ describeIfSelected('Learnings E2E', ['learnings-show'], () => {
     run('git', ['add', '.']);
     run('git', ['commit', '-m', 'initial']);
 
-    // Copy the /learn skill
+    // Copy the $learn skill
     copyDirSync(path.join(ROOT, 'learn'), path.join(workDir, 'learn'));
 
-    // Copy bin scripts needed by /learn
+    // Copy bin scripts needed by $learn
     const binDir = path.join(workDir, 'bin');
     fs.mkdirSync(binDir, { recursive: true });
     for (const script of ['cgstack-learnings-search', 'cgstack-learnings-log', 'cgstack-slug']) {
@@ -88,9 +88,9 @@ describeIfSelected('Learnings E2E', ['learnings-show'], () => {
 
   testConcurrentIfSelected('learnings-show', async () => {
     const result = await runSkillTest({
-      prompt: `Read the file learn/SKILL.md for the /learn skill instructions.
+      prompt: `Read the file learn/SKILL.md for the $learn skill instructions.
 
-Run the /learn command (no arguments — show recent learnings).
+Run the $learn command (no arguments — show recent learnings).
 
 IMPORTANT:
 - Use CGSTACK_HOME="${cgstackHome}" as an environment variable when running bin scripts.
@@ -108,7 +108,7 @@ IMPORTANT:
       runId,
     });
 
-    logCost('/learn show', result);
+    logCost('$learn show', result);
 
     const output = result.output.toLowerCase();
 
@@ -122,7 +122,7 @@ IMPORTANT:
 
     const exitOk = ['success', 'error_max_turns'].includes(result.exitReason);
 
-    recordE2E(evalCollector, '/learn', 'Learnings show E2E', result, {
+    recordE2E(evalCollector, '$learn', 'Learnings show E2E', result, {
       passed: exitOk && foundCount >= 2,
     });
 

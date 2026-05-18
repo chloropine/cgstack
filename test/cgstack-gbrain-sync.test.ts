@@ -336,7 +336,7 @@ describe("cgstack-gbrain-sync CLI", () => {
       CGSTACK_HOME: cgstackHome,
     });
     expect(r.exitCode).toBe(2);
-    expect(r.stderr).toContain("another /sync-gbrain is running");
+    expect(r.stderr).toContain("another $sync-gbrain is running");
     // Lock should still be there — the second invocation didn't take it over.
     expect(existsSync(lockPath)).toBe(true);
     rmSync(home, { recursive: true, force: true });
@@ -458,7 +458,7 @@ describe("cgstack-gbrain-sync CLI", () => {
 
   it("worktree-aware source ID: same path produces the same id across runs (deterministic)", () => {
     // The pathhash is derived from the absolute repo path via sha1, so
-    // /sync-gbrain run twice in the same worktree must converge on the same
+    // $sync-gbrain run twice in the same worktree must converge on the same
     // source id (idempotent registration depends on this).
     const remote = "https://github.com/chloropine/cgstack.git";
     const home = makeTestHome();
@@ -521,7 +521,7 @@ describe("cgstack-gbrain-sync CLI", () => {
   });
 
   it("dry-run preview includes the `sources attach` step (kubectl-style CWD pin)", () => {
-    // Post-spike redesign: after sources add + sync, /sync-gbrain calls
+    // Post-spike redesign: after sources add + sync, $sync-gbrain calls
     // `gbrain sources attach <id>` so subsequent gbrain code-def / code-refs
     // calls from anywhere under the worktree route to this source by default.
     // The dry-run preview must surface that step so the user knows what we

@@ -15,7 +15,7 @@ const evalCollector = createEvalCollector('e2e-session-intelligence');
 
 // --- Session Intelligence E2E ---
 // Tests the core contract: timeline events flow in, context recovery flows out,
-// /context-save + /context-restore round-trip.
+// $context-save + $context-restore round-trip.
 
 describeIfSelected('Session Intelligence E2E', [
   'timeline-event-flow', 'context-recovery-artifacts',
@@ -148,7 +148,7 @@ describeIfSelected('Session Intelligence E2E', [
     });
     fs.writeFileSync(path.join(projectDir, 'timeline.jsonl'), timelineEntry + '\n');
 
-    // Copy the /learn skill (lightweight, tier-2 skill that runs context recovery)
+    // Copy the $learn skill (lightweight, tier-2 skill that runs context recovery)
     copyDirSync(path.join(ROOT, 'learn'), path.join(workDir, 'learn'));
 
     const result = await runSkillTest({
@@ -195,17 +195,17 @@ IMPORTANT:
     console.log(`Context recovery: artifacts=${foundArtifacts}, lastSession=${foundLastSession}, timeline=${foundTimeline}`);
   }, 180_000);
 
-  // --- Test 3: /context-save writes a file ---
+  // --- Test 3: $context-save writes a file ---
   // Hand-feed the save section of context-save/SKILL.md to codex -p and verify
   // a file gets written to the project's checkpoints dir with valid frontmatter.
   testConcurrentIfSelected('context-save-writes-file', async () => {
     const projectDir = path.join(cgstackHome, 'projects', slug);
     fs.mkdirSync(path.join(projectDir, 'checkpoints'), { recursive: true });
 
-    // Copy the /context-save skill
+    // Copy the $context-save skill
     copyDirSync(path.join(ROOT, 'context-save'), path.join(workDir, 'context-save'));
 
-    // Add a staged change so /context-save has something to capture
+    // Add a staged change so $context-save has something to capture
     fs.writeFileSync(path.join(workDir, 'feature.ts'), 'export function newFeature() { return true; }\n');
     spawnSync('git', ['add', 'feature.ts'], { cwd: workDir, stdio: 'pipe', timeout: 5000 });
 
@@ -216,7 +216,7 @@ IMPORTANT:
     const saveSection = full.slice(saveStart, listStart > saveStart ? listStart : undefined);
 
     const result = await runSkillTest({
-      prompt: `You are testing the /context-save skill. Follow these instructions to save a context file.
+      prompt: `You are testing the $context-save skill. Follow these instructions to save a context file.
 
 ${saveSection.slice(0, 2000)}
 
@@ -266,7 +266,7 @@ IMPORTANT:
     console.log(`context-save: ${files.length} files created, YAML frontmatter: ${hasYamlFrontmatter}, branch: ${hasBranch}`);
   }, 180_000);
 
-  // --- Test 4: /context-restore loads the newest file across branches ---
+  // --- Test 4: $context-restore loads the newest file across branches ---
   // Seed two saved-context files with different YYYYMMDD-HHMMSS prefixes and
   // different branches in their frontmatter. Hand-feed the restore section to
   // codex -p. Verify the agent identifies the newer file (by filename prefix)
@@ -276,7 +276,7 @@ IMPORTANT:
     const checkpointDir = path.join(projectDir, 'checkpoints');
     fs.mkdirSync(checkpointDir, { recursive: true });
 
-    // Copy the /context-restore skill
+    // Copy the $context-restore skill
     copyDirSync(path.join(ROOT, 'context-restore'), path.join(workDir, 'context-restore'));
 
     // Seed two files: older on branch-a (title "old-work"), newer on branch-b
@@ -326,7 +326,7 @@ This is the newest saved context. Cross-branch restore should load THIS file.
     const restoreSection = full.slice(restoreStart, importantStart > restoreStart ? importantStart : undefined);
 
     const result = await runSkillTest({
-      prompt: `You are testing the /context-restore skill. Follow these instructions to restore the most recent saved context.
+      prompt: `You are testing the $context-restore skill. Follow these instructions to restore the most recent saved context.
 
 ${restoreSection.slice(0, 2500)}
 

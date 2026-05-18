@@ -107,7 +107,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'office-hours-phase4-fork':     ['office-hours/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/question-tuning.ts', 'test/helpers/llm-judge.ts', 'test/skill-e2e-office-hours-phase4.test.ts'],
   'llm-judge-recommendation':     ['test/helpers/llm-judge.ts', 'test/llm-judge-recommendation.test.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'bin/cgstack-codex-probe', 'scripts/resolvers/review.ts'],
   // v1.21+ AUTO_DECIDE preserve eval (periodic). Verifies the Tool resolution
-  // fix doesn't trip the legitimate /plan-tune opt-in path: when the user has
+  // fix doesn't trip the legitimate $plan-tune opt-in path: when the user has
   // written a never-ask preference, AUQ should still auto-decide rather than
   // surfacing the question. Touches the question-tuning + preference
   // infrastructure plus the resolvers that own the AUTO_DECIDE preamble.
@@ -151,7 +151,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'plan-eng-multi-finding-batching': ['plan-eng-review/**', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/review.ts', 'test/helpers/codex-pty-runner.ts', 'test/fixtures/forcing-finding-seeds.ts', 'test/skill-e2e-plan-eng-multi-finding-batching.test.ts'],
   'brain-privacy-gate':           ['scripts/resolvers/preamble/generate-brain-sync-block.ts', 'scripts/resolvers/preamble.ts', 'bin/cgstack-brain-sync', 'bin/cgstack-artifacts-init', 'bin/cgstack-config', 'test/helpers/agent-sdk-runner.ts'],
 
-  // /setup-gbrain Path 4 (Remote MCP) — happy + bad-token end-to-end via
+  // $setup-gbrain Path 4 (Remote MCP) — happy + bad-token end-to-end via
   // Agent SDK. Gate-tier (deterministic stub server, fixed inputs); fires
   // when the skill template, the verify helper, the artifacts-init helper,
   // or the detect script changes.
@@ -187,7 +187,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'design-review-prosons-format':     ['design-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'model-overlays/gpt-5.4.md'],
   'document-release-prosons-format':  ['document-release/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'model-overlays/gpt-5.4.md'],
 
-  // /plan-tune (v1 observational)
+  // $plan-tune (v1 observational)
   'plan-tune-inspect':         ['plan-tune/**', 'scripts/question-registry.ts', 'scripts/psychographic-signals.ts', 'scripts/one-way-doors.ts', 'bin/cgstack-question-log', 'bin/cgstack-question-preference', 'bin/cgstack-developer-profile'],
 
   // Codex offering verification
@@ -218,7 +218,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // Learnings
   'learnings-show': ['learn/**', 'bin/cgstack-learnings-search', 'bin/cgstack-learnings-log', 'scripts/resolvers/learnings.ts'],
 
-  // Session Intelligence (timeline, context recovery, /context-save + /context-restore)
+  // Session Intelligence (timeline, context recovery, $context-save + $context-restore)
   'timeline-event-flow':            ['bin/cgstack-timeline-log', 'bin/cgstack-timeline-read'],
   'context-recovery-artifacts':     ['scripts/resolvers/preamble.ts', 'bin/cgstack-timeline-log', 'bin/cgstack-slug', 'learn/**'],
   'context-save-writes-file':       ['context-save/**', 'bin/cgstack-slug'],
@@ -227,7 +227,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // Context skills E2E (live-fire, Skill-tool routing path) — see
   // test/skill-e2e-context-skills.test.ts. These are periodic-tier because
   // each one spawns codex -p and costs ~$0.20-$0.40. Collectively they
-  // verify the thing the /checkpoint → /context-save rename was for.
+  // verify the thing the /checkpoint → $context-save rename was for.
   'context-save-routing':                  ['context-save/**', 'scripts/resolvers/preamble.ts'],
   'context-save-then-restore-roundtrip':   ['context-save/**', 'context-restore/**', 'bin/cgstack-slug'],
   'context-restore-fragment-match':        ['context-restore/**'],
@@ -294,7 +294,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // Codex benchmark adapter — live smoke against the real Codex CLI.
   'benchmark-providers-live': ['bin/cgstack-model-benchmark', 'test/helpers/providers/**', 'test/helpers/benchmark-runner.ts', 'test/helpers/pricing.ts'],
 
-  // Browser-skills Phase 2a — /scrape + /skillify (v1.19.0.0). Gate-tier
+  // Browser-skills Phase 2a — $scrape + $skillify (v1.19.0.0). Gate-tier
   // E2E covers the D1 (provenance guard), D3 (atomic write) contracts plus
   // the basic loop. Shared deps: both skill templates, the D3 helper, the
   // Phase 1 runtime, and the bundled hackernews-frontpage reference (the
@@ -408,7 +408,7 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   // posture). Per AGENTS.md tier-classification rules, non-deterministic
   // quality benchmarks belong in periodic, not gate. The wave's +21-line
   // CJK preamble cascade (#1205) pushed the score from 5/5 → 3/3 on the
-  // same /office-hours BUILDER prompt — same model, same fixture — proving
+  // same $office-hours BUILDER prompt — same model, same fixture — proving
   // the bar is sensitive to preamble-byte changes that have nothing to do
   // with the test's intent (creativity, not preamble compliance).
   'office-hours-builder-wildness': 'periodic',
@@ -441,7 +441,7 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'plan-ceo-mode-routing':     'periodic',   // ~$3/run, deep navigation through 8-12 prior AskUserQuestions
   'plan-design-with-ui-scope': 'gate',       // ~$0.80/run
   'budget-regression-pty':     'gate',       // free, library-only assertion
-  'ship-idempotency-pty':      'periodic',   // ~$3/run, real /ship in plan mode
+  'ship-idempotency-pty':      'periodic',   // ~$3/run, real $ship in plan mode
   'autoplan-chain-pty':        'periodic',   // ~$8/run, all 3 phases sequential
 
   // Per-finding count + review-report-at-bottom — periodic because each
@@ -462,7 +462,7 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   // costs ~$0.30-$0.50 per run, not needed on every commit)
   'brain-privacy-gate': 'periodic',
 
-  // /setup-gbrain Path 4 (Remote MCP) — periodic-tier. The stub HTTP
+  // $setup-gbrain Path 4 (Remote MCP) — periodic-tier. The stub HTTP
   // server is deterministic but the model's interpretation of "follow
   // Path 4 only" is not — assertions on which steps the model ran are
   // flaky. The deterministic gate-tier coverage for Path 4 lives in
@@ -501,7 +501,7 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'design-review-prosons-format': 'periodic',
   'document-release-prosons-format': 'periodic',
 
-  // /plan-tune — gate (core v1 DX promise: plain-English intent routing)
+  // $plan-tune — gate (core v1 DX promise: plain-English intent routing)
   'plan-tune-inspect': 'gate',
 
   // Codex offering verification
@@ -513,15 +513,15 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   // Session Intelligence — gate for data flow, periodic for agent integration
   'timeline-event-flow': 'gate',                   // Binary data flow (no LLM needed)
   'context-recovery-artifacts': 'gate',            // Preamble reads seeded artifacts
-  'context-save-writes-file': 'gate',              // /context-save writes a file
+  'context-save-writes-file': 'gate',              // $context-save writes a file
   'context-restore-loads-latest': 'gate',          // Cross-branch newest-by-filename restore
 
   // Context skills live-fire — periodic (each test spawns codex -p, ~$0.20-$0.40)
-  'context-save-routing': 'periodic',              // Proves /context-save routes via Skill tool
+  'context-save-routing': 'periodic',              // Proves $context-save routes via Skill tool
   'context-save-then-restore-roundtrip': 'periodic', // Full cycle in one session
-  'context-restore-fragment-match': 'periodic',    // /context-restore <fragment>
+  'context-restore-fragment-match': 'periodic',    // $context-restore <fragment>
   'context-restore-empty-state': 'periodic',       // Graceful zero-saves message
-  'context-restore-list-delegates': 'periodic',    // /context-restore list redirect
+  'context-restore-list-delegates': 'periodic',    // $context-restore list redirect
   'context-restore-legacy-compat': 'periodic',     // Pre-rename files still load
   'context-save-list-current-branch': 'periodic',  // Default branch filter
   'context-save-list-all-branches': 'periodic',    // --all flag

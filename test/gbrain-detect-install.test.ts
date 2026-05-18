@@ -1,5 +1,5 @@
 /**
- * cgstack-gbrain-detect + cgstack-gbrain-install — Slice 2 of /setup-gbrain.
+ * cgstack-gbrain-detect + cgstack-gbrain-install — Slice 2 of $setup-gbrain.
  *
  * Detect: state-reporter JSON with presence, version, config, doctor health,
  * and cgstack-brain-sync mode. Pure introspection, no side effects.

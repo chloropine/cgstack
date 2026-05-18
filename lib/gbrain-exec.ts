@@ -9,7 +9,7 @@
  *
  *   1. **DATABASE_URL is seeded from gbrain's own config**, not from the
  *      caller's `.env.local`. gbrain auto-loads `.env.local` via dotenv on
- *      startup. When `/sync-gbrain` runs inside a Next.js / Prisma / Rails
+ *      startup. When `$sync-gbrain` runs inside a Next.js / Prisma / Rails
  *      project with its own `DATABASE_URL`, gbrain reads that one and not
  *      its own `${GBRAIN_HOME:-$HOME/.gbrain}/config.json`. Auth fails;
  *      code + memory stages crash; only brain-sync's git push survives.

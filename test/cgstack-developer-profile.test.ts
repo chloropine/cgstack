@@ -2,7 +2,7 @@
  * bin/cgstack-developer-profile — subcommand behavior tests.
  *
  * Covers:
- * - --read (legacy /office-hours KEY: VALUE format, with defaults when no profile)
+ * - --read (legacy $office-hours KEY: VALUE format, with defaults when no profile)
  * - --migrate (idempotent; preserves sessions + signals_accumulated)
  * - --derive (recomputes inferred from question-log events)
  * - --trace <dim> (shows contributing events)

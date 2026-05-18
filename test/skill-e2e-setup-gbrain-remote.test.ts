@@ -1,4 +1,4 @@
-// E2E: /setup-gbrain Path 4 (Remote MCP) happy path via Agent SDK.
+// E2E: $setup-gbrain Path 4 (Remote MCP) happy path via Agent SDK.
 //
 // Drives the skill against a stub HTTP MCP server and a stubbed `codex`
 // binary that records `codex mcp add` calls. Asserts:
@@ -115,7 +115,7 @@ exit 0
   return callLog;
 }
 
-describeE2E('/setup-gbrain Path 4 (Remote MCP) — happy path', () => {
+describeE2E('$setup-gbrain Path 4 (Remote MCP) — happy path', () => {
   test('verifies, registers HTTP MCP, never writes token to AGENTS.md', async () => {
     const stubServer = await startStubMcpServer();
     const cgstackHome = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-gbrain-remote-'));

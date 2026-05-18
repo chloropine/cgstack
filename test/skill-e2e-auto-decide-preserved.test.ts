@@ -5,12 +5,12 @@
  * (scripts/resolvers/preamble/generate-ask-user-format.ts) tells the model
  * to prefer mcp__*__AskUserQuestion variants and fall back to plan-file
  * decisions when neither is callable. This must NOT break the legitimate
- * `/plan-tune` AUTO_DECIDE path: when the user has explicitly opted into
+ * `$plan-tune` AUTO_DECIDE path: when the user has explicitly opted into
  * auto-deciding a specific question via `cgstack-question-preference --write
  * never-ask`, the model is supposed to honor that — it should still
  * auto-pick the recommended option and emit the AUTO_DECIDE annotation
  * ("Auto-decided <summary> → <option> (your preference). Change with
- * /plan-tune.") instead of opening a question prompt.
+ * $plan-tune.") instead of opening a question prompt.
  *
  * Periodic tier: AUTO_DECIDE behavior depends on the model adhering to
  * the QUESTION_TUNING preamble injection. Non-deterministic; runs weekly
@@ -24,13 +24,13 @@
  *
  * Spawn:
  *   codex --permission-mode plan --disallowedTools AskUserQuestion
- *   /plan-ceo-review
+ *   $plan-ceo-review
  *
  * Expected:
  *   - outcome === 'auto_decided' (the AUTO_DECIDE preamble fired and the
  *     "Auto-decided ... (your preference)" text rendered)
  *
- * If outcome is 'asked', the model ignored the user's `/plan-tune`
+ * If outcome is 'asked', the model ignored the user's `$plan-tune`
  * preference — that's a regression against the opt-in feature. If outcome
  * is 'plan_ready' with no AUTO_DECIDE text, the model auto-decided BUT
  * skipped the annotation (acceptable; AUTO_DECIDE annotation is good
@@ -99,7 +99,7 @@ describeE2E('AUTO_DECIDE opt-in preserved under Conductor flags (periodic)', () 
         throw new Error(`expected preference file at ${prefFile}; not found. slug=${slug}`);
       }
 
-      // 4. Run /plan-ceo-review with the Conductor flag set + isolated state.
+      // 4. Run $plan-ceo-review with the Conductor flag set + isolated state.
       const obs = await runPlanSkillObservation({
         skillName: 'plan-ceo-review',
         inPlanMode: true,

@@ -1,7 +1,7 @@
 /**
- * /plan-ceo-review mode-routing E2E (periodic, paid, real-PTY).
+ * $plan-ceo-review mode-routing E2E (periodic, paid, real-PTY).
  *
- * Asserts: when /plan-ceo-review reaches its Step 0F mode-selection
+ * Asserts: when $plan-ceo-review reaches its Step 0F mode-selection
  * AskUserQuestion and the user picks HOLD SCOPE or SCOPE EXPANSION,
  * the downstream rendered output reflects that mode's distinctive
  * posture language.
@@ -71,7 +71,7 @@ async function navigateToModeAskUserQuestion(
   targetMode: ModeCase['mode'],
   opts: { maxNav?: number; budgetMs?: number } = {},
 ): Promise<{ modeIndex: number; visibleAtMode: string }> {
-  // /plan-ceo-review's mode AskUserQuestion (Step 0F) sits behind several preamble
+  // $plan-ceo-review's mode AskUserQuestion (Step 0F) sits behind several preamble
   // and Step 0A-0C-bis gates: telemetry, proactive, routing, vendoring,
   // brain privacy, office-hours offer, premise challenge (3 questions),
   // approach selection. 12 hops is the conservative ceiling.
@@ -144,7 +144,7 @@ async function navigateToModeAskUserQuestion(
   throw new Error(`Mode AskUserQuestion not reached within ${budgetMs}ms`);
 }
 
-describeE2E('/plan-ceo-review mode routing (gate)', () => {
+describeE2E('$plan-ceo-review mode routing (gate)', () => {
   for (const c of CASES) {
     test(
       `mode "${c.mode}" routes to its distinctive posture`,
@@ -156,7 +156,7 @@ describeE2E('/plan-ceo-review mode routing (gate)', () => {
         try {
           await Bun.sleep(8000);
           const since = session.mark();
-          session.send('/plan-ceo-review\r');
+          session.send('$plan-ceo-review\r');
 
           const { modeIndex } = await navigateToModeAskUserQuestion(session, since, c.mode);
 

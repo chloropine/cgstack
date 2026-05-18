@@ -1,5 +1,5 @@
 /**
- * D3 helper tests — staging, atomic commit, and discard for /skillify.
+ * D3 helper tests — staging, atomic commit, and discard for $skillify.
  *
  * These tests use synthetic tier paths and a synthetic tmp root so they
  * never touch the user's real ~/.cgstack/ tree. The contract under test:

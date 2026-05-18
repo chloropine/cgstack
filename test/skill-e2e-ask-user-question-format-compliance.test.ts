@@ -1,7 +1,7 @@
 /**
  * AskUserQuestion format-compliance smoke (gate, paid, real-PTY).
  *
- * Asserts: when /plan-ceo-review fires its first AskUserQuestion in plan
+ * Asserts: when $plan-ceo-review fires its first AskUserQuestion in plan
  * mode, the rendered TTY output contains every element the preamble
  * format spec mandates (scripts/resolvers/preamble/generate-ask-user-format.ts
  * + voice directive):
@@ -21,7 +21,7 @@
  * of defense for a format-discipline regression that previously ate ~6
  * weeks of compliance drift before it was noticed.
  *
- * Trigger choice: /plan-ceo-review fires its mode-selection AskUserQuestion
+ * Trigger choice: $plan-ceo-review fires its mode-selection AskUserQuestion
  * deterministically and early (Step 0F), so we don't need to drive
  * through any prior questions to reach a format check.
  *
@@ -69,7 +69,7 @@ function findFormatGaps(visible: string): FormatGap[] {
 
 describeE2E('AskUserQuestion format compliance (gate)', () => {
   test(
-    'first AskUserQuestion from /plan-ceo-review contains all 7 mandated format elements',
+    'first AskUserQuestion from $plan-ceo-review contains all 7 mandated format elements',
     async () => {
       const session = await launchCodexPty({
         permissionMode: 'plan',
@@ -80,7 +80,7 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
         // Boot grace + auto trust-dialog handler.
         await Bun.sleep(8000);
         const since = session.mark();
-        session.send('/plan-ceo-review\r');
+        session.send('$plan-ceo-review\r');
 
         // Wait for a SKILL AskUserQuestion. Strategy: poll the visible buffer until it
         // contains both a numbered-option list AND the format markers we
@@ -92,7 +92,7 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
         // recent tail (preamble side-effects: touch on a sensitive file,
         // etc) so the agent isn't blocked.
         //
-        // Budget bumped 300s → 540s in v1.32: /plan-ceo-review's preamble runs
+        // Budget bumped 300s → 540s in v1.32: $plan-ceo-review's preamble runs
         // multiple bash blocks (gbrain sync probe, telemetry, learnings search,
         // dashboard read) before reaching its mode-selection AskUserQuestion in
         // Step 0F. On substantive branches (or under contention from concurrent
@@ -121,7 +121,7 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
           }
           const visible = session.visibleSince(since);
           // Marker check: anywhere in the post-slash region. Since `since`
-          // is set right after sending /plan-ceo-review, there's no stale
+          // is set right after sending $plan-ceo-review, there's no stale
           // AskUserQuestion above this line — the only AskUserQuestion that can produce these
           // markers is the current one.
           const hasEli10 = /ELI10\s*:/i.test(visible);

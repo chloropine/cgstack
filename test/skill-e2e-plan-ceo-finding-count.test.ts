@@ -1,8 +1,8 @@
 /**
- * /plan-ceo-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
+ * $plan-ceo-review per-finding AskUserQuestion count (periodic, paid, real-PTY).
  *
  * Asserts the load-bearing rule "One issue = one AskUserQuestion call" by
- * driving /plan-ceo-review against a 5-finding seeded plan and counting
+ * driving $plan-ceo-review against a 5-finding seeded plan and counting
  * distinct review-phase AUQs. Passes when count is in [N-1, N+2].
  *
  * Two tests in this file:
@@ -25,7 +25,7 @@ import {
 } from './helpers/codex-pty-runner';
 
 /**
- * /plan-ceo-review's first AUQ asks "what scope?" with options like
+ * $plan-ceo-review's first AUQ asks "what scope?" with options like
  *   1. Branch diff vs main
  *   2. A specific plan file or design doc
  *   3. An idea you'll describe inline
@@ -105,7 +105,7 @@ const PLAN_CEO_2_PAIRED_FINDINGS = [
 const PLAN_CEO_PATH = '/tmp/cgstack-test-plan-ceo.md';
 const PLAN_CEO_PAIRED_PATH = '/tmp/cgstack-test-plan-ceo-paired.md';
 
-describeE2E('/plan-ceo-review per-finding AskUserQuestion count (periodic)', () => {
+describeE2E('$plan-ceo-review per-finding AskUserQuestion count (periodic)', () => {
   test(
     `5-finding plan emits ${FLOOR_DISTINCT}-${CEILING_DISTINCT} review-phase AskUserQuestions`,
     async () => {
@@ -117,7 +117,7 @@ describeE2E('/plan-ceo-review per-finding AskUserQuestion count (periodic)', () 
 
       const obs = await runPlanSkillCounting({
         skillName: 'plan-ceo-review',
-        slashCommand: '/plan-ceo-review',
+        slashCommand: '$plan-ceo-review',
         followUpPrompt: PLAN_CEO_5_FINDINGS,
         isLastStep0AUQ: ceoStep0Boundary,
         reviewCountCeiling: CEILING_DISTINCT + 1, // hard cap above assertion ceiling
@@ -207,7 +207,7 @@ describeE2E('/plan-ceo-review per-finding AskUserQuestion count (periodic)', () 
 
       const obs = await runPlanSkillCounting({
         skillName: 'plan-ceo-review',
-        slashCommand: '/plan-ceo-review',
+        slashCommand: '$plan-ceo-review',
         followUpPrompt: PLAN_CEO_2_PAIRED_FINDINGS,
         isLastStep0AUQ: ceoStep0Boundary,
         reviewCountCeiling: CEILING_PAIRED + 1,

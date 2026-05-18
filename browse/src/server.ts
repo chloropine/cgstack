@@ -576,7 +576,7 @@ const BROWSE_PARENT_PID = parseInt(process.env.BROWSE_PARENT_PID || '0', 10);
 // Outer gate: if the spawner explicitly marks this as headed (env var set at
 // launch time), skip registering the watchdog entirely. Cheaper than entering
 // the closure every 15s. The CLI's connect path sets BROWSE_HEADED=1 + PID=0,
-// so this branch is the normal path for /open-cgstack-browser.
+// so this branch is the normal path for $open-cgstack-browser.
 const IS_HEADED_WATCHDOG = process.env.BROWSE_HEADED === '1';
 if (BROWSE_PARENT_PID > 0 && !IS_HEADED_WATCHDOG) {
   let parentGone = false;
@@ -591,7 +591,7 @@ if (BROWSE_PARENT_PID > 0 && !IS_HEADED_WATCHDOG) {
       // 2. Headed / tunnel mode? Shutdown. The idle timeout doesn't apply in
       //    these modes (see idleCheckInterval above — both early-return), so
       //    ignoring parent death here would leak orphan daemons after
-      //    /pair-agent or /open-cgstack-browser sessions.
+      //    $pair-agent or $open-cgstack-browser sessions.
       // 3. Normal (headless) mode? Stay alive. Codex's Bash tool kills
       //    the parent shell between invocations. The idle timeout (30 min)
       //    handles eventual cleanup.
@@ -1501,7 +1501,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         });
       }
 
-      // ─── /connect — setup key exchange for /pair-agent ceremony ────
+      // ─── /connect — setup key exchange for $pair-agent ceremony ────
       if (url.pathname === '/connect' && req.method === 'POST') {
         if (!checkConnectRateLimit()) {
           return new Response(JSON.stringify({

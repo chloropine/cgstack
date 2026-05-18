@@ -1,4 +1,4 @@
-// E2E: /setup-gbrain Path 4 with Step 4.5 "Yes" — local PGLite for code search.
+// E2E: $setup-gbrain Path 4 with Step 4.5 "Yes" — local PGLite for code search.
 //
 // Drives the skill against a stub HTTP MCP server (200 OK on tools/list).
 // Auto-answers AskUserQuestion to pick:
@@ -138,7 +138,7 @@ exit 0
   return callLog;
 }
 
-describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () => {
+describeE2E('$setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () => {
   test('opt-in flow invokes install + gbrain init + remote MCP register', async () => {
     const stubServer = await startStubMcp();
     const sandboxHome = fs.mkdtempSync(path.join(os.tmpdir(), 'path4-pglite-'));

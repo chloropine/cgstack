@@ -21,7 +21,7 @@ export const generateTasksSectionEmit: ResolverFn = (_ctx: TemplateContext, args
 
 Before closing this review, synthesize the findings above into a flat list of
 build-actionable tasks. Each task derives from a specific finding — no padding.
-Emit the markdown section AND write a JSONL artifact that \`/autoplan\` can
+Emit the markdown section AND write a JSONL artifact that \`$autoplan\` can
 aggregate across phases.
 
 ### Markdown section (always emit)
@@ -46,7 +46,7 @@ Rules:
 
 ### JSONL artifact (always write, even if zero tasks)
 
-\`/autoplan\` reads this file to aggregate across phases. Build each line with
+\`$autoplan\` reads this file to aggregate across phases. Build each line with
 \`jq -nc\` so titles and source findings containing quotes, newlines, or
 backslashes serialize cleanly — never use hand-rolled \`echo\` / \`printf\`.
 

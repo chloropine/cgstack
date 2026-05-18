@@ -38,7 +38,7 @@ triggers:
 
 {{BASE_BRANCH_DETECT}}
 
-# /plan-devex-review: Developer Experience Plan Review
+# $plan-devex-review: Developer Experience Plan Review
 
 You are a developer advocate who has onboarded onto 100 developer tools. You have
 opinions about what makes developers abandon a tool in minute 2 versus fall in love
@@ -124,9 +124,9 @@ Before proceeding, read the plan and infer the developer product type from conte
 - Mentions SKILL.md, skill template, Codex, AI agent, MCP → **Codex Skill**
 
 If NONE of the above: the plan has no developer-facing surface. Tell the user:
-"This plan doesn't appear to have developer-facing surfaces. /plan-devex-review
+"This plan doesn't appear to have developer-facing surfaces. $plan-devex-review
 reviews plans for APIs, CLIs, SDKs, libraries, platforms, and docs. Consider
-/plan-eng-review or /plan-design-review instead." Exit gracefully.
+$plan-eng-review or $plan-design-review instead." Exit gracefully.
 
 If detected: State your classification and ask for confirmation. Do not ask from
 scratch. "I'm reading this as a CLI Tool plan. Correct?"
@@ -631,7 +631,7 @@ Evaluate:
 - **Journey analytics**: Where do devs drop off?
 - **Feedback mechanisms**: Bug reports? NPS? Feedback button?
 - **Friction audits**: Periodic reviews planned?
-- **Boomerang readiness**: Will /devex-review be able to measure reality vs. plan?
+- **Boomerang readiness**: Will $devex-review be able to measure reality vs. plan?
 
 **STOP.** AskUserQuestion once per issue. Recommend + WHY.
 
@@ -791,22 +791,22 @@ If any AskUserQuestion goes unanswered, note here. Never silently default.
 
 After displaying the Review Readiness Dashboard, recommend next reviews:
 
-**Recommend /plan-eng-review if eng review is not skipped globally** — DX issues often
+**Recommend $plan-eng-review if eng review is not skipped globally** — DX issues often
 have architectural implications. If this DX review found API design problems, error
 handling gaps, or CLI ergonomics issues, eng review should validate the fixes.
 
-**Suggest /plan-design-review if user-facing UI exists** — DX review focuses on
+**Suggest $plan-design-review if user-facing UI exists** — DX review focuses on
 developer-facing surfaces; design review covers end-user-facing UI.
 
-**Recommend /devex-review after implementation** — the boomerang. Plan said TTHW would
-be [target from 0C]. Did reality match? Run /devex-review on the live product to find
+**Recommend $devex-review after implementation** — the boomerang. Plan said TTHW would
+be [target from 0C]. Did reality match? Run $devex-review on the live product to find
 out. This is where the competitive benchmark pays off: you have a concrete target to
 measure against.
 
 Use AskUserQuestion with applicable options:
-- **A)** Run /plan-eng-review next (required gate)
-- **B)** Run /plan-design-review (only if UI scope detected)
-- **C)** Ready to implement, run /devex-review after shipping
+- **A)** Run $plan-eng-review next (required gate)
+- **B)** Run $plan-design-review (only if UI scope detected)
+- **C)** Ready to implement, run $devex-review after shipping
 - **D)** Skip, I'll handle next steps manually
 
 ## Mode Quick Reference

@@ -38,12 +38,12 @@ knowledge, and prune stale or contradictory entries.
 
 Parse the user's input to determine which command to run:
 
-- `/learn` (no arguments) → **Show recent**
-- `/learn search <query>` → **Search**
-- `/learn prune` → **Prune**
-- `/learn export` → **Export**
-- `/learn stats` → **Stats**
-- `/learn add` → **Manual add**
+- `$learn` (no arguments) → **Show recent**
+- `$learn search <query>` → **Search**
+- `$learn prune` → **Prune**
+- `$learn export` → **Export**
+- `$learn stats` → **Stats**
+- `$learn add` → **Manual add**
 
 ---
 
@@ -57,7 +57,7 @@ eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
 ```
 
 Present the output in a readable format. If no learnings exist, tell the user:
-"No learnings recorded yet. As you use /review, /ship, /investigate, and other skills,
+"No learnings recorded yet. As you use $review, $ship, $investigate, and other skills,
 cgstack will automatically capture patterns, pitfalls, and insights it discovers."
 
 ---

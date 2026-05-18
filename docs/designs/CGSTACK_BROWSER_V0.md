@@ -42,7 +42,7 @@ Launch → Chromium opens with sidebar → extension auto-connects to browse ser
 ### Phase 1b: Developer UX (next)
 
 **Command Palette (Cmd+K):** The signature interaction. Opens a fuzzy-filtered
-skill picker. Type "/qa" to start QA testing, "/investigate" to debug, "/ship"
+skill picker. Type "$qa" to start QA testing, "$investigate" to debug, "$ship"
 to create a PR. Skills are fetched from the browse server, not hardcoded. The
 palette is the entry point to everything.
 
@@ -136,7 +136,7 @@ in the code simultaneously.
 
 **Today:** The sidebar chat connects to Codex. You say "this button is
 misaligned" and the AI reads the CSS, identifies the issue, and proposes a fix.
-The `/design-review` skill takes screenshots, identifies visual issues, and
+The `$design-review` skill takes screenshots, identifies visual issues, and
 commits fixes with before/after evidence.
 
 **Next:** Live reload loop. The AI edits CSS/HTML, the browser auto-reloads, the
@@ -190,14 +190,14 @@ Every cgstack skill becomes a browser capability.
 
 | Skill | Browser Capability |
 |-------|-------------------|
-| `/qa` | Test every page, find bugs, fix them, verify fixes |
-| `/design-review` | Screenshot → analyze → fix CSS → screenshot again |
-| `/investigate` | See the error in browser → trace to code → fix → verify |
-| `/benchmark` | Measure page performance → detect regressions → alert |
-| `/canary` | Monitor deployed site → screenshot periodically → alert on changes |
-| `/ship` | Run tests → review diff → create PR → verify deployment in browser |
-| `/cso` | Audit page for XSS, open redirects, clickjacking in real browser |
-| `/office-hours` | Browse competitor sites → synthesize observations → design doc |
+| `$qa` | Test every page, find bugs, fix them, verify fixes |
+| `$design-review` | Screenshot → analyze → fix CSS → screenshot again |
+| `$investigate` | See the error in browser → trace to code → fix → verify |
+| `$benchmark` | Measure page performance → detect regressions → alert |
+| `$canary` | Monitor deployed site → screenshot periodically → alert on changes |
+| `$ship` | Run tests → review diff → create PR → verify deployment in browser |
+| `$cso` | Audit page for XSS, open redirects, clickjacking in real browser |
+| `$office-hours` | Browse competitor sites → synthesize observations → design doc |
 
 The command palette (Cmd+K) is the hub. You don't need to know the skills exist.
 You type what you want, the fuzzy filter finds the right skill, and the AI runs it
@@ -214,7 +214,7 @@ Generate mockup (GPT Image API)
   → Approve direction
   → Generate production HTML/CSS
   → Preview in browser
-  → Fine-tune with /design-review
+  → Fine-tune with $design-review
   → Ship
 ```
 
@@ -363,11 +363,11 @@ with a browser bolted on.
 
 This plan went through 4 reviews:
 
-1. **CEO Review** (`/plan-ceo-review`, SELECTIVE EXPANSION) — 9 scope proposals,
+1. **CEO Review** (`$plan-ceo-review`, SELECTIVE EXPANSION) — 9 scope proposals,
    3 accepted (Cmd+K, Cmd+Shift+S, status bar), 5 deferred, 1 skipped
-2. **Design Review** (`/plan-design-review`) — scored 5/10 → 8/10, 9 design
+2. **Design Review** (`$plan-design-review`) — scored 5/10 → 8/10, 9 design
    decisions added, 2 approved mockups generated
-3. **Eng Review** (`/plan-eng-review`) — 4 issues found, 0 critical gaps,
+3. **Eng Review** (`$plan-eng-review`) — 4 issues found, 0 critical gaps,
    test plan produced
 4. **Codex Review** (outside voice) — 9 findings, 3 critical gaps caught
    (server bundling, auth file location, project binding). All resolved.

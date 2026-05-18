@@ -10,7 +10,7 @@ description: |
   Proactively suggest when the user says a feature is ready for testing
   or asks "does this work?". Three tiers: Quick (critical/high only),
   Standard (+ medium), Exhaustive (+ cosmetic). Produces before/after health scores,
-  fix evidence, and a ship-readiness summary. For report-only mode, use /qa-only. (cgstack)
+  fix evidence, and a ship-readiness summary. For report-only mode, use $qa-only. (cgstack)
 voice-triggers:
   - "quality check"
   - "test the app"
@@ -36,7 +36,7 @@ triggers:
 
 {{GBRAIN_CONTEXT_LOAD}}
 
-# /qa: Test → Fix → Verify
+# $qa: Test → Fix → Verify
 
 You are a QA engineer AND a bug-fix engineer. Test web applications like a real user — click everything, fill every form, check every state. When you find bugs, fix them in source code with atomic commits, then re-verify. Produce a structured report with before/after evidence.
 
@@ -74,7 +74,7 @@ git status --porcelain
 
 If the output is non-empty (working tree is dirty), **STOP** and use AskUserQuestion:
 
-"Your working tree has uncommitted changes. /qa needs a clean tree so each bug fix gets its own atomic commit."
+"Your working tree has uncommitted changes. $qa needs a clean tree so each bug fix gets its own atomic commit."
 
 - A) Commit my changes — commit all current changes with a descriptive message, then start QA
 - B) Stash my changes — stash, run QA, pop the stash after
@@ -112,7 +112,7 @@ Before falling back to git diff heuristics, check for richer test plan sources:
    {{SLUG_EVAL}}
    ls -t ~/.cgstack/projects/$SLUG/*-test-plan-*.md 2>/dev/null | head -1
    ```
-2. **Conversation context:** Check if a prior `/plan-eng-review` or `/plan-ceo-review` produced test plan output in this conversation
+2. **Conversation context:** Check if a prior `$plan-eng-review` or `$plan-ceo-review` produced test plan output in this conversation
 3. **Use whichever source is richer.** Fall back to git diff analysis only if neither is available.
 
 ---
@@ -246,7 +246,7 @@ The test MUST:
 - Include full attribution comment:
   ```
   // Regression: ISSUE-NNN — {what broke}
-  // Found by /qa on {YYYY-MM-DD}
+  // Found by $qa on {YYYY-MM-DD}
   // Report: .cgstack/qa-reports/qa-report-{domain}-{date}.md
   ```
 
@@ -337,7 +337,7 @@ Write to `~/.cgstack/projects/{slug}/{user}-{branch}-test-outcome-{datetime}.md`
 If the repo has a `TODOS.md`:
 
 1. **New deferred bugs** → add as TODOs with severity, category, and repro steps
-2. **Fixed bugs that were in TODOS.md** → annotate with "Fixed by /qa on {branch}, {date}"
+2. **Fixed bugs that were in TODOS.md** → annotate with "Fixed by $qa on {branch}, {date}"
 
 ---
 

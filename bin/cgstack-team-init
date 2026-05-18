@@ -100,8 +100,8 @@ git clone --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/c
 cd ~/.cgstack/repos/cgstack && ./setup --team
 ```
 
-After install, skills like /qa, /ship, /review, /investigate, and /browse are available to Codex.
-Use /browse for all web browsing. Use ~/.codex/skills/cgstack/... for cgstack runtime file paths.'
+After install, skills like $qa, $ship, $review, $investigate, and $browse are available to Codex.
+Use $browse for all web browsing. Use ~/.codex/skills/cgstack/... for cgstack runtime file paths.'
 else
   SNIPPET='## cgstack (REQUIRED)
 
@@ -123,8 +123,8 @@ If CGSTACK_MISSING: stop and tell the user:
 
 Do not skip skills, ignore cgstack errors, or work around missing cgstack.
 
-Using cgstack skills: after install, skills like /qa, /ship, /review, /investigate,
-and /browse are available. Use /browse for all web browsing.
+Using cgstack skills: after install, skills like $qa, $ship, $review, $investigate,
+and $browse are available. Use $browse for all web browsing.
 Use ~/.codex/skills/cgstack/... for cgstack runtime file paths.'
 fi
 

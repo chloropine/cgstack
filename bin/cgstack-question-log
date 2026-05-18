@@ -6,7 +6,7 @@
 #     "question_summary":"Tests failed","options_count":3,"user_choice":"fix-now",\
 #     "recommended":"fix-now","session_id":"ppid"}'
 #
-# v1: log-only. Consumed by /plan-tune inspection and (in v2) by the
+# v1: log-only. Consumed by $plan-tune inspection and (in v2) by the
 # inferred-dimension derivation pipeline.
 #
 # Schema (all fields validated):

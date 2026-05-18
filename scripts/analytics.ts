@@ -89,11 +89,11 @@ export function formatReport(events: AnalyticsEvent[], period: string = 'all'): 
     lines.push('Top Skills');
 
     const sorted = [...skillCounts.entries()].sort((a, b) => b[1] - a[1]);
-    const maxName = Math.max(...sorted.map(([name]) => name.length + 1)); // +1 for /
+    const maxName = Math.max(...sorted.map(([name]) => name.length + 1)); // +1 for $
     const maxCount = Math.max(...sorted.map(([, count]) => String(count).length));
 
     for (const [name, count] of sorted) {
-      const label = `/${name}`;
+      const label = `$${name}`;
       const suffix = `${count} invocation${count === 1 ? '' : 's'}`;
       const dotLen = Math.max(2, 25 - label.length - suffix.length);
       const dots = ' ' + '.'.repeat(dotLen) + ' ';

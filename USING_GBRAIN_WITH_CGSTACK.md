@@ -11,14 +11,14 @@ This is the full monty: every scenario, every flag, every helper bin, every trou
 ## The one-command install
 
 ```bash
-/setup-gbrain
+$setup-gbrain
 ```
 
 That's it. The skill detects your current state, asks three questions at most, and walks you through install, init, MCP registration for Codex, and per-repo trust policy. On a clean Mac with nothing installed it finishes in under five minutes. On a Mac where something's already set up it takes seconds (it detects the existing state and skips done work).
 
 ## What you get after setup
 
-Once `/setup-gbrain` finishes, your coding agent has two retrieval surfaces it didn't have before:
+Once `$setup-gbrain` finishes, your coding agent has two retrieval surfaces it didn't have before:
 
 - **Semantic code search across this repo.** `gbrain search "browser security canary"` returns ranked file regions, not exact-match grep hits. `gbrain code-def`, `code-refs`, `code-callers`, `code-callees` walk the call graph by symbol — useful when you don't know which file holds the implementation but you know what it does. The agent prefers these over Grep when the question is semantic; AGENTS.md gets a `## GBrain Search Guidance` block that teaches it the routing rules.
 - **Cross-session memory.** Plans, retros, decisions, and learnings from past sessions live in `~/.cgstack/` and (if you opted in to artifacts sync) get pushed to a private git repo that gbrain indexes. `gbrain search "what did we decide about auth?"` actually finds the prior CEO plan instead of you re-describing context every session.
@@ -45,7 +45,7 @@ Best for: fresh Supabase account, you want a clean new project with zero clickin
 
 At the end: explicit reminder to revoke the PAT at https://supabase.com/dashboard/account/tokens. The skill already discarded it from memory.
 
-**If you Ctrl-C mid-provision:** The SIGINT trap prints your in-flight project ref + a resume command. You can delete the orphan at the Supabase dashboard, or run `/setup-gbrain --resume-provision <ref>` to pick up where you left off.
+**If you Ctrl-C mid-provision:** The SIGINT trap prints your in-flight project ref + a resume command. You can delete the orphan at the Supabase dashboard, or run `$setup-gbrain --resume-provision <ref>` to pick up where you left off.
 
 ### Path 2b: Supabase, create manually
 
@@ -59,7 +59,7 @@ Best for: try-it-first, no account, no cloud, no sharing. Or a dedicated "this M
 
 **What happens:** `gbrain init --pglite`. Brain lives at `~/.gbrain/brain.pglite`. No network calls. Done in 30 seconds.
 
-This is the best first choice if you just want to see what gbrain feels like before committing to cloud. You can always migrate later with `/setup-gbrain --switch`.
+This is the best first choice if you just want to see what gbrain feels like before committing to cloud. You can always migrate later with `$setup-gbrain --switch`.
 
 ### Path 4: Remote gbrain MCP (split-engine)
 
@@ -103,7 +103,7 @@ SSH and HTTPS remote variants collapse to the same key: `https://github.com/foo/
 **To change a policy:**
 
 ```bash
-/setup-gbrain --repo      # re-prompt for this repo only
+$setup-gbrain --repo      # re-prompt for this repo only
 
 # Or directly:
 ~/.codex/skills/cgstack/bin/cgstack-gbrain-repo-policy set "github.com/foo/bar" read-only
@@ -117,15 +117,15 @@ SSH and HTTPS remote variants collapse to the same key: `https://github.com/foo/
 
 Storage: `~/.cgstack/gbrain-repo-policy.json`, mode 0600, schema-versioned so future migrations stay deterministic.
 
-## Keeping the brain current with `/sync-gbrain`
+## Keeping the brain current with `$sync-gbrain`
 
-`/setup-gbrain` is one-time onboarding. `/sync-gbrain` is the verb you run every time you want gbrain to see fresh changes in this repo's code.
+`$setup-gbrain` is one-time onboarding. `$sync-gbrain` is the verb you run every time you want gbrain to see fresh changes in this repo's code.
 
 ```bash
-/sync-gbrain                # incremental: mtime fast-path, ~seconds on a clean tree
-/sync-gbrain --full         # full reindex (~25-35 minutes on a big Mac)
-/sync-gbrain --code-only    # only the code stage; skip memory + brain-sync
-/sync-gbrain --dry-run      # preview what would sync; no writes
+$sync-gbrain                # incremental: mtime fast-path, ~seconds on a clean tree
+$sync-gbrain --full         # full reindex (~25-35 minutes on a big Mac)
+$sync-gbrain --code-only    # only the code stage; skip memory + brain-sync
+$sync-gbrain --dry-run      # preview what would sync; no writes
 ```
 
 The skill runs three stages — code, memory, brain-sync — independently. A failure in one doesn't block the others. State persists to `~/.cgstack/.gbrain-sync-state.json` so re-running picks up cleanly.
@@ -151,7 +151,7 @@ Re-runnable, idempotent, safe to run from multiple terminals on the same machine
 Picked PGLite and now want to join a team brain? One command:
 
 ```bash
-/setup-gbrain --switch
+$setup-gbrain --switch
 ```
 
 The skill runs `gbrain migrate --to supabase --url "$URL"` wrapped in `timeout 180s`. Migration is bidirectional (Supabase → PGLite also works) and lossless — pages, chunks, embeddings, links, tags, and timeline all copy. Your original brain is preserved as a backup.
@@ -176,29 +176,29 @@ Secret-shaped content (AWS keys, GitHub tokens, PEM blocks, JWTs, bearer tokens)
 
 Full guide: [docs/gbrain-sync.md](docs/gbrain-sync.md). Error index: [docs/gbrain-sync-errors.md](docs/gbrain-sync-errors.md).
 
-`/setup-gbrain` offers to wire this up for you at the end of initial setup — it's one more AskUserQuestion, and it integrates with the same private-repo infrastructure.
+`$setup-gbrain` offers to wire this up for you at the end of initial setup — it's one more AskUserQuestion, and it integrates with the same private-repo infrastructure.
 
 ## Cleanup orphan projects
 
 If you Ctrl-C'd mid-provision, tried three different names before settling on one, or otherwise accumulated gbrain-shaped Supabase projects you don't use, there's a subcommand for that:
 
 ```bash
-/setup-gbrain --cleanup-orphans
+$setup-gbrain --cleanup-orphans
 ```
 
 The skill re-collects a PAT (one-time, discarded after), lists every project in your Supabase account whose name starts with `gbrain` and whose ref doesn't match your active `~/.gbrain/config.json` pooler URL. For each orphan it asks per-project: *"Delete orphan project `<ref>` (`<name>`, created `<date>`)?"* — no batching, no "delete all" shortcut. The active brain is never offered for deletion.
 
 ## Command + flag reference
 
-### `/setup-gbrain` entry modes
+### `$setup-gbrain` entry modes
 
 | Invocation | What it does |
 |---|---|
-| `/setup-gbrain` | Full flow: detect state, pick path, install, init, MCP, policy, optional memory-sync |
-| `/setup-gbrain --repo` | Flip the per-remote trust policy for the current repo only |
-| `/setup-gbrain --switch` | Migrate engine (PGLite ↔ Supabase) without re-running the other steps |
-| `/setup-gbrain --resume-provision <ref>` | Resume a path-2a auto-provision that was interrupted during polling |
-| `/setup-gbrain --cleanup-orphans` | List + per-project delete of orphan Supabase projects |
+| `$setup-gbrain` | Full flow: detect state, pick path, install, init, MCP, policy, optional memory-sync |
+| `$setup-gbrain --repo` | Flip the per-remote trust policy for the current repo only |
+| `$setup-gbrain --switch` | Migrate engine (PGLite ↔ Supabase) without re-running the other steps |
+| `$setup-gbrain --resume-provision <ref>` | Resume a path-2a auto-provision that was interrupted during polling |
+| `$setup-gbrain --cleanup-orphans` | List + per-project delete of orphan Supabase projects |
 
 ### Bin helpers (for scripting)
 
@@ -236,7 +236,7 @@ Gbrain itself ships with these that cgstack wraps:
 | `~/.cgstack/gbrain-repo-policy.json` | Per-remote trust triad. Schema v2. Mode 0600. |
 | `~/.cgstack/.setup-gbrain.lock.d` | Concurrent-run lock (atomic mkdir). Released on normal exit + SIGINT. |
 | `~/.cgstack/.brain-queue.jsonl` | Pending sync entries for cgstack memory sync |
-| `~/.cgstack/.brain-last-push` | Timestamp of last sync push (for `/health` scoring) |
+| `~/.cgstack/.brain-last-push` | Timestamp of last sync push (for `$health` scoring) |
 | `~/.cgstack-brain-remote.txt` | URL of your cgstack memory sync remote (safe to copy between machines) |
 | `~/.cgstack/.setup-gbrain-inflight.json` | Reserved for future `--resume-provision` persisted state |
 
@@ -251,7 +251,7 @@ Gbrain itself ships with these that cgstack wraps:
 | `SUPABASE_API_BASE` | `cgstack-gbrain-supabase-provision` | Override the Management API host. Used by tests to point at a mock server. |
 | `GBRAIN_INSTALL_DIR` | `cgstack-gbrain-install` | Override default install path (`~/gbrain`) |
 | `CGSTACK_HOME` | every bin helper | Override `~/.cgstack` state dir. Heavy test use. |
-| `OPENAI_API_KEY` | `gbrain embed` subprocess | Required for embeddings during `gbrain sync` / `/sync-gbrain`. Without it, pages are imported structurally (symbol tables, chunks) but semantic search degrades — you'll see `[gbrain] embedding failed for code file ... OpenAI embedding requires OPENAI_API_KEY` in the sync log. |
+| `OPENAI_API_KEY` | `gbrain embed` subprocess | Required for embeddings during `gbrain sync` / `$sync-gbrain`. Without it, pages are imported structurally (symbol tables, chunks) but semantic search degrades — you'll see `[gbrain] embedding failed for code file ... OpenAI embedding requires OPENAI_API_KEY` in the sync log. |
 | `CGSTACK_OPENAI_API_KEY` | `lib/conductor-env-shim.ts` | Conductor-injected fallback. Promoted to `OPENAI_API_KEY` when the canonical name is empty. |
 
 ## Conductor + CGSTACK_* env vars
@@ -260,7 +260,7 @@ If you run cgstack inside a [Conductor](https://conductor.build) workspace, **Co
 
 `lib/conductor-env-shim.ts` bridges the gap on the cgstack side: when imported as a side effect (`import "../lib/conductor-env-shim";`), it promotes `CGSTACK_FOO_API_KEY` to `FOO_API_KEY` for any subprocess that doesn't see the canonical name. The shim is already wired into:
 
-- `bin/cgstack-gbrain-sync.ts` — so `/sync-gbrain` picks up OpenAI for embeddings
+- `bin/cgstack-gbrain-sync.ts` — so `$sync-gbrain` picks up OpenAI for embeddings
 - `bin/cgstack-model-benchmark` — so `--judge` runs work without manual env mapping
 - `scripts/preflight-agent-sdk.ts` — so paid-eval auth probes work
 - `test/helpers/e2e-helpers.ts` — so `bun run test:evals` finds OpenAI
@@ -301,7 +301,7 @@ Another `gbrain` binary is earlier in PATH than the one the installer just linke
 - Prepend `~/.bun/bin` to PATH in your shell rc so the linked binary wins
 - Set `GBRAIN_INSTALL_DIR` to the shadowing binary's install directory and re-run
 
-Then re-run `/setup-gbrain`.
+Then re-run `$setup-gbrain`.
 
 ### "rejected direct-connection URL"
 
@@ -312,12 +312,12 @@ You pasted a `db.<ref>.supabase.co:5432` URL. Those are IPv6-only and fail in mo
 The Supabase project is still initializing. Your ref was printed in the exit message. Wait a minute, then:
 
 ```bash
-/setup-gbrain --resume-provision <ref>
+$setup-gbrain --resume-provision <ref>
 ```
 
 The skill re-collects a PAT, skips project creation, resumes polling.
 
-### "Another `/setup-gbrain` instance is running"
+### "Another `$setup-gbrain` instance is running"
 
 You have a stale lock directory. If you're sure no other instance is actually running:
 
@@ -333,9 +333,9 @@ You edited `~/.cgstack/gbrain-repo-policy.json` by hand with legacy `allow` valu
 
 ### `gbrain doctor` says "warnings"
 
-`/health` treats that as yellow, not red. Check `gbrain doctor --json | jq .checks` to see which sub-checks are warning. Typical causes: resolver MECE overlap (skill names clashing) or DB connection not yet configured.
+`$health` treats that as yellow, not red. Check `gbrain doctor --json | jq .checks` to see which sub-checks are warning. Typical causes: resolver MECE overlap (skill names clashing) or DB connection not yet configured.
 
-### `/sync-gbrain` reports `OK` but `gbrain search` returns nothing semantic
+### `$sync-gbrain` reports `OK` but `gbrain search` returns nothing semantic
 
 Embeddings probably failed during import. Symbol queries (`code-def`, `code-refs`) still work because they don't need embeddings, but `gbrain search "<terms>"` falls back to a degraded BM25 path. Look in the sync output for lines like:
 
@@ -343,7 +343,7 @@ Embeddings probably failed during import. Symbol queries (`code-def`, `code-refs
 [gbrain] embedding failed for code file <name>: OpenAI embedding requires OPENAI_API_KEY
 ```
 
-The fix is to put `OPENAI_API_KEY` in the process env before re-running. On a bare Mac shell, source it from `~/.zshrc` before calling. In Conductor, set `CGSTACK_OPENAI_API_KEY` at the workspace level — `lib/conductor-env-shim.ts` promotes it to canonical automatically when imported. Re-run `/sync-gbrain --code-only` to backfill embeddings on already-imported pages.
+The fix is to put `OPENAI_API_KEY` in the process env before re-running. On a bare Mac shell, source it from `~/.zshrc` before calling. In Conductor, set `CGSTACK_OPENAI_API_KEY` at the workspace level — `lib/conductor-env-shim.ts` promotes it to canonical automatically when imported. Re-run `$sync-gbrain --code-only` to backfill embeddings on already-imported pages.
 
 ### `gbrain sync` blocked at a commit hash — `FILE_TOO_LARGE`
 
@@ -357,7 +357,7 @@ Watermark advances past the offending commit. The same file fails again if it ch
 
 ### Switching PGLite → Supabase hangs
 
-Another cgstack session in a sibling Conductor workspace may be holding a lock on your local PGLite file via its preamble's `cgstack-brain-sync` call. Close other workspaces, re-run `/setup-gbrain --switch`. The timeout is bounded at 180s so you'll never actually wait forever.
+Another cgstack session in a sibling Conductor workspace may be holding a lock on your local PGLite file via its preamble's `cgstack-brain-sync` call. Close other workspaces, re-run `$setup-gbrain --switch`. The timeout is bounded at 180s so you'll never actually wait forever.
 
 ## Why this design
 
@@ -369,12 +369,12 @@ Another cgstack session in a sibling Conductor workspace may be holding a lock o
 
 **Why fail-hard on PATH shadowing instead of warn-and-continue?** A shadowed `gbrain` means every subsequent command calls a different binary than the one we just installed. That's a silent version-drift bug that surfaces as mysterious feature gaps weeks later. Setup skills have one job — set up a working environment. Refusing to install into a broken one is the setup-skill-correct behavior.
 
-**Why not auto-import every repo?** Privacy + noise. An auto-import preamble hook that ingests every repo you touch would: (a) leak work code into a shared brain without consent, and (b) clog search with throwaway repos. The per-remote policy makes ingestion an explicit, per-repo decision. `/setup-gbrain` doesn't install any auto-import hook today — but the policy store is forward-compatible for one later.
+**Why not auto-import every repo?** Privacy + noise. An auto-import preamble hook that ingests every repo you touch would: (a) leak work code into a shared brain without consent, and (b) clog search with throwaway repos. The per-remote policy makes ingestion an explicit, per-repo decision. `$setup-gbrain` doesn't install any auto-import hook today — but the policy store is forward-compatible for one later.
 
 ## Related skills + next steps
 
-- `/health` — includes a GBrain dimension (doctor status, sync queue depth, last-push age) in its 0-10 composite score. The dimension is omitted when gbrain isn't installed; running `/health` on a non-gbrain machine doesn't penalize that choice.
-- `/cgstack-upgrade` — keeps cgstack itself up to date. Does NOT upgrade gbrain independently. To bump gbrain, update `PINNED_COMMIT` in `bin/cgstack-gbrain-install` and re-run `/setup-gbrain`.
-- `/retro` — weekly retrospective pulls learnings and plans from your gbrain when memory sync is on, letting the retro reference cross-machine history.
+- `$health` — includes a GBrain dimension (doctor status, sync queue depth, last-push age) in its 0-10 composite score. The dimension is omitted when gbrain isn't installed; running `$health` on a non-gbrain machine doesn't penalize that choice.
+- `$cgstack-upgrade` — keeps cgstack itself up to date. Does NOT upgrade gbrain independently. To bump gbrain, update `PINNED_COMMIT` in `bin/cgstack-gbrain-install` and re-run `$setup-gbrain`.
+- `$retro` — weekly retrospective pulls learnings and plans from your gbrain when memory sync is on, letting the retro reference cross-machine history.
 
-Run `/setup-gbrain` and see what sticks.
+Run `$setup-gbrain` and see what sticks.

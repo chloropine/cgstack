@@ -39,12 +39,12 @@ CONFIG_HEADER='# cgstack configuration — edit freely, changes take effect on n
 # update_check: true        # false = suppress version check notifications
 #
 # ─── Skill naming ────────────────────────────────────────────────────
-# skill_prefix: false       # true = namespace skills as /cgstack-qa, /cgstack-ship
-#                           # false = short names /qa, /ship
+# skill_prefix: false       # true = namespace skills as $cgstack-qa, $cgstack-ship
+#                           # false = short names $qa, $ship
 #
 # ─── Checkpoint ──────────────────────────────────────────────────────
 # checkpoint_mode: explicit # explicit | continuous
-#                           #   explicit   — commit only when you run /ship or /checkpoint
+#                           #   explicit   — commit only when you run $ship or $context-save
 #                           #   continuous — auto-commit after each significant change
 #                           #                with WIP: prefix + [cgstack-context] body
 #
@@ -74,12 +74,12 @@ CONFIG_HEADER='# cgstack configuration — edit freely, changes take effect on n
 #                           # Flip back to false to be re-prompted.
 #
 # ─── Advanced ────────────────────────────────────────────────────────
-# codex_reviews: enabled    # disabled = skip Codex adversarial reviews in /ship
+# codex_reviews: enabled    # disabled = skip Codex adversarial reviews in $ship
 # cgstack_contributor: false # true = file field reports when cgstack misbehaves
-# skip_eng_review: false    # true = skip eng review gate in /ship (not recommended)
+# skip_eng_review: false    # true = skip eng review gate in $ship (not recommended)
 #
 # ─── Workspace-aware ship ────────────────────────────────────────────
-# workspace_root: $HOME/conductor/workspaces  # Where /ship looks for sibling
+# workspace_root: $HOME/conductor/workspaces  # Where $ship looks for sibling
 #                           # Conductor worktrees when picking a VERSION slot.
 #                           # Set to "null" to disable sibling scanning entirely.
 #                           # Non-Conductor users can point this at any directory
