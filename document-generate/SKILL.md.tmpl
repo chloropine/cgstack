@@ -8,7 +8,7 @@ description: |
   complete, structured documentation. Can be invoked standalone or called by
   /document-release when it finds coverage gaps. Use when asked to "write docs",
   "generate documentation", "document this feature", "create a tutorial", or
-  "explain this module". (gstack)
+  "explain this module". (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -84,11 +84,11 @@ is directly proportional to how well you understand the code.
 1. **Map the project structure:**
 
 ```bash
-find . -type f -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.gstack/*" -not -path "./dist/*" -not -path "./build/*" -not -path "./.next/*" | head -200
+find . -type f -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.cgstack/*" -not -path "./dist/*" -not -path "./build/*" -not -path "./.next/*" | head -200
 ```
 
 2. **Read the entry points.** Identify and read:
-   - README.md, ARCHITECTURE.md, CONTRIBUTING.md, CLAUDE.md / AGENTS.md
+   - README.md, ARCHITECTURE.md, CONTRIBUTING.md, AGENTS.md / AGENTS.md
    - package.json / Cargo.toml / pyproject.toml / go.mod (understand the project type)
    - Main entry files (index.ts, main.rs, app.py, cmd/main.go)
    - Configuration files and examples
@@ -338,7 +338,7 @@ After writing all documents:
 
 2. **Update entry-point files.** Add references to new docs in:
    - README.md — add to documentation section or table of contents
-   - CLAUDE.md / AGENTS.md — add to project structure if relevant
+   - AGENTS.md / AGENTS.md — add to project structure if relevant
    - Any existing docs index or sidebar config
 
 3. **Verify discoverability.** Every new document must be reachable within 2 clicks from

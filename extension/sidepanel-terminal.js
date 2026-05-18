@@ -1,21 +1,21 @@
 /**
- * Terminal sidebar tab — interactive Claude Code PTY in xterm.js.
+ * Terminal sidebar tab — interactive Codex PTY in xterm.js.
  *
  * Lifecycle (per plan + codex review):
  *   1. Sidebar opens. Terminal is the default-active tab.
- *   2. Bootstrap card shows "Press any key to start Claude Code."
+ *   2. Bootstrap card shows "Press any key to start Codex."
  *   3. On first keystroke (lazy spawn — codex finding #8): the extension
  *      a) POSTs /pty-session on the browse server with the AUTH_TOKEN to
  *         mint a short-lived HttpOnly cookie scoped to the terminal-agent.
  *      b) Opens ws://127.0.0.1:<terminalPort>/ws — the cookie travels
  *         automatically. Terminal-agent validates the cookie + the
  *         chrome-extension:// Origin (codex finding #9), then spawns
- *         claude in a PTY.
+ *         Codex in a PTY.
  *   4. Bytes pump both ways. Resize observer sends {type:"resize"} text
  *      frames; tab-switch hooks send {type:"tabSwitch"} frames.
  *   5. PTY exits or WS closes -> we show "Session ended" with a restart
  *      button. We do NOT auto-reconnect (codex finding #8: auto-reconnect
- *      = burn fresh claude session every time).
+ *      = burn fresh Codex session every time).
  *
  * Keep this file dependency-free. xterm.js + xterm-addon-fit are loaded
  * via <script src> tags in sidepanel.html (window.Terminal, window.FitAddon).
@@ -26,7 +26,7 @@
   const Terminal = window.Terminal;
   const FitAddonModule = window.FitAddon;
   if (!Terminal) {
-    console.error('[gstack terminal] xterm not loaded');
+    console.error('[cgstack terminal] xterm not loaded');
     return;
   }
 
@@ -42,7 +42,7 @@
   };
 
   /** State machine. */
-  const STATE = { IDLE: 'idle', CONNECTING: 'connecting', LIVE: 'live', ENDED: 'ended', NO_CLAUDE: 'no-claude' };
+  const STATE = { IDLE: 'idle', CONNECTING: 'connecting', LIVE: 'live', ENDED: 'ended', NO_CODEX: 'no-codex' };
   let state = STATE.IDLE;
 
   let term = null;
@@ -60,7 +60,7 @@
         hide(els.installCard);
         hide(els.mount);
         hide(els.ended);
-        els.bootstrapStatus.textContent = opts.message || 'Press any key to start Claude Code.';
+        els.bootstrapStatus.textContent = opts.message || 'Press any key to start Codex.';
         break;
       case STATE.CONNECTING:
         show(els.bootstrap);
@@ -81,7 +81,7 @@
         hide(els.mount);
         show(els.ended);
         break;
-      case STATE.NO_CLAUDE:
+      case STATE.NO_CODEX:
         show(els.bootstrap);
         show(els.installCard);
         hide(els.mount);
@@ -94,19 +94,19 @@
   /**
    * Read auth + terminalPort from the server's /health. We don't fetch this
    * here — sidepanel.js already polls /health for connection state and
-   * exposes the relevant fields on window.gstackHealth (set below in init()).
+   * exposes the relevant fields on window.cgstackHealth (set below in init()).
    * If terminalPort is missing, the agent isn't ready yet.
    */
   function getHealth() {
-    return window.gstackHealth || {};
+    return window.cgstackHealth || {};
   }
 
   function getServerPort() {
-    return window.gstackServerPort || null;
+    return window.cgstackServerPort || null;
   }
 
   function getAuthToken() {
-    return window.gstackAuthToken || null;
+    return window.cgstackAuthToken || null;
   }
 
   /**
@@ -139,9 +139,9 @@
     }
   }
 
-  async function checkClaudeAvailable(terminalPort) {
+  async function checkCodexAvailable(terminalPort) {
     try {
-      const resp = await fetch(`http://127.0.0.1:${terminalPort}/claude-available`, {
+      const resp = await fetch(`http://127.0.0.1:${terminalPort}/codex-available`, {
         credentials: 'include',
       });
       if (!resp.ok) return { available: false };
@@ -224,10 +224,10 @@
   /**
    * Inject a string into the live PTY (the same way a real keystroke would).
    * Used by the toolbar's Cleanup button and the Inspector's "Send to Code"
-   * action so the user can drive claude from outside-the-keyboard surfaces.
+   * action so the user can drive Codex from outside-the-keyboard surfaces.
    * Returns true if the bytes went out, false if no live session.
    */
-  window.gstackInjectToTerminal = function (text) {
+  window.cgstackInjectToTerminal = function (text) {
     if (!text || !ws || ws.readyState !== WebSocket.OPEN) return false;
     try {
       ws.send(new TextEncoder().encode(text));
@@ -252,10 +252,10 @@
       return;
     }
 
-    // Pre-flight: does claude even exist on PATH?
-    const claudeStatus = await checkClaudeAvailable(terminalPort);
-    if (!claudeStatus.available) {
-      setState(STATE.NO_CLAUDE);
+    // Pre-flight: does Codex even exist on PATH?
+    const codexStatus = await checkCodexAvailable(terminalPort);
+    if (!codexStatus.available) {
+      setState(STATE.NO_CODEX);
       return;
     }
 
@@ -272,14 +272,14 @@
     // SameSite=Strict don't survive the jump from server.ts:34567 to the
     // agent's random port from a chrome-extension origin, so cookies
     // alone weren't reliable.
-    ws = new WebSocket(`ws://127.0.0.1:${terminalPort}/ws`, [`gstack-pty.${ptySessionToken}`]);
+    ws = new WebSocket(`ws://127.0.0.1:${terminalPort}/ws`, [`cgstack-pty.${ptySessionToken}`]);
     ws.binaryType = 'arraybuffer';
 
     ws.addEventListener('open', () => {
       try {
         ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
       } catch {}
-      // Push a fresh tab snapshot so claude's tabs.json is populated by
+      // Push a fresh tab snapshot so Codex's tabs.json is populated by
       // the time the lazy spawn finishes booting. Background.js exposes
       // the snapshot helper via chrome.runtime; we ask for it here and
       // forward whatever comes back.
@@ -297,7 +297,7 @@
           }
         });
       } catch {}
-      // Send a single byte to nudge the agent to spawn claude (lazy-spawn trigger).
+      // Send a single byte to nudge the agent to spawn Codex (lazy-spawn trigger).
       try { ws.send(new TextEncoder().encode('\n')); } catch {}
     });
 
@@ -306,8 +306,8 @@
         // Agent control message (rare). Treat as JSON; error frames carry code.
         try {
           const msg = JSON.parse(ev.data);
-          if (msg.type === 'error' && msg.code === 'CLAUDE_NOT_FOUND') {
-            setState(STATE.NO_CLAUDE);
+          if (msg.type === 'error' && msg.code === 'CODEX_NOT_FOUND') {
+            setState(STATE.NO_CODEX);
             try { ws.close(); } catch {}
           }
         } catch {}
@@ -320,11 +320,11 @@
 
     ws.addEventListener('close', () => {
       ws = null;
-      if (state !== STATE.NO_CLAUDE) setState(STATE.ENDED);
+      if (state !== STATE.NO_CODEX) setState(STATE.ENDED);
     });
 
     ws.addEventListener('error', (err) => {
-      console.error('[gstack terminal] ws error', err);
+      console.error('[cgstack terminal] ws error', err);
     });
   }
 
@@ -353,7 +353,7 @@
       term = null;
       fitAddon = null;
     }
-    setState(STATE.IDLE, { message: 'Starting Claude Code...' });
+    setState(STATE.IDLE, { message: 'Starting Codex...' });
     tryAutoConnect();
   }
 
@@ -375,11 +375,11 @@
   }
 
   function init() {
-    setState(STATE.IDLE, { message: 'Starting Claude Code...' });
+    setState(STATE.IDLE, { message: 'Starting Codex...' });
 
     els.installRetry?.addEventListener('click', () => {
-      // Re-probe claude on PATH, then try a connect.
-      setState(STATE.IDLE, { message: 'Starting Claude Code...' });
+      // Re-probe Codex on PATH, then try a connect.
+      setState(STATE.IDLE, { message: 'Starting Codex...' });
       tryAutoConnect();
     });
 
@@ -387,16 +387,16 @@
     //   - els.restart lives inside the ENDED state card (visible only after
     //     a session has ended).
     //   - els.restartNow lives in the always-visible toolbar (lets the user
-    //     force a fresh claude mid-session without waiting for it to exit).
+    //     force a fresh Codex mid-session without waiting for it to exit).
     els.restart?.addEventListener('click', forceRestart);
     els.restartNow?.addEventListener('click', forceRestart);
 
 
     // Live browser-tab state. background.js → sidepanel.js → us. We
     // forward over the live PTY WebSocket; terminal-agent.ts writes
-    // <stateDir>/active-tab.json + <stateDir>/tabs.json so claude can
+    // <stateDir>/active-tab.json + <stateDir>/tabs.json so Codex can
     // always read the current tab landscape.
-    document.addEventListener('gstack:tab-state', (ev) => {
+    document.addEventListener('cgstack:tab-state', (ev) => {
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
       try {
         ws.send(JSON.stringify({
@@ -427,7 +427,7 @@
 
   /**
    * Eager-connect when the sidebar opens. Polls for sidepanel.js to populate
-   * window.gstackServerPort + window.gstackAuthToken (which it does as soon
+   * window.cgstackServerPort + window.cgstackAuthToken (which it does as soon
    * as /health succeeds), then fires connect() automatically. The user
    * doesn't have to press a key — Terminal is the default tab and "tap to
    * start" was a needless paper cut on every reload.

@@ -8,7 +8,7 @@
  * Prerequisites:
  * - `codex` binary installed (npm install -g @openai/codex)
  * - Codex authenticated via ~/.codex/ config (no OPENAI_API_KEY env var needed)
- * - EVALS=1 env var set (same gate as Claude E2E tests)
+ * - EVALS=1 env var set (same gate as Codex E2E tests)
  *
  * Skips gracefully when prerequisites are not met.
  */
@@ -45,7 +45,7 @@ const describeCodex = SKIP ? describe.skip : describe;
 
 // Log why we're skipping (helpful for debugging CI)
 if (!evalsEnabled) {
-  // Silent — same as Claude E2E tests, EVALS=1 required
+  // Silent — same as Codex E2E tests, EVALS=1 required
 } else if (!CODEX_AVAILABLE) {
   process.stderr.write('\nCodex E2E: SKIPPED — codex binary not found (install: npm i -g @openai/codex)\n');
 }
@@ -54,8 +54,8 @@ if (!evalsEnabled) {
 
 // Codex E2E touchfiles — keyed by test name, same pattern as E2E_TOUCHFILES
 const CODEX_E2E_TOUCHFILES: Record<string, string[]> = {
-  'codex-discover-skill':    ['codex/**', '.agents/skills/**', 'test/helpers/codex-session-runner.ts'],
-  'codex-review-findings':   ['review/**', '.agents/skills/gstack-review/**', 'codex/**', 'test/helpers/codex-session-runner.ts'],
+  'codex-discover-skill':    ['.agents/skills/**', 'test/helpers/codex-session-runner.ts'],
+  'codex-review-findings':   ['review/**', '.agents/skills/cgstack-review/**', 'test/helpers/codex-session-runner.ts'],
 };
 
 let selectedTests: string[] | null = null; // null = run all
@@ -130,15 +130,15 @@ describeCodex('Codex E2E', () => {
   });
 
   testIfSelected('codex-discover-skill', async () => {
-    // Install gstack-review skill to a temp HOME and ask Codex to list skills
-    const skillDir = path.join(testWorktree, '.agents', 'skills', 'gstack-review');
+    // Install cgstack-review skill to a temp HOME and ask Codex to list skills
+    const skillDir = path.join(testWorktree, '.agents', 'skills', 'cgstack-review');
 
     const result = await runCodexSkill({
       skillDir,
       prompt: 'List any skills or instructions you have available. Just list the names.',
       timeoutMs: 60_000,
       cwd: testWorktree,
-      skillName: 'gstack-review',
+      skillName: 'cgstack-review',
     });
 
     logCodexCost('codex-discover-skill', result);
@@ -155,23 +155,23 @@ describeCodex('Codex E2E', () => {
     // The output should reference the skill name in some form
     const outputLower = result.output.toLowerCase();
     expect(
-      outputLower.includes('review') || outputLower.includes('gstack') || outputLower.includes('skill'),
+      outputLower.includes('review') || outputLower.includes('cgstack') || outputLower.includes('skill'),
     ).toBe(true);
   }, 120_000);
 
-  // Validates that Codex can invoke the gstack-review skill, run a diff-based
+  // Validates that Codex can invoke the cgstack-review skill, run a diff-based
   // code review, and produce structured review output with findings/issues.
-  // Accepts Codex timeout (exit 124/137) as non-failure since that's a CLI perf issue.
+  // Accepts Codex timeout (exit 124/137) as non-failure since this is a Codex perf issue.
   testIfSelected('codex-review-findings', async () => {
-    // Install gstack-review skill and ask Codex to review the worktree
-    const skillDir = path.join(testWorktree, '.agents', 'skills', 'gstack-review');
+    // Install cgstack-review skill and ask Codex to review the worktree
+    const skillDir = path.join(testWorktree, '.agents', 'skills', 'cgstack-review');
 
     const result = await runCodexSkill({
       skillDir,
-      prompt: 'Run the gstack-review skill on this repository. Review the current branch diff and report your findings.',
+      prompt: 'Run the cgstack-review skill on this repository. Review the current branch diff and report your findings.',
       timeoutMs: 540_000,
       cwd: testWorktree,
-      skillName: 'gstack-review',
+      skillName: 'cgstack-review',
     });
 
     logCodexCost('codex-review-findings', result);

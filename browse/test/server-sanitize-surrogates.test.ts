@@ -89,7 +89,7 @@ describe('sanitizeLoneSurrogates — bug-repro (D5)', () => {
   });
 
   test('JSON.parse(JSON.stringify(...)) round-trip is stable after sanitization', () => {
-    // Anthropic's API path wraps the response body in a tool_result JSON
+    // OpenAI's API path wraps the response body in a tool_result JSON
     // object. JSON.stringify CAN encode a lone surrogate (escapes it), but
     // some downstream consumers reject the resulting body.
     const badPayload = 'before\uD800after';

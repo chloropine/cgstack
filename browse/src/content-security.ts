@@ -73,7 +73,7 @@ const ARIA_INJECTION_PATTERNS = [
 
 /**
  * Detect hidden elements and ARIA injection on a page.
- * Marks hidden elements with data-gstack-hidden attribute.
+ * Marks hidden elements with data-cgstack-hidden attribute.
  * Returns descriptions of what was found for logging.
  *
  * Detection criteria:
@@ -134,7 +134,7 @@ export async function markHiddenElements(page: Page | Frame): Promise<string[]> 
         }
 
         if (isHidden) {
-          el.setAttribute('data-gstack-hidden', 'true');
+          el.setAttribute('data-cgstack-hidden', 'true');
           found.push(`[${el.tagName.toLowerCase()}] ${reason}: "${text.slice(0, 60)}..."`);
         }
 
@@ -150,7 +150,7 @@ export async function markHiddenElements(page: Page | Frame): Promise<string[]> 
         if (labelText) {
           for (const pattern of ariaPatterns) {
             if (new RegExp(pattern, 'i').test(labelText)) {
-              el.setAttribute('data-gstack-hidden', 'true');
+              el.setAttribute('data-cgstack-hidden', 'true');
               found.push(`[${el.tagName.toLowerCase()}] ARIA injection: "${labelText.slice(0, 60)}..."`);
               break;
             }
@@ -175,7 +175,7 @@ export async function getCleanTextWithStripping(page: Page | Frame): Promise<str
     // Remove standard noise elements
     clone.querySelectorAll('script, style, noscript, svg').forEach(el => el.remove());
     // Remove hidden-marked elements
-    clone.querySelectorAll('[data-gstack-hidden]').forEach(el => el.remove());
+    clone.querySelectorAll('[data-cgstack-hidden]').forEach(el => el.remove());
     return clone.innerText
       .split('\n')
       .map(line => line.trim())
@@ -186,13 +186,13 @@ export async function getCleanTextWithStripping(page: Page | Frame): Promise<str
 }
 
 /**
- * Clean up data-gstack-hidden attributes from the page.
+ * Clean up data-cgstack-hidden attributes from the page.
  * Should be called after extraction is complete.
  */
 export async function cleanupHiddenMarkers(page: Page | Frame): Promise<void> {
   await page.evaluate(() => {
-    document.querySelectorAll('[data-gstack-hidden]').forEach(el => {
-      el.removeAttribute('data-gstack-hidden');
+    document.querySelectorAll('[data-cgstack-hidden]').forEach(el => {
+      el.removeAttribute('data-cgstack-hidden');
     });
   });
 }

@@ -55,11 +55,11 @@ describe('Tab Isolation', () => {
       expect(bm.checkTabAccess(1, 'agent-1', { isWrite: true })).toBe(true);
     });
 
-    it('shared scoped agent can read another agent tab', () => {
+    it('shared scoped agent can read another Codex session tab', () => {
       expect(bm.checkTabAccess(1, 'agent-2', { isWrite: false })).toBe(true);
     });
 
-    it('shared scoped agent can write to another agent tab', () => {
+    it('shared scoped agent can write to another Codex session tab', () => {
       // Local trust: a skill spawn behaves like root for tab access.
       // Parallel-skill clobber-protection is not a goal of this layer.
       expect(bm.checkTabAccess(1, 'agent-2', { isWrite: true })).toBe(true);
@@ -89,7 +89,7 @@ describe('Tab Isolation', () => {
       expect(bm.checkTabAccess(1, 'someone-else', { isWrite: false, ownOnly: true })).toBe(false);
     });
 
-    it('own-only scoped agent CANNOT write to another agent tab', () => {
+    it('own-only scoped agent CANNOT write to another Codex session tab', () => {
       expect(bm.checkTabAccess(1, 'agent-2', { isWrite: true, ownOnly: true })).toBe(false);
     });
   });
@@ -252,7 +252,7 @@ describe('pair-agent CLI behavior', () => {
     expect(pairBlock).toContain('const browseBin = process.execPath');
   });
 
-  it('isNgrokAvailable checks gstack env, NGROK_AUTHTOKEN, and native config', () => {
+  it('isNgrokAvailable checks cgstack env, NGROK_AUTHTOKEN, and native config', () => {
     const ngrokBlock = CLI_SRC.slice(
       CLI_SRC.indexOf('function isNgrokAvailable'),
       CLI_SRC.indexOf('// ─── Pair-Agent DX')

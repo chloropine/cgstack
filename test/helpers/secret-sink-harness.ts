@@ -9,7 +9,7 @@
  *   - stdout (Bun.spawn pipe)
  *   - stderr (Bun.spawn pipe)
  *   - files written under a per-run $HOME (walked post-mortem)
- *   - telemetry JSONL under $HOME/.gstack/analytics/ (same walk, but called
+ *   - telemetry JSONL under $HOME/.cgstack/analytics/ (same walk, but called
  *     out separately for clearer test failures)
  *
  * Match rules (any hit = leak):
@@ -63,7 +63,7 @@ export interface SinkResult {
   status: number;
   /** All files written under tmpHome during the run, keyed by relative path. */
   filesWritten: Record<string, string>;
-  /** Subset of filesWritten matching .gstack/analytics/*.jsonl. */
+  /** Subset of filesWritten matching .cgstack/analytics/*.jsonl. */
   telemetry: Record<string, string>;
   /** Leaks discovered. Empty = clean. */
   leaks: Leak[];
@@ -73,14 +73,14 @@ export interface SinkResult {
 
 export async function runWithSecretSink(opts: SecretSinkOptions): Promise<SinkResult> {
   const tmpHome = opts.tmpHome ?? fs.mkdtempSync(path.join(os.tmpdir(), 'sink-'));
-  // Make sure .gstack exists so bins that append to analytics have somewhere to write.
-  fs.mkdirSync(path.join(tmpHome, '.gstack', 'analytics'), { recursive: true });
+  // Make sure .cgstack exists so bins that append to analytics have somewhere to write.
+  fs.mkdirSync(path.join(tmpHome, '.cgstack', 'analytics'), { recursive: true });
 
   const env = {
     // Minimal PATH that still finds jq/git/curl/sed so our bins work.
     PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin',
     HOME: tmpHome,
-    GSTACK_HOME: path.join(tmpHome, '.gstack'),
+    CGSTACK_HOME: path.join(tmpHome, '.cgstack'),
     ...(opts.env || {}),
   };
 
@@ -112,7 +112,7 @@ export async function runWithSecretSink(opts: SecretSinkOptions): Promise<SinkRe
   const telemetry: Record<string, string> = {};
   walk(tmpHome, tmpHome, filesWritten);
   for (const [rel, content] of Object.entries(filesWritten)) {
-    if (rel.startsWith('.gstack/analytics/') && rel.endsWith('.jsonl')) {
+    if (rel.startsWith('.cgstack/analytics/') && rel.endsWith('.jsonl')) {
       telemetry[rel] = content;
     }
   }
@@ -134,7 +134,7 @@ export async function runWithSecretSink(opts: SecretSinkOptions): Promise<SinkRe
       for (const [rel, content] of Object.entries(filesWritten)) {
         const hit = findHit(content, rule);
         if (hit !== null) {
-          const channel = rel.startsWith('.gstack/analytics/') ? 'telemetry' : 'file';
+          const channel = rel.startsWith('.cgstack/analytics/') ? 'telemetry' : 'file';
           leaks.push({ channel, matchType, where: rel, excerpt: excerptAt(content, hit) });
         }
       }

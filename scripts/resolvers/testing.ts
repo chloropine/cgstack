@@ -22,7 +22,7 @@ setopt +o nomatch 2>/dev/null || true  # zsh compat
 ls jest.config.* vitest.config.* playwright.config.* .rspec pytest.ini pyproject.toml phpunit.xml 2>/dev/null
 ls -d test/ tests/ spec/ __tests__/ cypress/ e2e/ 2>/dev/null
 # Check opt-out marker
-[ -f .gstack/no-test-bootstrap ] && echo "BOOTSTRAP_DECLINED"
+[ -f .cgstack/no-test-bootstrap ] && echo "BOOTSTRAP_DECLINED"
 \`\`\`
 
 **If test framework detected** (config files or test directories found):
@@ -35,7 +35,7 @@ Store conventions as prose context for use in Phase 8e.5 or Step 7. **Skip the r
 **If NO runtime detected** (no config files found): Use AskUserQuestion:
 "I couldn't detect your project's language. What runtime are you using?"
 Options: A) Node.js/TypeScript B) Ruby/Rails C) Python D) Go E) Rust F) PHP G) Elixir H) This project doesn't need tests.
-If user picks H → write \`.gstack/no-test-bootstrap\` and continue without tests.
+If user picks H → write \`.cgstack/no-test-bootstrap\` and continue without tests.
 
 **If runtime detected but no test framework — bootstrap:**
 
@@ -49,7 +49,7 @@ If WebSearch is unavailable, use this built-in knowledge table:
 
 | Runtime | Primary recommendation | Alternative |
 |---------|----------------------|-------------|
-| Ruby/Rails | minitest + fixtures + capybara | rspec + factory_bot + shoulda-matchers |
+| Ruby/Rails | minitest + fixtures + capybara | rspec + codex_bot + shoulda-matchers |
 | Node.js | vitest + @testing-library | jest + @testing-library |
 | Next.js | vitest + @testing-library/react + playwright | jest + cypress |
 | Python | pytest + pytest-cov | unittest |
@@ -67,7 +67,7 @@ B) [Alternative] — [rationale]. Includes: [packages]
 C) Skip — don't set up testing right now
 RECOMMENDATION: Choose A because [reason based on project context]"
 
-If user picks C → write \`.gstack/no-test-bootstrap\`. Tell user: "If you change your mind later, delete \`.gstack/no-test-bootstrap\` and re-run." Continue without tests.
+If user picks C → write \`.cgstack/no-test-bootstrap\`. Tell user: "If you change your mind later, delete \`.cgstack/no-test-bootstrap\` and re-run." Continue without tests.
 
 If multiple runtimes detected (monorepo) → ask which runtime to set up first, with option to do both sequentially.
 
@@ -129,9 +129,9 @@ Write TESTING.md with:
 - Test layers: Unit tests (what, where, when), Integration tests, Smoke tests, E2E tests
 - Conventions: file naming, assertion style, setup/teardown patterns
 
-### B7. Update CLAUDE.md
+### B7. Update AGENTS.md
 
-First check: If CLAUDE.md already has a \`## Testing\` section → skip. Don't duplicate.
+First check: If AGENTS.md already has a \`## Testing\` section → skip. Don't duplicate.
 
 Append a \`## Testing\` section:
 - Run command and test directory
@@ -150,7 +150,7 @@ Append a \`## Testing\` section:
 git status --porcelain
 \`\`\`
 
-Only commit if there are changes. Stage all bootstrap files (config, test directory, TESTING.md, CLAUDE.md, .github/workflows/test.yml if created):
+Only commit if there are changes. Stage all bootstrap files (config, test directory, TESTING.md, AGENTS.md, .github/workflows/test.yml if created):
 \`git commit -m "chore: bootstrap test framework ({framework name})"\`
 
 ---`;
@@ -197,8 +197,8 @@ function generateTestCoverageAuditInner(mode: CoverageAuditMode): string {
 
 Before analyzing coverage, detect the project's test framework:
 
-1. **Read CLAUDE.md** — look for a \`## Testing\` section with test command and framework name. If found, use that as the authoritative source.
-2. **If CLAUDE.md has no testing section, auto-detect:**
+1. **Read AGENTS.md** — look for a \`## Testing\` section with test command and framework name. If found, use that as the authoritative source.
+2. **If AGENTS.md has no testing section, auto-detect:**
 
 \`\`\`bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
@@ -379,12 +379,12 @@ The plan should be complete enough that when implementation begins, every test i
 After producing the coverage diagram, write a test plan artifact to the project directory so \`/qa\` and \`/qa-only\` can consume it as primary test input:
 
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)" && mkdir -p ~/.cgstack/projects/$SLUG
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
 \`\`\`
 
-Write to \`~/.gstack/projects/{slug}/{user}-{branch}-eng-review-test-plan-{datetime}.md\`:
+Write to \`~/.cgstack/projects/{slug}/{user}-{branch}-eng-review-test-plan-{datetime}.md\`:
 
 \`\`\`markdown
 # Test Plan
@@ -438,7 +438,7 @@ Coverage line: \`Test Coverage Audit: N new code paths. M covered (X%). K tests 
 
 **7. Coverage gate:**
 
-Before proceeding, check CLAUDE.md for a \`## Test Coverage\` section with \`Minimum:\` and \`Target:\` fields. If found, use those percentages. Otherwise use defaults: Minimum = 60%, Target = 80%.
+Before proceeding, check AGENTS.md for a \`## Test Coverage\` section with \`Minimum:\` and \`Target:\` fields. If found, use those percentages. Otherwise use defaults: Minimum = 60%, Target = 80%.
 
 Using the coverage percentage from the diagram in substep 4 (the \`COVERAGE: X/Y (Z%)\` line):
 
@@ -476,12 +476,12 @@ Using the coverage percentage from the diagram in substep 4 (the \`COVERAGE: X/Y
 After producing the coverage diagram, write a test plan artifact so \`/qa\` and \`/qa-only\` can consume it:
 
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)" && mkdir -p ~/.cgstack/projects/$SLUG
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
 \`\`\`
 
-Write to \`~/.gstack/projects/{slug}/{user}-{branch}-ship-test-plan-{datetime}.md\`:
+Write to \`~/.cgstack/projects/{slug}/{user}-{branch}-ship-test-plan-{datetime}.md\`:
 
 \`\`\`markdown
 # Test Plan
@@ -521,7 +521,7 @@ If no test framework detected → include gaps as INFORMATIONAL findings only, n
 
 ### Coverage Warning
 
-After producing the coverage diagram, check the coverage percentage. Read CLAUDE.md for a \`## Test Coverage\` section with a \`Minimum:\` field. If not found, use default: 60%.
+After producing the coverage diagram, check the coverage percentage. Read AGENTS.md for a \`## Test Coverage\` section with a \`Minimum:\` field. If not found, use default: 60%.
 
 If coverage is below the minimum threshold, output a prominent warning **before** the regular review findings:
 

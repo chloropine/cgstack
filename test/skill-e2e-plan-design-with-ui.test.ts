@@ -11,10 +11,10 @@
  * exit — would pass the no-UI test (vacuously) and ship undetected. This
  * test is the positive coverage.
  *
- * How: launch claude in plan mode in the gstack repo cwd (so the skill
+ * How: launch codex in plan mode in the cgstack repo cwd (so the skill
  * registry is loaded). Send /plan-design-review with the fixture path
  * inline so the skill reviews the UI-heavy plan rather than git diff or
- * .claude/plans/. Drive past permission dialogs. Wait for a numbered-
+ * .codex/plans/. Drive past permission dialogs. Wait for a numbered-
  * option list that is NOT a permission dialog. Assert evidence does NOT
  * contain "no UI scope".
  */
@@ -22,12 +22,12 @@
 import { describe, test } from 'bun:test';
 import * as path from 'path';
 import {
-  launchClaudePty,
+  launchCodexPty,
   isNumberedOptionListVisible,
   isPermissionDialogVisible,
   parseNumberedOptions,
   isPlanReadyVisible,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -41,7 +41,7 @@ describeE2E('/plan-design-review with UI scope (gate)', () => {
     async () => {
       const fixtureRelPath = path.relative(ROOT, FIXTURE);
 
-      const session = await launchClaudePty({
+      const session = await launchCodexPty({
         permissionMode: 'plan',
         cwd: ROOT,
         timeoutMs: 480_000,
@@ -55,7 +55,7 @@ describeE2E('/plan-design-review with UI scope (gate)', () => {
         await Bun.sleep(8000);
         const since = session.mark();
         // Send the slash command alone first; then provide the UI-heavy
-        // plan content as a follow-up message. Claude Code rejects slash
+        // plan content as a follow-up message. Codex rejects slash
         // commands with trailing arguments unless the skill defines them.
         session.send('/plan-design-review\r');
         await Bun.sleep(3000);
@@ -116,7 +116,7 @@ describeE2E('/plan-design-review with UI scope (gate)', () => {
           }
 
           // Plan-ready terminal — also acceptable (skill ran end-to-end
-          // and surfaced claude's "Ready to execute" prompt).
+          // and surfaced codex's "Ready to execute" prompt).
           if (isPlanReadyVisible(visible)) {
             outcome = 'plan_ready';
             evidence = visible.slice(-3000);

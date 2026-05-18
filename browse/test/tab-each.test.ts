@@ -53,7 +53,7 @@ describe('tab-each: source-level guards', () => {
   test('uses bringToFront: false so the OS window does NOT jump', () => {
     const block = META_SRC.slice(META_SRC.indexOf("case 'tab-each':"), META_SRC.indexOf("case 'tab-each':") + 4000);
     // tab-each is a background operation — pulling focus would steal the
-    // user's foreground app every time claude fans out, which is
+    // user's foreground app every time codex fans out, which is
     // unacceptable.
     expect(block).toContain('bringToFront: false');
   });

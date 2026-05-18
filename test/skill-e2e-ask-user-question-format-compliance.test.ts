@@ -25,16 +25,16 @@
  * deterministically and early (Step 0F), so we don't need to drive
  * through any prior questions to reach a format check.
  *
- * See test/helpers/claude-pty-runner.ts for runner internals.
+ * See test/helpers/codex-pty-runner.ts for runner internals.
  */
 
 import { describe, test, expect } from 'bun:test';
 import {
-  launchClaudePty,
+  launchCodexPty,
   isNumberedOptionListVisible,
   isPermissionDialogVisible,
   parseNumberedOptions,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -71,7 +71,7 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
   test(
     'first AskUserQuestion from /plan-ceo-review contains all 7 mandated format elements',
     async () => {
-      const session = await launchClaudePty({
+      const session = await launchCodexPty({
         permissionMode: 'plan',
         timeoutMs: 600_000,
       });
@@ -115,7 +115,7 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
           await Bun.sleep(2000);
           if (session.exited()) {
             throw new Error(
-              `claude exited (code=${session.exitCode()}) before AskUserQuestion rendered.\n` +
+              `codex exited (code=${session.exitCode()}) before AskUserQuestion rendered.\n` +
                 `Last visible:\n${session.visibleSince(since).slice(-2000)}`,
             );
           }

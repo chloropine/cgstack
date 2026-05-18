@@ -4,8 +4,8 @@ Per-site notes the agent writes for itself. Compounds across sessions: once an
 agent figures out something non-obvious about a website, it saves a skill, and
 future sessions on that host get the note injected into their prompt context.
 
-This is gstack's borrow from [browser-use/browser-harness](https://github.com/browser-use/browser-harness).
-gstack copies the per-site-notes pattern, NOT the self-modifying-runtime
+This is cgstack's borrow from [browser-use/browser-harness](https://github.com/browser-use/browser-harness).
+cgstack copies the per-site-notes pattern, NOT the self-modifying-runtime
 pattern. Skills are markdown text loaded into prompts; they are not executable
 code.
 
@@ -57,7 +57,7 @@ skill auto-promotes to **active** in the project. Active skills fire on every
 new sidebar-agent session for that hostname.
 
 To make a skill fire across projects (for example, "I want my LinkedIn skill
-on every gstack project I work on"), explicitly run
+on every cgstack project I work on"), explicitly run
 `$B domain-skill promote-to-global <host>`. This is opt-in by design (Codex T4
 outside-voice review): blanket cross-project compounding leaks context across
 unrelated work.
@@ -66,9 +66,9 @@ unrelated work.
 
 Skills live in two places:
 
-- **Per-project**: `~/.gstack/projects/<slug>/learnings.jsonl` — same JSONL
+- **Per-project**: `~/.cgstack/projects/<slug>/learnings.jsonl` — same JSONL
   file the `/learn` skill uses. Domain skills are `type:"domain"` rows.
-- **Global**: `~/.gstack/global-domain-skills.jsonl` — only `state:"global"`
+- **Global**: `~/.cgstack/global-domain-skills.jsonl` — only `state:"global"`
   rows.
 
 Both files are append-only JSONL. Tombstones for deletes; an idle compactor
@@ -85,7 +85,7 @@ addresses this with multiple layers:
 |-------|------|-------|
 | L1-L3 | Datamarking, hidden-element strip, ARIA regex, URL blocklist | `content-security.ts` (compiled binary) |
 | L4 | TestSavantAI ONNX classifier | `security-classifier.ts` (sidebar-agent, non-compiled) |
-| L4b | Claude Haiku transcript classifier | `security-classifier.ts` (sidebar-agent) |
+| L4b | Codex Mini transcript classifier | `security-classifier.ts` (sidebar-agent) |
 | L5 | Canary token leak detection | `security.ts` |
 
 L1-L3 checks run at **save time** (in the daemon). The L4 ML classifier runs at
@@ -112,7 +112,7 @@ poisoning a different domain.
 ## Telemetry
 
 When telemetry is enabled (default `community` mode unless turned off), the
-following events are written to `~/.gstack/analytics/browse-telemetry.jsonl`:
+following events are written to `~/.cgstack/analytics/browse-telemetry.jsonl`:
 
 - `domain_skill_saved {host, scope, state, bytes}`
 - `domain_skill_save_blocked {host, reason}`
@@ -120,4 +120,4 @@ following events are written to `~/.gstack/analytics/browse-telemetry.jsonl`:
 - `domain_skill_state_changed {host, from_state, to_state}` (planned)
 
 Hostname only — no body content, no agent text. Disable entirely with
-`gstack-config set telemetry off` or `GSTACK_TELEMETRY_OFF=1`.
+`cgstack-config set telemetry off` or `CGSTACK_TELEMETRY_OFF=1`.

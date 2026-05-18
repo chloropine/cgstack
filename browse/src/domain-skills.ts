@@ -3,8 +3,8 @@
  * alongside /learn's per-project learnings as type:"domain" rows.
  *
  * Scope:
- *   - per-project: ~/.gstack/projects/<slug>/learnings.jsonl
- *   - global:      ~/.gstack/global-domain-skills.jsonl
+ *   - per-project: ~/.cgstack/projects/<slug>/learnings.jsonl
+ *   - global:      ~/.cgstack/global-domain-skills.jsonl
  *
  * State machine (T6 — defense against persistent prompt poisoning):
  *
@@ -62,16 +62,16 @@ export interface DomainSkillRow {
 
 const PROMOTE_THRESHOLD = 3;
 
-function gstackHome(): string {
-  return process.env.GSTACK_HOME || path.join(os.homedir(), '.gstack');
+function cgstackHome(): string {
+  return process.env.CGSTACK_HOME || path.join(os.homedir(), '.cgstack');
 }
 
 function globalFile(): string {
-  return path.join(gstackHome(), 'global-domain-skills.jsonl');
+  return path.join(cgstackHome(), 'global-domain-skills.jsonl');
 }
 
 function projectFile(slug: string): string {
-  return path.join(gstackHome(), 'projects', slug, 'learnings.jsonl');
+  return path.join(cgstackHome(), 'projects', slug, 'learnings.jsonl');
 }
 
 // ─── Hostname normalization (T3) ──────────────────────────────
@@ -299,7 +299,7 @@ export async function writeSkill(input: WriteSkillInput): Promise<DomainSkillRow
  * The classifier_score > 0 gate is load-bearing: handleSave currently writes
  * classifier_score=0 with the comment "L4 deferred to load-time / sidebar-agent
  * fills this in on first prompt-injection load," but sidebar-agent was ripped
- * (CLAUDE.md "Sidebar architecture") and nothing else updates the score, so
+ * (AGENTS.md "Sidebar architecture") and nothing else updates the score, so
  * skills authored via the production path never had their body scanned by L4.
  * Without this gate, three benign uses promote any quarantined skill — including
  * one written under the influence of a poisoned page — into the prompt context

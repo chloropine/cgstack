@@ -5,8 +5,7 @@ name: Windows Free Tests
 # Codex's v1.18.0.0 review flagged that the existing evals.yml workflow uses
 # a Linux container, so a windows-latest matrix entry there isn't a drop-in.
 # This workflow is non-container, runs the curated Windows-safe subset, plus
-# targeted resolver tests that exercise the Bun.which-based claude binary
-# resolution + the GSTACK_CLAUDE_BIN override path on Windows.
+# targeted resolver tests that exercise Codex-only Windows-safe surfaces.
 #
 # Runner: GitHub-hosted free `windows-latest`. The whole rest of CI runs on
 # Ubicloud (Linux), but Ubicloud doesn't ship Windows runners and we don't
@@ -47,7 +46,7 @@ jobs:
 
       - name: Configure git identity (required by tests that init temp repos)
         run: |
-          git config --global user.email "windows-ci@gstack.test"
+          git config --global user.email "windows-ci@cgstack.test"
           git config --global user.name "Windows CI"
           git config --global init.defaultBranch main
         shell: bash
@@ -65,14 +64,10 @@ jobs:
         run: bash browse/scripts/build-node-server.sh
         shell: bash
 
-      - name: Generate host SKILL.md outputs (.agents, .factory)
-        # The golden-file regression tests in test/gen-skill-docs.test.ts read
-        # .agents/skills/gstack-ship/SKILL.md and .factory/skills/gstack-ship/
-        # SKILL.md. Both are gitignored — generated on demand by gen:skill-docs.
-        # On Mac/Linux CI the existing eval workflow regenerates these as part
-        # of its own pipeline; the windows-free-tests lane doesn't share that
-        # so it must regenerate explicitly.
-        run: bun run gen:skill-docs --host all
+      - name: Generate Codex SKILL.md outputs
+        # Generated on demand by gen:skill-docs. The Windows lane doesn't
+        # share generated outputs with Linux eval jobs, so it regenerates them.
+        run: bun run gen:skill-docs --host codex
         shell: bash
 
       # The Windows job verifies the new portability work this PR delivers,
@@ -86,10 +81,8 @@ jobs:
       # contributors a starting point to grow Windows coverage incrementally.
       #
       # What we verify here is exactly the new code paths v1.20.0.0 ships:
-      #  - bin/gstack-paths state-root resolution (test/gstack-paths.test.ts)
-      #  - browse/src/claude-bin.ts Bun.which wrapper + override + arg-prefix
-      #    resolution including the GSTACK_CLAUDE_BIN=wsl PATHEXT path
-      #    (browse/test/claude-bin.test.ts)
+      #  - bin/cgstack-paths state-root resolution (test/cgstack-paths.test.ts)
+      #  - Codex/browser path and state-root resolution
       #  - scripts/test-free-shards.ts curation logic itself
       #    (test/test-free-shards.test.ts)
 
@@ -107,8 +100,7 @@ jobs:
         # pass on Windows for the wave's "Windows hardening" framing to be honest.
         run: |
           bun test \
-            test/gstack-paths.test.ts \
-            browse/test/claude-bin.test.ts \
+            test/cgstack-paths.test.ts \
             test/test-free-shards.test.ts \
             browse/test/file-permissions.test.ts \
             browse/test/security.test.ts \

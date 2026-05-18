@@ -1,5 +1,5 @@
 /**
- * gstack-config explain_level round-trip + validation tests.
+ * cgstack-config explain_level round-trip + validation tests.
  *
  * Coverage:
  * - `set explain_level default` persists, `get` returns "default"
@@ -15,12 +15,12 @@ import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const BIN_CONFIG = path.join(ROOT, 'bin', 'gstack-config');
+const BIN_CONFIG = path.join(ROOT, 'bin', 'cgstack-config');
 
 let tmpHome: string;
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-cfg-test-'));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-cfg-test-'));
 });
 
 afterEach(() => {
@@ -29,7 +29,7 @@ afterEach(() => {
 
 function run(...args: string[]): { stdout: string; stderr: string; status: number } {
   const res = spawnSync(BIN_CONFIG, args, {
-    env: { ...process.env, GSTACK_STATE_DIR: tmpHome },
+    env: { ...process.env, CGSTACK_STATE_DIR: tmpHome },
     encoding: 'utf-8',
     cwd: ROOT,
   });
@@ -40,7 +40,7 @@ function run(...args: string[]): { stdout: string; stderr: string; status: numbe
   };
 }
 
-describe('gstack-config explain_level', () => {
+describe('cgstack-config explain_level', () => {
   test('set + get default round-trip', () => {
     expect(run('set', 'explain_level', 'default').status).toBe(0);
     expect(run('get', 'explain_level').stdout).toBe('default');

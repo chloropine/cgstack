@@ -2,17 +2,17 @@ import type { TemplateContext } from '../types';
 
 export function generateRoutingInjection(ctx: TemplateContext): string {
   return `If \`HAS_ROUTING\` is \`no\` AND \`ROUTING_DECLINED\` is \`false\` AND \`PROACTIVE_PROMPTED\` is \`yes\`:
-Check if a CLAUDE.md file exists in the project root. If it does not exist, create it.
+Check if a AGENTS.md file exists in the project root. If it does not exist, create it.
 
 Use AskUserQuestion:
 
-> gstack works best when your project's CLAUDE.md includes skill routing rules.
+> cgstack works best when your project's AGENTS.md includes skill routing rules.
 
 Options:
-- A) Add routing rules to CLAUDE.md (recommended)
+- A) Add routing rules to AGENTS.md (recommended)
 - B) No thanks, I'll invoke skills manually
 
-If A: Append this section to the end of CLAUDE.md:
+If A: Append this section to the end of AGENTS.md:
 
 \`\`\`markdown
 
@@ -35,9 +35,9 @@ Key routing rules:
 - Resume context → invoke /context-restore
 \`\`\`
 
-Then commit the change: \`git add CLAUDE.md && git commit -m "chore: add gstack skill routing rules to CLAUDE.md"\`
+Then commit the change: \`git add AGENTS.md && git commit -m "chore: add cgstack skill routing rules to AGENTS.md"\`
 
-If B: run \`${ctx.paths.binDir}/gstack-config set routing_declined true\` and say they can re-enable with \`gstack-config set routing_declined false\`.
+If B: run \`${ctx.paths.binDir}/cgstack-config set routing_declined true\` and say they can re-enable with \`cgstack-config set routing_declined false\`.
 
 This only happens once per project. Skip if \`HAS_ROUTING\` is \`yes\` or \`ROUTING_DECLINED\` is \`true\`.`;
 }

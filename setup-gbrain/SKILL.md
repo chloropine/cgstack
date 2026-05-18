@@ -7,7 +7,7 @@ description: |
   local PGLite or Supabase brain, register MCP, capture per-remote trust
   policy. One command from zero to "gbrain is running, and this agent
   can call it." Use when: "setup gbrain", "connect gbrain", "start
-  gbrain", "install gbrain", "configure gbrain for this machine". (gstack)
+  gbrain", "install gbrain", "configure gbrain for this machine". (cgstack)
 triggers:
   - setup gbrain
   - install gbrain
@@ -29,86 +29,85 @@ allowed-tools:
 ## Preamble (run first)
 
 ```bash
-_UPD=$(~/.claude/skills/gstack/bin/gstack-update-check 2>/dev/null || .claude/skills/gstack/bin/gstack-update-check 2>/dev/null || true)
+_UPD=$(~/.codex/skills/cgstack/bin/cgstack-update-check 2>/dev/null || .agents/skills/cgstack/bin/cgstack-update-check 2>/dev/null || true)
 [ -n "$_UPD" ] && echo "$_UPD" || true
-mkdir -p ~/.gstack/sessions
-touch ~/.gstack/sessions/"$PPID"
-_SESSIONS=$(find ~/.gstack/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
-find ~/.gstack/sessions -mmin +120 -type f -exec rm {} + 2>/dev/null || true
-_PROACTIVE=$(~/.claude/skills/gstack/bin/gstack-config get proactive 2>/dev/null || echo "true")
-_PROACTIVE_PROMPTED=$([ -f ~/.gstack/.proactive-prompted ] && echo "yes" || echo "no")
+mkdir -p ~/.cgstack/sessions
+touch ~/.cgstack/sessions/"$PPID"
+_SESSIONS=$(find ~/.cgstack/sessions -mmin -120 -type f 2>/dev/null | wc -l | tr -d ' ')
+find ~/.cgstack/sessions -mmin +120 -type f -exec rm {} + 2>/dev/null || true
+_PROACTIVE=$(~/.codex/skills/cgstack/bin/cgstack-config get proactive 2>/dev/null || echo "true")
+_PROACTIVE_PROMPTED=$([ -f ~/.cgstack/.proactive-prompted ] && echo "yes" || echo "no")
 _BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 echo "BRANCH: $_BRANCH"
-_SKILL_PREFIX=$(~/.claude/skills/gstack/bin/gstack-config get skill_prefix 2>/dev/null || echo "false")
+_SKILL_PREFIX=$(~/.codex/skills/cgstack/bin/cgstack-config get skill_prefix 2>/dev/null || echo "false")
 echo "PROACTIVE: $_PROACTIVE"
 echo "PROACTIVE_PROMPTED: $_PROACTIVE_PROMPTED"
 echo "SKILL_PREFIX: $_SKILL_PREFIX"
-source <(~/.claude/skills/gstack/bin/gstack-repo-mode 2>/dev/null) || true
+source <(~/.codex/skills/cgstack/bin/cgstack-repo-mode 2>/dev/null) || true
 REPO_MODE=${REPO_MODE:-unknown}
 echo "REPO_MODE: $REPO_MODE"
-_LAKE_SEEN=$([ -f ~/.gstack/.completeness-intro-seen ] && echo "yes" || echo "no")
+_LAKE_SEEN=$([ -f ~/.cgstack/.completeness-intro-seen ] && echo "yes" || echo "no")
 echo "LAKE_INTRO: $_LAKE_SEEN"
-_TEL=$(~/.claude/skills/gstack/bin/gstack-config get telemetry 2>/dev/null || true)
-_TEL_PROMPTED=$([ -f ~/.gstack/.telemetry-prompted ] && echo "yes" || echo "no")
+_TEL=$(~/.codex/skills/cgstack/bin/cgstack-config get telemetry 2>/dev/null || true)
+_TEL_PROMPTED=$([ -f ~/.cgstack/.telemetry-prompted ] && echo "yes" || echo "no")
 _TEL_START=$(date +%s)
 _SESSION_ID="$$-$(date +%s)"
 echo "TELEMETRY: ${_TEL:-off}"
 echo "TEL_PROMPTED: $_TEL_PROMPTED"
-_EXPLAIN_LEVEL=$(~/.claude/skills/gstack/bin/gstack-config get explain_level 2>/dev/null || echo "default")
+_EXPLAIN_LEVEL=$(~/.codex/skills/cgstack/bin/cgstack-config get explain_level 2>/dev/null || echo "default")
 if [ "$_EXPLAIN_LEVEL" != "default" ] && [ "$_EXPLAIN_LEVEL" != "terse" ]; then _EXPLAIN_LEVEL="default"; fi
 echo "EXPLAIN_LEVEL: $_EXPLAIN_LEVEL"
-_QUESTION_TUNING=$(~/.claude/skills/gstack/bin/gstack-config get question_tuning 2>/dev/null || echo "false")
+_QUESTION_TUNING=$(~/.codex/skills/cgstack/bin/cgstack-config get question_tuning 2>/dev/null || echo "false")
 echo "QUESTION_TUNING: $_QUESTION_TUNING"
-mkdir -p ~/.gstack/analytics
+mkdir -p ~/.cgstack/analytics
 if [ "$_TEL" != "off" ]; then
-echo '{"skill":"setup-gbrain","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}'  >> ~/.gstack/analytics/skill-usage.jsonl 2>/dev/null || true
+echo '{"skill":"setup-gbrain","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}'  >> ~/.cgstack/analytics/skill-usage.jsonl 2>/dev/null || true
 fi
-for _PF in $(find ~/.gstack/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null); do
+for _PF in $(find ~/.cgstack/analytics -maxdepth 1 -name '.pending-*' 2>/dev/null); do
   if [ -f "$_PF" ]; then
-    if [ "$_TEL" != "off" ] && [ -x "~/.claude/skills/gstack/bin/gstack-telemetry-log" ]; then
-      ~/.claude/skills/gstack/bin/gstack-telemetry-log --event-type skill_run --skill _pending_finalize --outcome unknown --session-id "$_SESSION_ID" 2>/dev/null || true
+    if [ "$_TEL" != "off" ] && [ -x "~/.codex/skills/cgstack/bin/cgstack-telemetry-log" ]; then
+      ~/.codex/skills/cgstack/bin/cgstack-telemetry-log --event-type skill_run --skill _pending_finalize --outcome unknown --session-id "$_SESSION_ID" 2>/dev/null || true
     fi
     rm -f "$_PF" 2>/dev/null || true
   fi
   break
 done
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
-_LEARN_FILE="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}/learnings.jsonl"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)" 2>/dev/null || true
+_LEARN_FILE="${CGSTACK_HOME:-$HOME/.cgstack}/projects/${SLUG:-unknown}/learnings.jsonl"
 if [ -f "$_LEARN_FILE" ]; then
   _LEARN_COUNT=$(wc -l < "$_LEARN_FILE" 2>/dev/null | tr -d ' ')
   echo "LEARNINGS: $_LEARN_COUNT entries loaded"
   if [ "$_LEARN_COUNT" -gt 5 ] 2>/dev/null; then
-    ~/.claude/skills/gstack/bin/gstack-learnings-search --limit 3 2>/dev/null || true
+    ~/.codex/skills/cgstack/bin/cgstack-learnings-search --limit 3 2>/dev/null || true
   fi
 else
   echo "LEARNINGS: 0"
 fi
-~/.claude/skills/gstack/bin/gstack-timeline-log '{"skill":"setup-gbrain","event":"started","branch":"'"$_BRANCH"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null &
+~/.codex/skills/cgstack/bin/cgstack-timeline-log '{"skill":"setup-gbrain","event":"started","branch":"'"$_BRANCH"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null &
 _HAS_ROUTING="no"
-if [ -f CLAUDE.md ] && grep -q "## Skill routing" CLAUDE.md 2>/dev/null; then
+if [ -f AGENTS.md ] && grep -q "## Skill routing" AGENTS.md 2>/dev/null; then
   _HAS_ROUTING="yes"
 fi
-_ROUTING_DECLINED=$(~/.claude/skills/gstack/bin/gstack-config get routing_declined 2>/dev/null || echo "false")
+_ROUTING_DECLINED=$(~/.codex/skills/cgstack/bin/cgstack-config get routing_declined 2>/dev/null || echo "false")
 echo "HAS_ROUTING: $_HAS_ROUTING"
 echo "ROUTING_DECLINED: $_ROUTING_DECLINED"
 _VENDORED="no"
-if [ -d ".claude/skills/gstack" ] && [ ! -L ".claude/skills/gstack" ]; then
-  if [ -f ".claude/skills/gstack/VERSION" ] || [ -d ".claude/skills/gstack/.git" ]; then
+if [ -d ".agents/skills/cgstack" ] && [ ! -L ".agents/skills/cgstack" ]; then
+  if [ -f ".agents/skills/cgstack/VERSION" ] || [ -d ".agents/skills/cgstack/.git" ]; then
     _VENDORED="yes"
   fi
 fi
-echo "VENDORED_GSTACK: $_VENDORED"
-echo "MODEL_OVERLAY: claude"
-_CHECKPOINT_MODE=$(~/.claude/skills/gstack/bin/gstack-config get checkpoint_mode 2>/dev/null || echo "explicit")
-_CHECKPOINT_PUSH=$(~/.claude/skills/gstack/bin/gstack-config get checkpoint_push 2>/dev/null || echo "false")
+echo "VENDORED_CGSTACK: $_VENDORED"
+echo "MODEL_OVERLAY: codex"
+_CHECKPOINT_MODE=$(~/.codex/skills/cgstack/bin/cgstack-config get checkpoint_mode 2>/dev/null || echo "explicit")
+_CHECKPOINT_PUSH=$(~/.codex/skills/cgstack/bin/cgstack-config get checkpoint_push 2>/dev/null || echo "false")
 echo "CHECKPOINT_MODE: $_CHECKPOINT_MODE"
 echo "CHECKPOINT_PUSH: $_CHECKPOINT_PUSH"
-[ -n "$OPENCLAW_SESSION" ] && echo "SPAWNED_SESSION: true" || true
 ```
 
 ## Plan Mode Safe Operations
 
-In plan mode, allowed because they inform the plan: `$B`, `$D`, `codex exec`/`codex review`, writes to `~/.gstack/`, writes to the plan file, and `open` for generated artifacts.
+In plan mode, allowed because they inform the plan: `$B`, `$D`, `codex exec`/`codex review`, writes to `~/.cgstack/`, writes to the plan file, and `open` for generated artifacts.
 
 ## Skill Invocation During Plan Mode
 
@@ -116,15 +115,15 @@ If the user invokes a skill in plan mode, the skill takes precedence over generi
 
 If `PROACTIVE` is `"false"`, do not auto-invoke or proactively suggest skills. If a skill seems useful, ask: "I think /skillname might help here — want me to run it?"
 
-If `SKILL_PREFIX` is `"true"`, suggest/invoke `/gstack-*` names. Disk paths stay `~/.claude/skills/gstack/[skill-name]/SKILL.md`.
+If `SKILL_PREFIX` is `"true"`, suggest/invoke `/cgstack-*` names. Disk paths stay `~/.codex/skills/cgstack/[skill-name]/SKILL.md`.
 
-If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.claude/skills/gstack/gstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined).
+If output shows `UPGRADE_AVAILABLE <old> <new>`: read `~/.codex/skills/cgstack/cgstack-upgrade/SKILL.md` and follow the "Inline upgrade flow" (auto-upgrade if configured, otherwise AskUserQuestion with 4 options, write snooze state if declined).
 
-If output shows `JUST_UPGRADED <from> <to>`: print "Running gstack v{to} (just updated!)". If `SPAWNED_SESSION` is true, skip feature discovery.
+If output shows `JUST_UPGRADED <from> <to>`: print "Running cgstack v{to} (just updated!)". If `SPAWNED_SESSION` is true, skip feature discovery.
 
 Feature discovery, max one prompt per session:
-- Missing `~/.claude/skills/gstack/.feature-prompted-continuous-checkpoint`: AskUserQuestion for Continuous checkpoint auto-commits. If accepted, run `~/.claude/skills/gstack/bin/gstack-config set checkpoint_mode continuous`. Always touch marker.
-- Missing `~/.claude/skills/gstack/.feature-prompted-model-overlay`: inform "Model overlays are active. MODEL_OVERLAY shows the patch." Always touch marker.
+- Missing `~/.codex/skills/cgstack/.feature-prompted-continuous-checkpoint`: AskUserQuestion for Continuous checkpoint auto-commits. If accepted, run `~/.codex/skills/cgstack/bin/cgstack-config set checkpoint_mode continuous`. Always touch marker.
+- Missing `~/.codex/skills/cgstack/.feature-prompted-model-overlay`: inform "Model overlays are active. MODEL_OVERLAY shows the patch." Always touch marker.
 
 After upgrade prompts, continue workflow.
 
@@ -137,34 +136,34 @@ Options:
 - B) Restore V0 prose — set `explain_level: terse`
 
 If A: leave `explain_level` unset (defaults to `default`).
-If B: run `~/.claude/skills/gstack/bin/gstack-config set explain_level terse`.
+If B: run `~/.codex/skills/cgstack/bin/cgstack-config set explain_level terse`.
 
 Always run (regardless of choice):
 ```bash
-rm -f ~/.gstack/.writing-style-prompt-pending
-touch ~/.gstack/.writing-style-prompted
+rm -f ~/.cgstack/.writing-style-prompt-pending
+touch ~/.cgstack/.writing-style-prompted
 ```
 
 Skip if `WRITING_STYLE_PENDING` is `no`.
 
-If `LAKE_INTRO` is `no`: say "gstack follows the **Boil the Lake** principle — do the complete thing when AI makes marginal cost near-zero. Read more: https://garryslist.org/posts/boil-the-ocean" Offer to open:
+If `LAKE_INTRO` is `no`: say "cgstack follows the **Boil the Lake** principle — do the complete thing when AI makes marginal cost near-zero. Read more: https://garryslist.org/posts/boil-the-ocean" Offer to open:
 
 ```bash
 open https://garryslist.org/posts/boil-the-ocean
-touch ~/.gstack/.completeness-intro-seen
+touch ~/.cgstack/.completeness-intro-seen
 ```
 
 Only run `open` if yes. Always run `touch`.
 
 If `TEL_PROMPTED` is `no` AND `LAKE_INTRO` is `yes`: ask telemetry once via AskUserQuestion:
 
-> Help gstack get better. Share usage data only: skill, duration, crashes, stable device ID. No code, file paths, or repo names.
+> Help cgstack get better. Share usage data only: skill, duration, crashes, stable device ID. No code, file paths, or repo names.
 
 Options:
-- A) Help gstack get better! (recommended)
+- A) Help cgstack get better! (recommended)
 - B) No thanks
 
-If A: run `~/.claude/skills/gstack/bin/gstack-config set telemetry community`
+If A: run `~/.codex/skills/cgstack/bin/cgstack-config set telemetry community`
 
 If B: ask follow-up:
 
@@ -174,46 +173,46 @@ Options:
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
-If B→A: run `~/.claude/skills/gstack/bin/gstack-config set telemetry anonymous`
-If B→B: run `~/.claude/skills/gstack/bin/gstack-config set telemetry off`
+If B→A: run `~/.codex/skills/cgstack/bin/cgstack-config set telemetry anonymous`
+If B→B: run `~/.codex/skills/cgstack/bin/cgstack-config set telemetry off`
 
 Always run:
 ```bash
-touch ~/.gstack/.telemetry-prompted
+touch ~/.cgstack/.telemetry-prompted
 ```
 
 Skip if `TEL_PROMPTED` is `yes`.
 
 If `PROACTIVE_PROMPTED` is `no` AND `TEL_PROMPTED` is `yes`: ask once:
 
-> Let gstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
+> Let cgstack proactively suggest skills, like /qa for "does this work?" or /investigate for bugs?
 
 Options:
 - A) Keep it on (recommended)
 - B) Turn it off — I'll type /commands myself
 
-If A: run `~/.claude/skills/gstack/bin/gstack-config set proactive true`
-If B: run `~/.claude/skills/gstack/bin/gstack-config set proactive false`
+If A: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive true`
+If B: run `~/.codex/skills/cgstack/bin/cgstack-config set proactive false`
 
 Always run:
 ```bash
-touch ~/.gstack/.proactive-prompted
+touch ~/.cgstack/.proactive-prompted
 ```
 
 Skip if `PROACTIVE_PROMPTED` is `yes`.
 
 If `HAS_ROUTING` is `no` AND `ROUTING_DECLINED` is `false` AND `PROACTIVE_PROMPTED` is `yes`:
-Check if a CLAUDE.md file exists in the project root. If it does not exist, create it.
+Check if a AGENTS.md file exists in the project root. If it does not exist, create it.
 
 Use AskUserQuestion:
 
-> gstack works best when your project's CLAUDE.md includes skill routing rules.
+> cgstack works best when your project's AGENTS.md includes skill routing rules.
 
 Options:
-- A) Add routing rules to CLAUDE.md (recommended)
+- A) Add routing rules to AGENTS.md (recommended)
 - B) No thanks, I'll invoke skills manually
 
-If A: Append this section to the end of CLAUDE.md:
+If A: Append this section to the end of AGENTS.md:
 
 ```markdown
 
@@ -236,15 +235,15 @@ Key routing rules:
 - Resume context → invoke /context-restore
 ```
 
-Then commit the change: `git add CLAUDE.md && git commit -m "chore: add gstack skill routing rules to CLAUDE.md"`
+Then commit the change: `git add AGENTS.md && git commit -m "chore: add cgstack skill routing rules to AGENTS.md"`
 
-If B: run `~/.claude/skills/gstack/bin/gstack-config set routing_declined true` and say they can re-enable with `gstack-config set routing_declined false`.
+If B: run `~/.codex/skills/cgstack/bin/cgstack-config set routing_declined true` and say they can re-enable with `cgstack-config set routing_declined false`.
 
 This only happens once per project. Skip if `HAS_ROUTING` is `yes` or `ROUTING_DECLINED` is `true`.
 
-If `VENDORED_GSTACK` is `yes`, warn once via AskUserQuestion unless `~/.gstack/.vendoring-warned-$SLUG` exists:
+If `VENDORED_CGSTACK` is `yes`, warn once via AskUserQuestion unless `~/.cgstack/.vendoring-warned-$SLUG` exists:
 
-> This project has gstack vendored in `.claude/skills/gstack/`. Vendoring is deprecated.
+> This project has cgstack vendored in `.agents/skills/cgstack/`. Vendoring is deprecated.
 > Migrate to team mode?
 
 Options:
@@ -252,24 +251,24 @@ Options:
 - B) No, I'll handle it myself
 
 If A:
-1. Run `git rm -r .claude/skills/gstack/`
-2. Run `echo '.claude/skills/gstack/' >> .gitignore`
-3. Run `~/.claude/skills/gstack/bin/gstack-team-init required` (or `optional`)
-4. Run `git add .claude/ .gitignore CLAUDE.md && git commit -m "chore: migrate gstack from vendored to team mode"`
-5. Tell the user: "Done. Each developer now runs: `cd ~/.claude/skills/gstack && ./setup --team`"
+1. Run `git rm -r .agents/skills/cgstack/`
+2. Run `echo '.agents/skills/cgstack/' >> .gitignore`
+3. Run `~/.codex/skills/cgstack/bin/cgstack-team-init required` (or `optional`)
+4. Run `git add .codex/ .gitignore AGENTS.md && git commit -m "chore: migrate cgstack from vendored to team mode"`
+5. Tell the user: "Done. Each developer now runs: `cd ~/.codex/skills/cgstack && ./setup --team`"
 
 If B: say "OK, you're on your own to keep the vendored copy up to date."
 
 Always run (regardless of choice):
 ```bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" 2>/dev/null || true
-touch ~/.gstack/.vendoring-warned-${SLUG:-unknown}
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)" 2>/dev/null || true
+touch ~/.cgstack/.vendoring-warned-${SLUG:-unknown}
 ```
 
 If marker exists, skip.
 
 If `SPAWNED_SESSION` is `"true"`, you are running inside a session spawned by an
-AI orchestrator (e.g., OpenClaw). In spawned sessions:
+AI orchestrator (e.g., Codex). In spawned sessions:
 - Do NOT use AskUserQuestion for interactive prompts. Auto-choose the recommended option.
 - Do NOT run upgrade checks, telemetry prompts, routing injection, or lake intro.
 - Focus on completing the task and reporting results via prose output.
@@ -279,7 +278,7 @@ AI orchestrator (e.g., OpenClaw). In spawned sessions:
 
 ### Tool resolution (read first)
 
-"AskUserQuestion" can resolve to two tools at runtime: the **host MCP variant** (e.g. `mcp__conductor__AskUserQuestion` — appears in your tool list when the host registers it) or the **native** Claude Code tool.
+"AskUserQuestion" can resolve to two tools at runtime: the **host MCP variant** (e.g. `mcp__conductor__AskUserQuestion` — appears in your tool list when the host registers it) or the **native** Codex tool.
 
 **Rule:** if any `mcp__*__AskUserQuestion` variant is in your tool list, prefer it. Hosts may disable native AUQ via `--disallowedTools AskUserQuestion` (Conductor does, by default) and route through their MCP variant; calling native there silently fails. Same questions/options shape; same decision-brief format applies.
 
@@ -316,7 +315,7 @@ Pros / cons: use ✅ and ❌. Minimum 2 pros and 1 con per option when the choic
 
 Neutral posture: `Recommendation: <default> — this is a taste call, no strong preference either way`; `(recommended)` STAYS on the default option for AUTO_DECIDE.
 
-Effort both-scales: when an option involves effort, label both human-team and CC+gstack time, e.g. `(human: ~2 days / CC: ~15 min)`. Makes AI compression visible at decision time.
+Effort both-scales: when an option involves effort, label both human-team and CC+cgstack time, e.g. `(human: ~2 days / CC: ~15 min)`. Makes AI compression visible at decision time.
 
 Net line closes the tradeoff. Per-skill instructions may add stricter rules.
 
@@ -324,7 +323,7 @@ Net line closes the tradeoff. Per-skill instructions may add stricter rules.
     string field (question, option label, option description) contains
     Chinese (繁體/簡體), Japanese, Korean, or other non-ASCII text, emit
     the literal UTF-8 characters in the JSON string. **Never escape them
-    as `\uXXXX`.** Claude Code's tool parameter pipe is UTF-8 native
+    as `\uXXXX`.** Codex's tool parameter pipe is UTF-8 native
     and passes characters through unchanged. Manually escaping requires
     recalling each codepoint from training, which is unreliable for long
     CJK strings — the model regularly emits the wrong codepoint (e.g.
@@ -358,16 +357,16 @@ Before calling AskUserQuestion, verify:
 ## Artifacts Sync (skill start)
 
 ```bash
-_GSTACK_HOME="${GSTACK_HOME:-$HOME/.gstack}"
+_CGSTACK_HOME="${CGSTACK_HOME:-$HOME/.cgstack}"
 # Prefer the v1.27.0.0 artifacts file; fall back to brain file for users
 # upgrading mid-stream before the migration script runs.
-if [ -f "$HOME/.gstack-artifacts-remote.txt" ]; then
-  _BRAIN_REMOTE_FILE="$HOME/.gstack-artifacts-remote.txt"
+if [ -f "$HOME/.cgstack-artifacts-remote.txt" ]; then
+  _BRAIN_REMOTE_FILE="$HOME/.cgstack-artifacts-remote.txt"
 else
-  _BRAIN_REMOTE_FILE="$HOME/.gstack-brain-remote.txt"
+  _BRAIN_REMOTE_FILE="$HOME/.cgstack-brain-remote.txt"
 fi
-_BRAIN_SYNC_BIN="~/.claude/skills/gstack/bin/gstack-brain-sync"
-_BRAIN_CONFIG_BIN="~/.claude/skills/gstack/bin/gstack-config"
+_BRAIN_SYNC_BIN="~/.codex/skills/cgstack/bin/cgstack-brain-sync"
+_BRAIN_CONFIG_BIN="~/.codex/skills/cgstack/bin/cgstack-config"
 
 # /sync-gbrain context-load: teach the agent to use gbrain when it's available.
 # Per-worktree pin: post-spike redesign uses kubectl-style `.gbrain-source` in the
@@ -387,7 +386,7 @@ if [ -f "$_GBRAIN_CONFIG" ] && command -v gbrain >/dev/null 2>&1; then
     if [ -n "$_GBRAIN_PIN_PATH" ]; then
       echo "GBrain configured. Prefer \`gbrain search\`/\`gbrain query\` over Grep for"
       echo "semantic questions; use \`gbrain code-def\`/\`code-refs\`/\`code-callers\` for"
-      echo "symbol-aware code lookup. See \"## GBrain Search Guidance\" in CLAUDE.md."
+      echo "symbol-aware code lookup. See \"## GBrain Search Guidance\" in AGENTS.md."
       echo "Run /sync-gbrain to refresh."
     else
       echo "GBrain configured but this worktree isn't pinned yet. Run \`/sync-gbrain --full\`"
@@ -401,27 +400,27 @@ _BRAIN_SYNC_MODE=$("$_BRAIN_CONFIG_BIN" get artifacts_sync_mode 2>/dev/null || e
 
 # Detect remote-MCP mode (Path 4 of /setup-gbrain). Local artifacts sync is
 # a no-op in remote mode; the brain server pulls from GitHub/GitLab on its
-# own cadence. Read claude.json directly to keep this preamble fast (no
-# subprocess to claude CLI on every skill start).
+# own cadence. Read codex.json directly to keep this preamble fast (no
+# subprocess to codex CLI on every skill start).
 _GBRAIN_MCP_MODE="none"
-if command -v jq >/dev/null 2>&1 && [ -f "$HOME/.claude.json" ]; then
-  _GBRAIN_MCP_TYPE=$(jq -r '.mcpServers.gbrain.type // .mcpServers.gbrain.transport // empty' "$HOME/.claude.json" 2>/dev/null)
+if command -v jq >/dev/null 2>&1 && [ -f "$HOME/.codex.json" ]; then
+  _GBRAIN_MCP_TYPE=$(jq -r '.mcpServers.gbrain.type // .mcpServers.gbrain.transport // empty' "$HOME/.codex.json" 2>/dev/null)
   case "$_GBRAIN_MCP_TYPE" in
     url|http|sse) _GBRAIN_MCP_MODE="remote-http" ;;
     stdio) _GBRAIN_MCP_MODE="local-stdio" ;;
   esac
 fi
 
-if [ -f "$_BRAIN_REMOTE_FILE" ] && [ ! -d "$_GSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" = "off" ]; then
+if [ -f "$_BRAIN_REMOTE_FILE" ] && [ ! -d "$_CGSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" = "off" ]; then
   _BRAIN_NEW_URL=$(head -1 "$_BRAIN_REMOTE_FILE" 2>/dev/null | tr -d '[:space:]')
   if [ -n "$_BRAIN_NEW_URL" ]; then
     echo "ARTIFACTS_SYNC: artifacts repo detected: $_BRAIN_NEW_URL"
-    echo "ARTIFACTS_SYNC: run 'gstack-brain-restore' to pull your cross-machine artifacts (or 'gstack-config set artifacts_sync_mode off' to dismiss forever)"
+    echo "ARTIFACTS_SYNC: run 'cgstack-brain-restore' to pull your cross-machine artifacts (or 'cgstack-config set artifacts_sync_mode off' to dismiss forever)"
   fi
 fi
 
-if [ -d "$_GSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" != "off" ]; then
-  _BRAIN_LAST_PULL_FILE="$_GSTACK_HOME/.brain-last-pull"
+if [ -d "$_CGSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" != "off" ]; then
+  _BRAIN_LAST_PULL_FILE="$_CGSTACK_HOME/.brain-last-pull"
   _BRAIN_NOW=$(date +%s)
   _BRAIN_DO_PULL=1
   if [ -f "$_BRAIN_LAST_PULL_FILE" ]; then
@@ -430,7 +429,7 @@ if [ -d "$_GSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" != "off" ]; then
     [ "$_BRAIN_AGE" -lt 86400 ] && _BRAIN_DO_PULL=0
   fi
   if [ "$_BRAIN_DO_PULL" = "1" ]; then
-    ( cd "$_GSTACK_HOME" && git fetch origin >/dev/null 2>&1 && git merge --ff-only "origin/$(git rev-parse --abbrev-ref HEAD)" >/dev/null 2>&1 ) || true
+    ( cd "$_CGSTACK_HOME" && git fetch origin >/dev/null 2>&1 && git merge --ff-only "origin/$(git rev-parse --abbrev-ref HEAD)" >/dev/null 2>&1 ) || true
     echo "$_BRAIN_NOW" > "$_BRAIN_LAST_PULL_FILE"
   fi
   "$_BRAIN_SYNC_BIN" --once 2>/dev/null || true
@@ -439,13 +438,13 @@ fi
 if [ "$_GBRAIN_MCP_MODE" = "remote-http" ]; then
   # Remote-MCP mode: local artifacts sync is a no-op (brain admin's server
   # pulls from GitHub/GitLab). Show the user this is by design, not broken.
-  _GBRAIN_HOST=$(jq -r '.mcpServers.gbrain.url // empty' "$HOME/.claude.json" 2>/dev/null | sed -E 's|^https?://([^/:]+).*|\1|')
+  _GBRAIN_HOST=$(jq -r '.mcpServers.gbrain.url // empty' "$HOME/.codex.json" 2>/dev/null | sed -E 's|^https?://([^/:]+).*|\1|')
   echo "ARTIFACTS_SYNC: remote-mode (managed by brain server ${_GBRAIN_HOST:-remote})"
-elif [ -d "$_GSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" != "off" ]; then
+elif [ -d "$_CGSTACK_HOME/.git" ] && [ "$_BRAIN_SYNC_MODE" != "off" ]; then
   _BRAIN_QUEUE_DEPTH=0
-  [ -f "$_GSTACK_HOME/.brain-queue.jsonl" ] && _BRAIN_QUEUE_DEPTH=$(wc -l < "$_GSTACK_HOME/.brain-queue.jsonl" | tr -d ' ')
+  [ -f "$_CGSTACK_HOME/.brain-queue.jsonl" ] && _BRAIN_QUEUE_DEPTH=$(wc -l < "$_CGSTACK_HOME/.brain-queue.jsonl" | tr -d ' ')
   _BRAIN_LAST_PUSH="never"
-  [ -f "$_GSTACK_HOME/.brain-last-push" ] && _BRAIN_LAST_PUSH=$(cat "$_GSTACK_HOME/.brain-last-push" 2>/dev/null || echo never)
+  [ -f "$_CGSTACK_HOME/.brain-last-push" ] && _BRAIN_LAST_PUSH=$(cat "$_CGSTACK_HOME/.brain-last-push" 2>/dev/null || echo never)
   echo "ARTIFACTS_SYNC: mode=$_BRAIN_SYNC_MODE | last_push=$_BRAIN_LAST_PUSH | queue=$_BRAIN_QUEUE_DEPTH"
 else
   echo "ARTIFACTS_SYNC: off"
@@ -456,7 +455,7 @@ fi
 
 Privacy stop-gate: if output shows `ARTIFACTS_SYNC: off`, `artifacts_sync_mode_prompted` is `false`, and gbrain is on PATH or `gbrain doctor --fast --json` works, ask once:
 
-> gstack can publish your artifacts (CEO plans, designs, reports) to a private GitHub repo that GBrain indexes across machines. How much should sync?
+> cgstack can publish your artifacts (CEO plans, designs, reports) to a private GitHub repo that GBrain indexes across machines. How much should sync?
 
 Options:
 - A) Everything allowlisted (recommended)
@@ -471,19 +470,19 @@ After answer:
 "$_BRAIN_CONFIG_BIN" set artifacts_sync_mode_prompted true
 ```
 
-If A/B and `~/.gstack/.git` is missing, ask whether to run `gstack-artifacts-init`. Do not block the skill.
+If A/B and `~/.cgstack/.git` is missing, ask whether to run `cgstack-artifacts-init`. Do not block the skill.
 
 At skill END before telemetry:
 
 ```bash
-"~/.claude/skills/gstack/bin/gstack-brain-sync" --discover-new 2>/dev/null || true
-"~/.claude/skills/gstack/bin/gstack-brain-sync" --once 2>/dev/null || true
+"~/.codex/skills/cgstack/bin/cgstack-brain-sync" --discover-new 2>/dev/null || true
+"~/.codex/skills/cgstack/bin/cgstack-brain-sync" --once 2>/dev/null || true
 ```
 
 
-## Model-Specific Behavioral Patch (claude)
+## Model-Specific Behavioral Patch (codex)
 
-The following nudges are tuned for the claude model family. They are
+The following nudges are tuned for the codex model family. They are
 **subordinate** to skill workflow, STOP points, AskUserQuestion gates, plan-mode
 safety, and /ship review gates. If a nudge below conflicts with skill instructions,
 the skill wins. Treat these as preferences, not rules.
@@ -501,7 +500,7 @@ equivalents (cat, sed, find, grep). The dedicated tools are cheaper and clearer.
 
 ## Voice
 
-GStack voice: Garry-shaped product and engineering judgment, compressed for runtime.
+CGStack voice: Garry-shaped product and engineering judgment, compressed for runtime.
 
 - Lead with the point. Say what it does, why it matters, and what changes for the builder.
 - Be concrete. Name files, functions, line numbers, commands, outputs, evals, and real numbers.
@@ -510,7 +509,7 @@ GStack voice: Garry-shaped product and engineering judgment, compressed for runt
 - Sound like a builder talking to a builder, not a consultant presenting to a client.
 - Never corporate, academic, PR, or hype. Avoid filler, throat-clearing, generic optimism, and founder cosplay.
 - No em dashes. No AI vocabulary: delve, crucial, robust, comprehensive, nuanced, multifaceted, furthermore, moreover, additionally, pivotal, landscape, tapestry, underscore, foster, showcase, intricate, vibrant, fundamental, significant.
-- The user has context you do not: domain knowledge, timing, relationships, taste. Cross-model agreement is a recommendation, not a decision. The user decides.
+- The user has context you do not: domain knowledge, timing, relationships, taste. Independent Codex agreement is a recommendation, not a decision. The user decides.
 
 Good: "auth.ts:47 returns undefined when the session cookie expires. Users hit a white screen. Fix: add a null check and redirect to /login. Two lines."
 Bad: "I've identified a potential issue in the authentication flow that may cause problems under certain conditions."
@@ -520,8 +519,8 @@ Bad: "I've identified a potential issue in the authentication flow that may caus
 At session start or after compaction, recover recent project context.
 
 ```bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
-_PROJ="${GSTACK_HOME:-$HOME/.gstack}/projects/${SLUG:-unknown}"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
+_PROJ="${CGSTACK_HOME:-$HOME/.cgstack}/projects/${SLUG:-unknown}"
 if [ -d "$_PROJ" ]; then
   echo "--- RECENT ARTIFACTS ---"
   find "$_PROJ/ceo-plans" "$_PROJ/checkpoints" -type f -name "*.md" 2>/dev/null | xargs ls -t 2>/dev/null | head -3
@@ -653,17 +652,17 @@ Commit format:
 ```
 WIP: <concise description of what changed>
 
-[gstack-context]
+[cgstack-context]
 Decisions: <key choices made this step>
 Remaining: <what's left in the logical unit>
 Tried: <failed approaches worth recording> (omit if none)
 Skill: </skill-name-if-running>
-[/gstack-context]
+[/cgstack-context]
 ```
 
 Rules: stage only intentional files, NEVER `git add -A`, do not commit broken tests or mid-edit state, and push only if `CHECKPOINT_PUSH` is `"true"`. Do not announce each WIP commit.
 
-`/context-restore` reads `[gstack-context]`; `/ship` squashes WIP commits into clean commits.
+`/context-restore` reads `[cgstack-context]`; `/ship` squashes WIP commits into clean commits.
 
 If `CHECKPOINT_MODE` is `"explicit"`: ignore this section unless a skill or user asks to commit.
 
@@ -675,11 +674,11 @@ If you are looping on the same diagnostic, same file, or failed fix variants, ST
 
 ## Question Tuning (skip entirely if `QUESTION_TUNING: false`)
 
-Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.claude/skills/gstack/bin/gstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." `ASK_NORMALLY` means ask.
+Before each AskUserQuestion, choose `question_id` from `scripts/question-registry.ts` or `{skill}-{slug}`, then run `~/.codex/skills/cgstack/bin/cgstack-question-preference --check "<id>"`. `AUTO_DECIDE` means choose the recommended option and say "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." `ASK_NORMALLY` means ask.
 
 After answer, log best-effort:
 ```bash
-~/.claude/skills/gstack/bin/gstack-question-log '{"skill":"setup-gbrain","question_id":"<id>","question_summary":"<short>","category":"<approval|clarification|routing|cherry-pick|feedback-loop>","door_type":"<one-way|two-way>","options_count":N,"user_choice":"<key>","recommended":"<key>","session_id":"'"$_SESSION_ID"'"}' 2>/dev/null || true
+~/.codex/skills/cgstack/bin/cgstack-question-log '{"skill":"setup-gbrain","question_id":"<id>","question_summary":"<short>","category":"<approval|clarification|routing|cherry-pick|feedback-loop>","door_type":"<one-way|two-way>","options_count":N,"user_choice":"<key>","recommended":"<key>","session_id":"'"$_SESSION_ID"'"}' 2>/dev/null || true
 ```
 
 For two-way questions, offer: "Tune this question? Reply `tune: never-ask`, `tune: always-ask`, or free-form."
@@ -688,7 +687,7 @@ User-origin gate (profile-poisoning defense): write tune events ONLY when `tune:
 
 Write (only after confirmation for free-form):
 ```bash
-~/.claude/skills/gstack/bin/gstack-question-preference --write '{"question_id":"<id>","preference":"<pref>","source":"inline-user","free_text":"<optional original words>"}'
+~/.codex/skills/cgstack/bin/cgstack-question-preference --write '{"question_id":"<id>","preference":"<pref>","source":"inline-user","free_text":"<optional original words>"}'
 ```
 
 Exit code 2 = rejected as not user-originated; do not retry. On success: "Set `<id>` → `<preference>`. Active immediately."
@@ -708,7 +707,7 @@ Escalate after 3 failed attempts, uncertain security-sensitive changes, or scope
 Before completing, if you discovered a durable project quirk or command fix that would save 5+ minutes next time, log it:
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-learnings-log '{"skill":"SKILL_NAME","type":"operational","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"observed"}'
+~/.codex/skills/cgstack/bin/cgstack-learnings-log '{"skill":"SKILL_NAME","type":"operational","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"observed"}'
 ```
 
 Do not log obvious facts or one-time transient errors.
@@ -718,23 +717,23 @@ Do not log obvious facts or one-time transient errors.
 After workflow completion, log telemetry. Use skill `name:` from frontmatter. OUTCOME is success/error/abort/unknown.
 
 **PLAN MODE EXCEPTION — ALWAYS RUN:** This command writes telemetry to
-`~/.gstack/analytics/`, matching preamble analytics writes.
+`~/.cgstack/analytics/`, matching preamble analytics writes.
 
 Run this bash:
 
 ```bash
 _TEL_END=$(date +%s)
 _TEL_DUR=$(( _TEL_END - _TEL_START ))
-rm -f ~/.gstack/analytics/.pending-"$_SESSION_ID" 2>/dev/null || true
+rm -f ~/.cgstack/analytics/.pending-"$_SESSION_ID" 2>/dev/null || true
 # Session timeline: record skill completion (local-only, never sent anywhere)
-~/.claude/skills/gstack/bin/gstack-timeline-log '{"skill":"SKILL_NAME","event":"completed","branch":"'$(git branch --show-current 2>/dev/null || echo unknown)'","outcome":"OUTCOME","duration_s":"'"$_TEL_DUR"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null || true
+~/.codex/skills/cgstack/bin/cgstack-timeline-log '{"skill":"SKILL_NAME","event":"completed","branch":"'$(git branch --show-current 2>/dev/null || echo unknown)'","outcome":"OUTCOME","duration_s":"'"$_TEL_DUR"'","session":"'"$_SESSION_ID"'"}' 2>/dev/null || true
 # Local analytics (gated on telemetry setting)
 if [ "$_TEL" != "off" ]; then
-echo '{"skill":"SKILL_NAME","duration_s":"'"$_TEL_DUR"'","outcome":"OUTCOME","browse":"USED_BROWSE","session":"'"$_SESSION_ID"'","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> ~/.gstack/analytics/skill-usage.jsonl 2>/dev/null || true
+echo '{"skill":"SKILL_NAME","duration_s":"'"$_TEL_DUR"'","outcome":"OUTCOME","browse":"USED_BROWSE","session":"'"$_SESSION_ID"'","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> ~/.cgstack/analytics/skill-usage.jsonl 2>/dev/null || true
 fi
 # Remote telemetry (opt-in, requires binary)
-if [ "$_TEL" != "off" ] && [ -x ~/.claude/skills/gstack/bin/gstack-telemetry-log ]; then
-  ~/.claude/skills/gstack/bin/gstack-telemetry-log \
+if [ "$_TEL" != "off" ] && [ -x ~/.codex/skills/cgstack/bin/cgstack-telemetry-log ]; then
+  ~/.codex/skills/cgstack/bin/cgstack-telemetry-log \
     --skill "SKILL_NAME" --duration "$_TEL_DUR" --outcome "OUTCOME" \
     --used-browse "USED_BROWSE" --session-id "$_SESSION_ID" 2>/dev/null &
 fi
@@ -744,22 +743,22 @@ Replace `SKILL_NAME`, `OUTCOME`, and `USED_BROWSE` before running.
 
 ## Plan Status Footer
 
-Skills that run plan reviews (`/plan-*-review`, `/codex review`) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## GSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `/ship`, `/qa`, `/review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
+Skills that run plan reviews (`/plan-*-review`, Codex review) include the EXIT PLAN MODE GATE blocking checklist at the end of the skill, which verifies the plan file ends with `## CGSTACK REVIEW REPORT` before ExitPlanMode is called. Skills that don't run plan reviews (operational skills like `/ship`, `/qa`, `/review`) typically don't operate in plan mode and have no review report to verify; this footer is a no-op for them. Writing the plan file is the one edit allowed in plan mode.
 
 # /setup-gbrain — Coding-Agent Onboarding for gbrain
 
 You are setting up gbrain (https://github.com/garrytan/gbrain), a persistent
 knowledge base, on the user's local Mac so that this coding agent (typically
-Claude Code) can call it as both a CLI and an MCP tool.
+Codex) can call it as both a CLI and an MCP tool.
 
 **Scope honesty:** This skill's MCP registration step (5a) uses
-`claude mcp add` and targets Claude Code specifically. Other local hosts
-(Cursor, Codex CLI, etc.) will still get the gbrain CLI on PATH — they can
+`codex mcp add` and targets Codex specifically. Other local hosts
+Codex will still get the gbrain CLI on PATH — it can
 register `gbrain serve` in their own MCP config manually after setup.
 
-**Audience:** local-Mac users. openclaw/hermes agents typically run in cloud
+**Audience:** local-Mac users. Codex CLI agents typically run in cloud
 docker containers with their own gbrain; "sharing" a brain between them and
-local Claude Code is only possible through shared Postgres (Supabase).
+local Codex is only possible through shared Postgres (Supabase).
 
 ## User-invocable
 When the user types `/setup-gbrain`, run this skill. Three shortcut modes:
@@ -779,12 +778,12 @@ implemented as a dispatcher binary.
 ## Step 1: Detect current state
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-gbrain-detect
+~/.codex/skills/cgstack/bin/cgstack-gbrain-detect
 ```
 
 Capture the JSON output. It contains: `gbrain_on_path`, `gbrain_version`,
 `gbrain_config_exists`, `gbrain_engine`, `gbrain_doctor_ok`, `gbrain_mcp_mode`,
-`gstack_brain_sync_mode`, `gstack_brain_git`, `gstack_artifacts_remote`, and
+`cgstack_brain_sync_mode`, `cgstack_brain_git`, `cgstack_artifacts_remote`, and
 the v1.34.0.0+ `gbrain_local_status` field (one of: `ok`, `no-cli`,
 `missing-config`, `broken-config`, `broken-db`).
 
@@ -825,7 +824,7 @@ dead Postgres URL). Fire a targeted AskUserQuestion BEFORE Step 2:
 > B) Switch to local PGLite (one-way — moves existing config to .bak)
 >   ✅ Fastest path to a working local engine if user has abandoned the old one
 >   ✅ ~30s; no accounts; private to this machine
->   ❌ Destructive — existing config moved to ~/.gbrain/config.json.gstack-bak-{ts}
+>   ❌ Destructive — existing config moved to ~/.gbrain/config.json.cgstack-bak-{ts}
 > C) Switch brain mode (continue to Step 2 path picker)
 >   ✅ Lets user pick Path 1/2/3/4 to re-init from scratch
 >   ✅ Preserves existing config until they explicitly init the new one
@@ -835,15 +834,15 @@ dead Postgres URL). Fire a targeted AskUserQuestion BEFORE Step 2:
 >   ❌ N/A
 > Net: A is the right starting move; B/C are explicit destructive paths; D bails.
 
-**If A (Retry)**: re-run `~/.claude/skills/gstack/bin/gstack-gbrain-detect`
-with `GSTACK_DETECT_NO_CACHE=1` (busts the 60s cache). If the new
+**If A (Retry)**: re-run `~/.codex/skills/cgstack/bin/cgstack-gbrain-detect`
+with `CGSTACK_DETECT_NO_CACHE=1` (busts the 60s cache). If the new
 `gbrain_local_status` is `ok`, continue to Step 2. If still `broken-db` or
 `broken-config`, fire the same AskUserQuestion again (the user picks again).
 
 **If B (Switch to PGLite)** — execute the rollback-safe init sequence (plan D7):
 
 ```bash
-BACKUP="$HOME/.gbrain/config.json.gstack-bak-$(date +%s)"
+BACKUP="$HOME/.gbrain/config.json.cgstack-bak-$(date +%s)"
 mv "$HOME/.gbrain/config.json" "$BACKUP"
 if ! gbrain init --pglite --json; then
   # Restore on failure
@@ -881,10 +880,10 @@ The question title: "Where should your brain live?"
 Options (present based on detected state):
 
 - **1 — Supabase, I already have a connection string.** Cloud-agent users
-  whose openclaw/hermes provisioned one already. Paste the Session Pooler
+  whose Codex CLI provisioned one already. Paste the Session Pooler
   URL from the Supabase dashboard (Settings → Database → Connection Pooler
   → Session). *Trust-surface caveat to include in the prompt:* "Pasting this
-  URL gives your local Claude Code full read/write access to every page your
+  URL gives your local Codex full read/write access to every page your
   cloud agent can see. If that's not the trust level you want, pick PGLite
   local instead and accept the brains are disjoint."
 - **2a — Supabase, auto-provision a new project.** You'll need a Supabase
@@ -915,7 +914,7 @@ Path 4 subsection).
 For Paths 1, 2a, 2b, 3, switch — only if `gbrain_on_path=false`:
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-gbrain-install
+~/.codex/skills/cgstack/bin/cgstack-gbrain-install
 ```
 
 The installer runs D5 detect-first (probes `~/git/gbrain`, `~/gbrain` first),
@@ -935,7 +934,7 @@ Path-specific.
 Source the secret-read helper, collect URL with `read -s` + redacted preview:
 
 ```bash
-. ~/.claude/skills/gstack/bin/gstack-gbrain-lib.sh
+. ~/.codex/skills/cgstack/bin/cgstack-gbrain-lib.sh
 read_secret_to_env GBRAIN_POOLER_URL "Paste Session Pooler URL: " \
   --echo-redacted 's#://[^@]*@#://***@#'
 ```
@@ -943,7 +942,7 @@ read_secret_to_env GBRAIN_POOLER_URL "Paste Session Pooler URL: " \
 Then validate structurally:
 
 ```bash
-printf '%s' "$GBRAIN_POOLER_URL" | ~/.claude/skills/gstack/bin/gstack-gbrain-supabase-verify -
+printf '%s' "$GBRAIN_POOLER_URL" | ~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-verify -
 ```
 
 If the verify exit code is 3 (direct-connection URL), the verifier's own
@@ -974,7 +973,7 @@ Show the D11 PAT scope disclosure verbatim BEFORE collecting the token:
 Then:
 
 ```bash
-. ~/.claude/skills/gstack/bin/gstack-gbrain-lib.sh
+. ~/.codex/skills/cgstack/bin/cgstack-gbrain-lib.sh
 read_secret_to_env SUPABASE_ACCESS_TOKEN "Paste PAT: "
 ```
 
@@ -987,7 +986,7 @@ tier. Pro may require them to upgrade the org first at supabase.com.
 List orgs, pick one (AskUserQuestion if multiple):
 
 ```bash
-orgs=$(~/.claude/skills/gstack/bin/gstack-gbrain-supabase-provision list-orgs --json)
+orgs=$(~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-provision list-orgs --json)
 ```
 
 If the `.orgs` array is empty, surface: "Your Supabase account has no
@@ -1007,7 +1006,7 @@ export DB_PASS=$(openssl rand -base64 24)
 Set up a SIGINT trap (D12 basic recovery):
 
 ```bash
-trap 'echo ""; echo "gstack-gbrain: interrupted. In-flight ref: $INFLIGHT_REF"; \
+trap 'echo ""; echo "cgstack-gbrain: interrupted. In-flight ref: $INFLIGHT_REF"; \
       echo "Resume: /setup-gbrain --resume-provision $INFLIGHT_REF"; \
       echo "Delete: https://supabase.com/dashboard/project/$INFLIGHT_REF"; \
       unset SUPABASE_ACCESS_TOKEN DB_PASS; exit 130' INT TERM
@@ -1016,11 +1015,11 @@ trap 'echo ""; echo "gstack-gbrain: interrupted. In-flight ref: $INFLIGHT_REF"; 
 Create + wait + fetch:
 
 ```bash
-result=$(~/.claude/skills/gstack/bin/gstack-gbrain-supabase-provision \
+result=$(~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-provision \
   create gbrain "$REGION" "$ORG_SLUG" --json)
 INFLIGHT_REF=$(echo "$result" | jq -r .ref)
-~/.claude/skills/gstack/bin/gstack-gbrain-supabase-provision wait "$INFLIGHT_REF" --json
-pooler=$(~/.claude/skills/gstack/bin/gstack-gbrain-supabase-provision \
+~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-provision wait "$INFLIGHT_REF" --json
+pooler=$(~/.codex/skills/cgstack/bin/cgstack-gbrain-supabase-provision \
   pooler-url "$INFLIGHT_REF" --json)
 GBRAIN_DATABASE_URL=$(echo "$pooler" | jq -r .pooler_url)
 export GBRAIN_DATABASE_URL
@@ -1077,17 +1076,17 @@ non-loopback host); refuse `http://` for non-localhost.
 **4b. Collect bearer token via the secret-read helper (D10, never argv).**
 
 ```bash
-. ~/.claude/skills/gstack/bin/gstack-gbrain-lib.sh
+. ~/.codex/skills/cgstack/bin/cgstack-gbrain-lib.sh
 read_secret_to_env GBRAIN_MCP_TOKEN "Paste bearer token: " \
   --echo-redacted 's/.\{6\}$/***REDACTED***/'
 ```
 
-**4c. Verify via gstack-gbrain-mcp-verify.** Run the helper; capture the
+**4c. Verify via cgstack-gbrain-mcp-verify.** Run the helper; capture the
 classified JSON output:
 
 ```bash
 verify_json=$(GBRAIN_MCP_TOKEN="$GBRAIN_MCP_TOKEN" \
-  ~/.claude/skills/gstack/bin/gstack-gbrain-mcp-verify "$MCP_URL")
+  ~/.codex/skills/cgstack/bin/cgstack-gbrain-mcp-verify "$MCP_URL")
 status=$(echo "$verify_json" | jq -r .status)
 ```
 
@@ -1099,8 +1098,8 @@ on a failed verify — partial registration would leave the user with a
 half-broken state.
 
 Capture two values from the verify output for downstream steps:
-- `SERVER_VERSION` (e.g., `0.27.1`) — written to the CLAUDE.md block in Step 8.
-- `URL_FORM_SUPPORTED` (`true|false`) — passed to `gstack-artifacts-init` in
+- `SERVER_VERSION` (e.g., `0.27.1`) — written to the AGENTS.md block in Step 8.
+- `URL_FORM_SUPPORTED` (`true|false`) — passed to `cgstack-artifacts-init` in
   Step 7 to control which form of the brain-admin hookup command is printed.
 
 **4d. (Path 4) Offer local PGLite for code search.** Per plan D10/D11, ask:
@@ -1121,18 +1120,18 @@ Capture two values from the verify output for downstream steps:
 >   ✅ Unlocks `gbrain code-def`, `code-refs`, `code-callers` per worktree
 >   ✅ Independent engine — won't disturb remote brain or share transcripts
 > B) No, remote MCP only
->   ✅ Zero local state — only `~/.claude.json` MCP registration
+>   ✅ Zero local state — only `~/.codex.json` MCP registration
 >   ❌ Symbol code queries fall back to Grep in this repo's worktrees
 > Net: A = full split-engine; B = remote-only.
 
 **If A (Yes)**: install + init local PGLite with rollback-safe semantics (D7):
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-gbrain-install || exit $?
+~/.codex/skills/cgstack/bin/cgstack-gbrain-install || exit $?
 # At this point the local gbrain CLI is on PATH. Init PGLite, but back up any
 # existing ~/.gbrain/config.json first (rollback if init fails).
 if [ -f "$HOME/.gbrain/config.json" ]; then
-  BACKUP="$HOME/.gbrain/config.json.gstack-bak-$(date +%s)"
+  BACKUP="$HOME/.gbrain/config.json.cgstack-bak-$(date +%s)"
   mv "$HOME/.gbrain/config.json" "$BACKUP"
 fi
 if ! gbrain init --pglite --json; then
@@ -1143,7 +1142,7 @@ fi
 ```
 
 Then continue to Step 5a. The remote-http MCP registration in 5a runs as
-today; the local PGLite is independent of MCP registration (Claude Code talks
+today; the local PGLite is independent of MCP registration (Codex talks
 to the remote brain via MCP for queries; `gbrain` CLI talks to local PGLite
 for code-def/refs/callers).
 
@@ -1152,17 +1151,17 @@ for code-def/refs/callers).
 installed). `/sync-gbrain` will SKIP the code stage cleanly per plan D12.
 
 **4e. Skip Steps 3, 4 (other paths) and 5 (local doctor) when B was picked.**
-When A was picked, Step 3 already ran (via gstack-gbrain-install) and Step 4
+When A was picked, Step 3 already ran (via cgstack-gbrain-install) and Step 4
 already ran (via `gbrain init --pglite`); jump straight to Step 5a. When B
 was picked, Steps 3/4/5 are no-ops; also skip Step 7.5 (transcript ingest)
 since memory-stage routes through the artifacts pipeline in remote-http mode
 per plan D11.
 
 The bearer token (`GBRAIN_MCP_TOKEN`) stays in process env until Step 5a's
-`claude mcp add --header` consumes it; then `unset GBRAIN_MCP_TOKEN`
+`codex mcp add --header` consumes it; then `unset GBRAIN_MCP_TOKEN`
 immediately. Token security trade-off documented in
-`setup-gbrain/memory.md`: brief argv exposure during `claude mcp add`,
-resting state in `~/.claude.json` mode 0600.
+`setup-gbrain/memory.md`: brief argv exposure during `codex mcp add`,
+resting state in `~/.codex.json` mode 0600.
 
 ### Switch (from detect's existing-engine state)
 
@@ -1174,7 +1173,7 @@ timeout 180s gbrain migrate --to pglite --json
 ```
 
 If `timeout` returns 124 (exit code for timeout): surface D9 message
-("Migration didn't complete in 3 minutes — another gstack session may be
+("Migration didn't complete in 3 minutes — another cgstack session may be
 holding a lock on the source brain. Close other workspaces and re-run
 `/setup-gbrain --switch`. Your original brain is untouched."). STOP.
 
@@ -1199,9 +1198,9 @@ doctor output and STOP.
 
 ---
 
-## Step 5a: Register gbrain as Claude Code MCP (D18)
+## Step 5a: Register gbrain as Codex MCP (D18)
 
-Only if `which claude` resolves. Ask: "Give Claude Code a typed tool surface
+Only if `which codex` resolves. Ask: "Give Codex a typed tool surface
 for gbrain? (recommended yes)"
 
 The registration form depends on the path picked in Step 2:
@@ -1213,46 +1212,46 @@ or stale remote-http with a rotated token), then register with HTTP +
 bearer at user scope:
 
 ```bash
-claude mcp remove gbrain -s user 2>/dev/null || true
-claude mcp remove gbrain 2>/dev/null || true
-claude mcp add --scope user --transport http gbrain "$MCP_URL" \
+codex mcp remove gbrain -s user 2>/dev/null || true
+codex mcp remove gbrain 2>/dev/null || true
+codex mcp add --scope user --transport http gbrain "$MCP_URL" \
   --header "Authorization: Bearer $GBRAIN_MCP_TOKEN"
 unset GBRAIN_MCP_TOKEN  # zero from process env after registration
-claude mcp list | grep gbrain  # verify: should show "✓ Connected"
+codex mcp list | grep gbrain  # verify: should show "✓ Connected"
 ```
 
-**Token-storage note:** `claude mcp add --header "Authorization: Bearer ..."`
+**Token-storage note:** `codex mcp add --header "Authorization: Bearer ..."`
 puts the bearer on argv during process startup, briefly visible to `ps` for
-~10ms. The token's resting state is `~/.claude.json` (mode 0600 — Claude
+~10ms. The token's resting state is `~/.codex.json` (mode 0600 — Codex
 Code's own credential surface for every MCP server). This trade-off is
-documented in `setup-gbrain/memory.md`. If a future Claude Code release adds
+documented in `setup-gbrain/memory.md`. If a future Codex release adds
 a stdin or env-var input form for headers, switch to that.
 
 ### Paths 1, 2a, 2b, 3 (Local stdio)
 
 Register at **user scope** with an **absolute path** to the gbrain
-binary. User scope makes the MCP available in every Claude Code session on
+binary. User scope makes the MCP available in every Codex session on
 this machine, not just the current workspace. Absolute path avoids PATH
-resolution issues when Claude Code spawns `gbrain serve` as a subprocess.
+resolution issues when Codex spawns `gbrain serve` as a subprocess.
 
 ```bash
 GBRAIN_BIN=$(command -v gbrain)
 [ -z "$GBRAIN_BIN" ] && GBRAIN_BIN="$HOME/.bun/bin/gbrain"
-claude mcp remove gbrain -s user 2>/dev/null || true
-claude mcp remove gbrain 2>/dev/null || true
-claude mcp add --scope user gbrain -- "$GBRAIN_BIN" serve
-claude mcp list | grep gbrain  # verify: should show "✓ Connected"
+codex mcp remove gbrain -s user 2>/dev/null || true
+codex mcp remove gbrain 2>/dev/null || true
+codex mcp add --scope user gbrain -- "$GBRAIN_BIN" serve
+codex mcp list | grep gbrain  # verify: should show "✓ Connected"
 ```
 
 ### Both paths
 
-If `claude` is not on PATH: emit "MCP registration skipped — this skill is
-Claude-Code-targeted; register `gbrain serve` (or your remote MCP URL) in
+If `codex` is not on PATH: emit "MCP registration skipped — this skill is
+Codex-Code-targeted; register `gbrain serve` (or your remote MCP URL) in
 your agent's MCP config manually." Continue to step 6.
 
-**Heads-up for the user:** an already-open Claude Code session will not
+**Heads-up for the user:** an already-open Codex session will not
 pick up the new MCP tools until restart. Tell them: "Restart any open
-Claude Code sessions to see `mcp__gbrain__*` tools — they're loaded at
+Codex sessions to see `mcp__gbrain__*` tools — they're loaded at
 session start, not mid-session."
 
 ---
@@ -1262,7 +1261,7 @@ session start, not mid-session."
 If we're in a git repo with an `origin` remote, check the policy:
 
 ```bash
-current_tier=$(~/.claude/skills/gstack/bin/gstack-gbrain-repo-policy get)
+current_tier=$(~/.codex/skills/cgstack/bin/cgstack-gbrain-repo-policy get)
 ```
 
 Branches:
@@ -1280,7 +1279,7 @@ Branches:
 
   On answer (other than skip-for-now):
   ```bash
-  ~/.claude/skills/gstack/bin/gstack-gbrain-repo-policy set "$REMOTE" "$TIER"
+  ~/.codex/skills/cgstack/bin/cgstack-gbrain-repo-policy set "$REMOTE" "$TIER"
   ```
   Then import iff `read-write`.
 
@@ -1298,7 +1297,7 @@ artifacts (CEO plans, designs, /investigate reports, retros) rather than
 human-readable artifact bucket. Behavioral transcript ingest is its own
 step (7.5) with its own option set.
 
-Separate AskUserQuestion: "Also sync your gstack artifacts (CEO plans,
+Separate AskUserQuestion: "Also sync your cgstack artifacts (CEO plans,
 designs, reports, retros) to a private git repo that gbrain can index
 across machines?"
 
@@ -1309,32 +1308,32 @@ Options:
 
 If yes, run the artifacts-init helper. It asks the user to pick a git host
 (GitHub via `gh`, GitLab via `glab`, or paste a URL manually), creates
-`gstack-artifacts-$USER` (private), and writes the canonical HTTPS URL to
-`~/.gstack-artifacts-remote.txt`. Pass `--url-form-supported` from Step 4c's
+`cgstack-artifacts-$USER` (private), and writes the canonical HTTPS URL to
+`~/.cgstack-artifacts-remote.txt`. Pass `--url-form-supported` from Step 4c's
 verify output (Path 4) or `false` (Paths 1/2/3 — local mode doesn't probe):
 
 ```bash
 URL_FORM=${URL_FORM_SUPPORTED:-false}
-~/.claude/skills/gstack/bin/gstack-artifacts-init --url-form-supported "$URL_FORM"
-~/.claude/skills/gstack/bin/gstack-config set artifacts_sync_mode artifacts-only
+~/.codex/skills/cgstack/bin/cgstack-artifacts-init --url-form-supported "$URL_FORM"
+~/.codex/skills/cgstack/bin/cgstack-config set artifacts_sync_mode artifacts-only
 # or "full" if user picked yes-full
 ```
 
-`gstack-artifacts-init` always prints a "Send this to your brain admin" block
+`cgstack-artifacts-init` always prints a "Send this to your brain admin" block
 at the end with the exact `gbrain sources add` command. Per codex Finding #3:
 the skill never auto-executes server-side gbrain commands; even if the user
 IS the brain admin, copy-pasting the printed command is the consistent UX.
 
 ### Path 4 (Remote MCP) — done after artifacts-init
 
-In remote mode, the local `gstack-gbrain-source-wireup` helper does NOT run
+In remote mode, the local `cgstack-gbrain-source-wireup` helper does NOT run
 (it shells out to a local `gbrain` CLI which Path 4 doesn't install). The
 brain admin runs the printed command on the brain host instead. Skip to Step 7.5.
 
 ### Paths 1, 2a, 2b, 3 (Local stdio) — wire up the federated source
 
 Then wire the artifacts repo into gbrain so its content is searchable from
-any gbrain client. The helper creates a `git worktree` of `~/.gstack/`,
+any gbrain client. The helper creates a `git worktree` of `~/.cgstack/`,
 registers it as a federated source via `gbrain sources add --path
 --federated`, and runs an initial `gbrain sync`. Local-Mac only.
 
@@ -1352,12 +1351,12 @@ try:
 except Exception:
     pass
 ")
-~/.claude/skills/gstack/bin/gstack-gbrain-source-wireup --strict \
+~/.codex/skills/cgstack/bin/cgstack-gbrain-source-wireup --strict \
   ${GBRAIN_URL:+--database-url "$GBRAIN_URL"}
 ```
 
 `--strict` exits non-zero on missing prereqs (gbrain not installed, < 0.18.0,
-or no `~/.gstack/.git` yet) so the user sees the failure rather than silently
+or no `~/.cgstack/.git` yet) so the user sees the failure rather than silently
 ending up with an unwired brain. On non-zero exit, surface the helper's
 output and STOP per skill rules — search-across-machines won't work until
 the prereq is fixed.
@@ -1369,28 +1368,28 @@ the prereq is fixed.
 **SKIP entirely on Path 4 (Remote MCP).** Transcript ingest shells out to
 the local `gbrain` CLI which Path 4 doesn't install. Remote-mode users
 rely on the brain server's own ingest cadence — if your brain admin wants
-this machine's transcripts indexed, they pull from your `gstack-artifacts-$USER`
+this machine's transcripts indexed, they pull from your `cgstack-artifacts-$USER`
 repo (set up in Step 7) on whatever schedule they prefer. Set
-`gstack-config set transcript_ingest_mode off` and continue to Step 8.
+`cgstack-config set transcript_ingest_mode off` and continue to Step 8.
 
 For Paths 1, 2a, 2b, 3:
 
-After memory sync is wired (Step 7) but before persisting the CLAUDE.md
+After memory sync is wired (Step 7) but before persisting the AGENTS.md
 config (Step 8), offer to bring this Mac's coding-agent transcripts +
-curated `~/.gstack/` artifacts into gbrain so the retrieval surface
+curated `~/.cgstack/` artifacts into gbrain so the retrieval surface
 (per-skill manifests, salience block) has data to surface.
 
 Run the probe to size the operation:
 ```bash
-~/.claude/skills/gstack/bin/gstack-memory-ingest --probe
+~/.codex/skills/cgstack/bin/cgstack-memory-ingest --probe
 ```
 
 Read the output. If `Total files in window: 0`, skip — there's nothing
-to ingest. Set `gstack-config set transcript_ingest_mode incremental`
+to ingest. Set `cgstack-config set transcript_ingest_mode incremental`
 silently and continue to Step 8.
 
 If `New (never ingested)` is < 200 AND total bytes are < 100MB: silent
-bulk via `gstack-memory-ingest --bulk --quiet`. Set
+bulk via `cgstack-memory-ingest --bulk --quiet`. Set
 `transcript_ingest_mode=incremental` and continue.
 
 Otherwise (the "many transcripts on disk" path): AskUserQuestion with
@@ -1401,7 +1400,7 @@ only, last 90 days**:
 > 90 days, plus <N_other> across other repos on this machine (<bytes>
 > total if all ingested). Ingest THIS repo's transcripts into gbrain?
 >
-> What you get after this: every gstack skill auto-loads recent salience
+> What you get after this: every cgstack skill auto-loads recent salience
 > from your past sessions in this repo, so the agent finds your prior
 > work without you describing it. You can query 'what was I doing on
 > day X' and get a real answer. Per-session pages are searchable,
@@ -1413,7 +1412,7 @@ only, last 90 days**:
 > Multi-Mac note: if you HAVE enabled brain sync (Step 7), these
 > transcript pages will sync across your Macs. Caveat: deleting a
 > transcript page later removes it from gbrain but git history retains
-> it in prior commits. Use `gstack-transcript-prune` to delete in bulk;
+> it in prior commits. Use `cgstack-transcript-prune` to delete in bulk;
 > use `git filter-repo` on the brain remote for hard-delete from
 > history."
 
@@ -1426,23 +1425,23 @@ Options:
 
 After answer:
 ```bash
-~/.claude/skills/gstack/bin/gstack-config set transcript_ingest_mode <choice>
-~/.claude/skills/gstack/bin/gstack-gbrain-sync --full --no-brain-sync
+~/.codex/skills/cgstack/bin/cgstack-config set transcript_ingest_mode <choice>
+~/.codex/skills/cgstack/bin/cgstack-gbrain-sync --full --no-brain-sync
 ```
 (`--no-brain-sync` because Step 7 already wired that path; this just
 runs the code import + memory ingest stages. Brain-sync will run on the
 next preamble hook.)
 
 If A/D/E, ingest is incremental from this point on; preamble-boundary
-hook runs `gstack-gbrain-sync --incremental --quiet` on every skill
+hook runs `cgstack-gbrain-sync --incremental --quiet` on every skill
 start (cheap mtime fast-path).
 
-Reference doc for users: `setup-gbrain/memory.md` (linked from CLAUDE.md
+Reference doc for users: `setup-gbrain/memory.md` (linked from AGENTS.md
 Step 8).
 
 ---
 
-## Step 8: Persist `## GBrain Configuration` in CLAUDE.md
+## Step 8: Persist `## GBrain Configuration` in AGENTS.md
 
 Find-and-replace (or append) the section. Block format depends on mode:
 
@@ -1455,15 +1454,15 @@ Find-and-replace (or append) the section. Block format depends on mode:
 - Server version: gbrain v{SERVER_VERSION}  (from Step 4c verify)
 - Setup date: {today}
 - MCP registered: yes (user scope)
-- Token: stored in ~/.claude.json (do not commit; never written to CLAUDE.md)
-- Artifacts repo: {gstack_artifacts_remote URL or "none"}
+- Token: stored in ~/.codex.json (do not commit; never written to AGENTS.md)
+- Artifacts repo: {cgstack_artifacts_remote URL or "none"}
 - Artifacts sync: {off|artifacts-only|full}
 - Current repo policy: {read-write|read-only|deny|unset}
 ```
 
-The bearer token is **never** written to CLAUDE.md (CLAUDE.md is checked
-in to git in many projects). It lives only in `~/.claude.json` where
-`claude mcp add` placed it.
+The bearer token is **never** written to AGENTS.md (AGENTS.md is checked
+in to git in many projects). It lives only in `~/.codex.json` where
+`codex mcp add` placed it.
 
 ### Paths 1, 2a, 2b, 3 (Local stdio)
 
@@ -1492,13 +1491,13 @@ last-sync time. Machine state stays in the Configuration block above.
 
 ```markdown
 ## GBrain Search Guidance (configured by /sync-gbrain)
-<!-- gstack-gbrain-search-guidance:start -->
+<!-- cgstack-gbrain-search-guidance:start -->
 
 GBrain is set up and synced on this machine. The agent should prefer gbrain
 over Grep when the question is semantic or when you don't know the exact
 identifier yet. Two indexed corpora available via the `gbrain` CLI:
-- This repo's code (registered as `gstack-code-<repo>` source).
-- `~/.gstack/` curated memory (registered as `gstack-brain-<user>` source via
+- This repo's code (registered as `cgstack-code-<repo>` source).
+- `~/.cgstack/` curated memory (registered as `cgstack-brain-<user>` source via
   the existing federation pipeline).
 
 Prefer gbrain when:
@@ -1509,13 +1508,13 @@ Prefer gbrain when:
 - "What calls Y?" / "What does Y depend on?":
     `gbrain code-callers <symbol>` / `gbrain code-callees <symbol>`
 - "What did we decide last time?" / past plans, retros, learnings:
-    `gbrain search "<terms>" --source gstack-brain-<user>`
+    `gbrain search "<terms>" --source cgstack-brain-<user>`
 
 Grep is still right for known exact strings, regex, multiline patterns, and
-file globs. The brain auto-syncs incrementally on every gstack skill start.
+file globs. The brain auto-syncs incrementally on every cgstack skill start.
 Run `/sync-gbrain` to force-refresh, `/sync-gbrain --full` for full reindex.
 
-<!-- gstack-gbrain-search-guidance:end -->
+<!-- cgstack-gbrain-search-guidance:end -->
 ```
 
 If Step 9 smoke test fails, skip the guidance block write entirely. The user's
@@ -1529,15 +1528,15 @@ the round-trip works.
 ### Path 4 (Remote MCP)
 
 The `mcp__gbrain__*` tools aren't visible mid-session — they're loaded at
-Claude Code session start. So the live smoke test in this same skill run is
+Codex session start. So the live smoke test in this same skill run is
 informational: print the curl-equivalent the user can run after restarting
-Claude Code. The verify round-trip in Step 4c already proved the server is
+Codex. The verify round-trip in Step 4c already proved the server is
 reachable + authed + on a compatible MCP version, so we don't re-test that.
 
 Print to stdout:
 
 ```
-After restarting Claude Code, the `mcp__gbrain__*` tools become callable.
+After restarting Codex, the `mcp__gbrain__*` tools become callable.
 Smoke test: ask the agent to run `mcp__gbrain__search` with any query
 ("test page" works). You should see a JSON list of pages.
 
@@ -1572,10 +1571,10 @@ configured Mac is a first-class doctor path: every step detects existing
 state, repairs only what's missing, and reports here.
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-gbrain-detect 2>/dev/null || true
-~/.claude/skills/gstack/bin/gstack-config get transcript_ingest_mode 2>/dev/null || echo "off"
-~/.claude/skills/gstack/bin/gstack-config get artifacts_sync_mode 2>/dev/null || echo "off"
-[ -f ~/.gstack/.gbrain-sync-state.json ] && cat ~/.gstack/.gbrain-sync-state.json || echo "{}"
+~/.codex/skills/cgstack/bin/cgstack-gbrain-detect 2>/dev/null || true
+~/.codex/skills/cgstack/bin/cgstack-config get transcript_ingest_mode 2>/dev/null || echo "off"
+~/.codex/skills/cgstack/bin/cgstack-config get artifacts_sync_mode 2>/dev/null || echo "off"
+[ -f ~/.cgstack/.gbrain-sync-state.json ] && cat ~/.cgstack/.gbrain-sync-state.json || echo "{}"
 ```
 
 Read `gbrain_mcp_mode` from the detect output and pick the right verdict
@@ -1591,24 +1590,24 @@ gbrain status: GREEN  (mode: remote-http)
   Engine .......... N/A  remote mode
   Doctor .......... N/A  remote mode (brain admin runs `gbrain doctor`)
   Repo policy ..... OK   {read-write|read-only|deny}
-  Artifacts repo .. OK   {gstack_artifacts_remote URL}
+  Artifacts repo .. OK   {cgstack_artifacts_remote URL}
   Artifacts sync .. OK   {artifacts_sync_mode}
   Transcripts ..... OK   route to artifacts repo → remote brain (plan D11)
   Code search ..... {OK local-pglite (~/.gbrain/pglite) | N/A declined at Step 4d}
-  CLAUDE.md ....... OK
+  AGENTS.md ....... OK
   Smoke test ...... INFO printed for post-restart manual verification
 
-Restart Claude Code to pick up the `mcp__gbrain__*` tools.
+Restart Codex to pick up the `mcp__gbrain__*` tools.
 Re-run `/setup-gbrain` any time the bearer rotates or the URL moves.
 ```
 
 The **Code search** row reflects the choice at Step 4d:
 - If user picked A (Yes): `OK local-pglite` and `gbrain_local_status == "ok"` going forward.
-- If user picked B (No): `N/A declined at Step 4d` — `gstack-config set local_code_index_offered true` to silence future migration notices.
+- If user picked B (No): `N/A declined at Step 4d` — `cgstack-config set local_code_index_offered true` to silence future migration notices.
 
 The **Transcripts** row changed in v1.34.0.0: in remote-http mode,
-gstack-memory-ingest now persists staged transcripts to
-`~/.gstack/transcripts/run-<pid>-<ts>/` and gstack-brain-sync pushes them
+cgstack-memory-ingest now persists staged transcripts to
+`~/.cgstack/transcripts/run-<pid>-<ts>/` and cgstack-brain-sync pushes them
 to the artifacts repo. Brain admin's pull job indexes into the remote brain.
 Local PGLite (when present) stays code-only — no transcript pollution.
 
@@ -1625,7 +1624,7 @@ gbrain status: GREEN  (mode: local-stdio)
   Code import ..... OK   <last_imported_head>
   Artifacts sync .. OK   <artifacts_sync_mode> to <remote>
   Transcripts ..... OK   <N> sessions, last ingest <when>
-  CLAUDE.md ....... OK
+  AGENTS.md ....... OK
   Smoke test ...... OK   put → search → delete round-trip
 
 Run `/setup-gbrain` again any time gbrain feels off; it's safe and idempotent.
@@ -1681,7 +1680,7 @@ telemetry payload (SAFE — no free-form secrets, never the URL or PAT):
   `switch-to-pglite` | `repo-flip-only` | `cleanup-orphans` |
   `resume-provision`
 - `install_performed`: `yes` | `no` (D5 reuse) | `skipped` (pre-existing)
-- `mcp_registered`: `yes` | `no` | `claude-missing`
+- `mcp_registered`: `yes` | `no` | `codex-missing`
 - `trust_tier_set`: `read-write` | `read-only` | `deny` |
   `skip-for-now` | `n/a` (outside git repo)
 
@@ -1701,9 +1700,9 @@ this at build time.
   ours.
 - **STOP points are hard.** Gbrain doctor not healthy, D19 PATH shadow, D9
   migrate timeout, smoke test failure — each is a STOP. Do not paper over.
-- **Concurrent-run lock.** At skill start, `mkdir ~/.gstack/.setup-gbrain.lock.d`
+- **Concurrent-run lock.** At skill start, `mkdir ~/.cgstack/.setup-gbrain.lock.d`
   (atomic). If the mkdir fails, abort with: "Another `/setup-gbrain` instance
-  is running. Wait for it, or `rm -rf ~/.gstack/.setup-gbrain.lock.d` if
+  is running. Wait for it, or `rm -rf ~/.cgstack/.setup-gbrain.lock.d` if
   you're sure it's stale." Release on normal exit AND in the SIGINT trap.
-- **CLAUDE.md is the audit trail.** Always update it in Step 8 after a
+- **AGENTS.md is the audit trail.** Always update it in Step 8 after a
   successful setup.

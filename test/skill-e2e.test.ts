@@ -13,12 +13,12 @@ import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
-// Skip unless EVALS=1. Session runner strips CLAUDE* env vars to avoid nested session issues.
+// Skip unless EVALS=1. Session runner strips CODEX* env vars to avoid nested session issues.
 //
 // BLAME PROTOCOL: When an eval fails, do NOT claim "pre-existing" or "not related
 // to our changes" without proof. Run the same eval on main to verify. These tests
 // have invisible couplings — preamble text, SKILL.md content, and timing all affect
-// agent behavior. See CLAUDE.md "E2E eval failure blame protocol" for details.
+// agent behavior. See AGENTS.md "E2E eval failure blame protocol" for details.
 const evalsEnabled = !!process.env.EVALS;
 const describeE2E = evalsEnabled ? describe : describe.skip;
 
@@ -57,7 +57,7 @@ function testIfSelected(testName: string, fn: () => Promise<void>, timeout: numb
   (shouldRun ? test : test.skip)(testName, fn, timeout);
 }
 
-// Eval result collector — accumulates test results, writes to ~/.gstack-dev/evals/ on finalize
+// Eval result collector — accumulates test results, writes to ~/.cgstack-dev/evals/ on finalize
 const evalCollector = evalsEnabled ? new EvalCollector('e2e') : null;
 
 // Unique run ID for this E2E session — used for heartbeat + per-run log directory
@@ -148,7 +148,7 @@ function logCost(label: string, result: { costEstimate: { turnsUsed: number; est
  */
 function dumpOutcomeDiagnostic(dir: string, label: string, report: string, judgeResult: any) {
   try {
-    const transcriptDir = path.join(dir, '.gstack', 'test-transcripts');
+    const transcriptDir = path.join(dir, '.cgstack', 'test-transcripts');
     fs.mkdirSync(transcriptDir, { recursive: true });
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     fs.writeFileSync(
@@ -158,14 +158,14 @@ function dumpOutcomeDiagnostic(dir: string, label: string, report: string, judge
   } catch { /* non-fatal */ }
 }
 
-// Fail fast if Anthropic API is unreachable — don't burn through 13 tests getting ConnectionRefused
+// Fail fast if OpenAI API is unreachable — don't burn through 13 tests getting ConnectionRefused
 if (evalsEnabled) {
-  const check = spawnSync('sh', ['-c', 'echo "ping" | claude -p --max-turns 1 --output-format stream-json --verbose --dangerously-skip-permissions'], {
+  const check = spawnSync('sh', ['-c', 'echo "ping" | codex -p --max-turns 1 --output-format stream-json --verbose --dangerously-skip-permissions'], {
     stdio: 'pipe', timeout: 30_000,
   });
   const output = check.stdout?.toString() || '';
   if (output.includes('ConnectionRefused') || output.includes('Unable to connect')) {
-    throw new Error('Anthropic API unreachable — aborting E2E suite. Fix connectivity and retry.');
+    throw new Error('OpenAI API unreachable — aborting E2E suite. Fix connectivity and retry.');
   }
 }
 
@@ -260,7 +260,7 @@ Report whether it worked.`,
   }, 90_000);
 
   testIfSelected('skillmd-no-local-binary', async () => {
-    // Create a tmpdir with no browse binary — no local .claude/skills/gstack/browse/dist/browse
+    // Create a tmpdir with no browse binary — no local .agents/skills/cgstack/browse/dist/browse
     const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-e2e-empty-'));
 
     const skillMd = fs.readFileSync(path.join(ROOT, 'SKILL.md'), 'utf-8');
@@ -282,8 +282,8 @@ Report the exact output. Do NOT try to fix or install anything — just report w
     });
 
     // Setup block should either find the global binary (READY) or show NEEDS_SETUP.
-    // On dev machines with gstack installed globally, the fallback path
-    // ~/.claude/skills/gstack/browse/dist/browse exists, so we get READY.
+    // On dev machines with cgstack installed globally, the fallback path
+    // ~/.codex/skills/cgstack/browse/dist/browse exists, so we get READY.
     // The important thing is it doesn't crash or give a confusing error.
     const allText = result.output || '';
     recordE2E('SKILL.md setup block (no local binary)', 'Skill E2E tests', result);
@@ -350,7 +350,7 @@ Report the exact output — either "READY: <path>" or "NEEDS_SETUP".`,
     const outputPath = path.join(sessionDir, 'question-output.md');
 
     const result = await runSkillTest({
-      prompt: `You are running a gstack skill. The session preamble detected _SESSIONS=4 (the user has 4 gstack windows open).
+      prompt: `You are running a cgstack skill. The session preamble detected _SESSIONS=4 (the user has 4 cgstack windows open).
 
 ${aqBlock}
 
@@ -673,8 +673,8 @@ Important: The design checklist should catch issues like blacklisted fonts, smal
 
 // --- B6/B7/B8: Planted-bug outcome evals ---
 
-// Outcome evals also need ANTHROPIC_API_KEY for the LLM judge
-const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
+// Outcome evals also need OPENAI_API_KEY for the LLM judge
+const hasApiKey = !!process.env.OPENAI_API_KEY;
 const describeOutcome = (evalsEnabled && hasApiKey) ? describe : describe.skip;
 
 // Wrap describeOutcome with selection — skip if no planted-bug tests are selected
@@ -1272,7 +1272,7 @@ Write your report to ${qaOnlyDir}/qa-reports/qa-only-report.md`,
       cwd: qaOnlyDir, stdio: 'pipe',
     });
     const statusLines = gitStatus.stdout.toString().trim().split('\n').filter(
-      (l: string) => l.trim() && !l.includes('.prompt-tmp') && !l.includes('.gstack/') && !l.includes('qa-reports/'),
+      (l: string) => l.trim() && !l.includes('.prompt-tmp') && !l.includes('.cgstack/') && !l.includes('qa-reports/'),
     );
     expect(statusLines.filter((l: string) => l.startsWith(' M') || l.startsWith('M '))).toHaveLength(0);
   }, 240_000);
@@ -1455,7 +1455,7 @@ export function main() { return Dashboard(); }
     setupBrowseShims(planDir);
 
     // Create project directory for artifacts
-    projectDir = path.join(os.homedir(), '.gstack', 'projects', 'test-project');
+    projectDir = path.join(os.homedir(), '.cgstack', 'projects', 'test-project');
     fs.mkdirSync(projectDir, { recursive: true });
   });
 
@@ -1472,7 +1472,7 @@ export function main() { return Dashboard(); }
     } catch {}
   });
 
-  test('/plan-eng-review writes test-plan artifact to ~/.gstack/projects/', async () => {
+  test('/plan-eng-review writes test-plan artifact to ~/.cgstack/projects/', async () => {
     // Count existing test-plan files before
     const beforeFiles = fs.readdirSync(projectDir).filter(f => f.includes('test-plan'));
 
@@ -1822,15 +1822,15 @@ describeE2E('Deferred skill E2E', () => {
 
 });
 
-// --- gstack-upgrade E2E ---
+// --- cgstack-upgrade E2E ---
 
-describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
+describeIfSelected('cgstack-upgrade E2E', ['cgstack-upgrade-happy-path'], () => {
   let upgradeDir: string;
   let remoteDir: string;
 
   beforeAll(() => {
     upgradeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-e2e-upgrade-'));
-    remoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-remote-'));
+    remoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-remote-'));
 
     const run = (cmd: string, args: string[], cwd: string) =>
       spawnSync(cmd, args, { cwd, stdio: 'pipe', timeout: 5000 });
@@ -1840,8 +1840,8 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     run('git', ['config', 'user.email', 'test@test.com'], upgradeDir);
     run('git', ['config', 'user.name', 'Test'], upgradeDir);
 
-    // Create mock gstack install directory (local-git type)
-    const mockGstack = path.join(upgradeDir, '.claude', 'skills', 'gstack');
+    // Create mock cgstack install directory (local-git type)
+    const mockGstack = path.join(upgradeDir, '.codex', 'skills', 'cgstack');
     fs.mkdirSync(mockGstack, { recursive: true });
 
     // Init as a git repo
@@ -1876,11 +1876,11 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     // Reset working copy back to old version
     run('git', ['reset', '--hard', 'HEAD~1'], mockGstack);
 
-    // Copy gstack-upgrade skill
-    fs.mkdirSync(path.join(upgradeDir, 'gstack-upgrade'), { recursive: true });
+    // Copy cgstack-upgrade skill
+    fs.mkdirSync(path.join(upgradeDir, 'cgstack-upgrade'), { recursive: true });
     fs.copyFileSync(
-      path.join(ROOT, 'gstack-upgrade', 'SKILL.md'),
-      path.join(upgradeDir, 'gstack-upgrade', 'SKILL.md'),
+      path.join(ROOT, 'cgstack-upgrade', 'SKILL.md'),
+      path.join(upgradeDir, 'cgstack-upgrade', 'SKILL.md'),
     );
 
     // Commit so git repo is clean
@@ -1893,12 +1893,12 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     try { fs.rmSync(remoteDir, { recursive: true, force: true }); } catch {}
   });
 
-  testIfSelected('gstack-upgrade-happy-path', async () => {
-    const mockGstack = path.join(upgradeDir, '.claude', 'skills', 'gstack');
+  testIfSelected('cgstack-upgrade-happy-path', async () => {
+    const mockGstack = path.join(upgradeDir, '.codex', 'skills', 'cgstack');
     const result = await runSkillTest({
-      prompt: `Read gstack-upgrade/SKILL.md for the upgrade workflow.
+      prompt: `Read cgstack-upgrade/SKILL.md for the upgrade workflow.
 
-You are running /gstack-upgrade standalone. The gstack installation is at ./.claude/skills/gstack (local-git type — it has a .git directory with an origin remote).
+You are running /cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
 
 Current version: 0.5.0. A new version 0.6.0 is available on origin/main.
 
@@ -1910,15 +1910,15 @@ Follow the standalone upgrade flow:
 
 Skip any AskUserQuestion calls — auto-approve the upgrade. Write a summary of what you did to stdout.
 
-IMPORTANT: The install directory is at ./.claude/skills/gstack — use that exact path.`,
+IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exact path.`,
       workingDirectory: upgradeDir,
       maxTurns: 20,
       timeout: 180_000,
-      testName: 'gstack-upgrade-happy-path',
+      testName: 'cgstack-upgrade-happy-path',
       runId,
     });
 
-    logCost('/gstack-upgrade happy path', result);
+    logCost('/cgstack-upgrade happy path', result);
 
     // Check that the version was updated
     const versionAfter = fs.readFileSync(path.join(mockGstack, 'VERSION'), 'utf-8').trim();
@@ -1927,7 +1927,7 @@ IMPORTANT: The install directory is at ./.claude/skills/gstack — use that exac
       output.toLowerCase().includes('upgrade') ||
       output.toLowerCase().includes('updated');
 
-    recordE2E('/gstack-upgrade happy path', 'gstack-upgrade E2E', result, {
+    recordE2E('/cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
       passed: versionAfter === '0.6.0' && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -2017,7 +2017,7 @@ This is a civic tech data platform called CivicPulse for government employees wh
 
 Skip research — work from your design knowledge. Skip the font preview page. Skip any AskUserQuestion calls — this is non-interactive. Accept your first design system proposal.
 
-Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
+Write DESIGN.md and AGENTS.md (or update it) in the working directory.`,
       workingDirectory: designDir,
       maxTurns: 20,
       timeout: 360_000,
@@ -2028,9 +2028,9 @@ Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
     logCost('/design-consultation core', result);
 
     const designPath = path.join(designDir, 'DESIGN.md');
-    const claudePath = path.join(designDir, 'CLAUDE.md');
+    const codexPath = path.join(designDir, 'AGENTS.md');
     const designExists = fs.existsSync(designPath);
-    const claudeExists = fs.existsSync(claudePath);
+    const codexExists = fs.existsSync(codexPath);
     let designContent = '';
 
     if (designExists) {
@@ -2053,7 +2053,7 @@ Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
       }
     }
 
-    const structuralPass = designExists && claudeExists && missingSections.length === 0;
+    const structuralPass = designExists && codexExists && missingSections.length === 0;
     recordE2E('/design-consultation core', 'Design Consultation E2E', result, {
       passed: structuralPass && judgeResult.passed && ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -2063,16 +2063,16 @@ Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
     if (designExists) {
       expect(missingSections).toHaveLength(0);
     }
-    if (claudeExists) {
-      const claude = fs.readFileSync(claudePath, 'utf-8');
-      expect(claude.toLowerCase()).toContain('design.md');
+    if (codexExists) {
+      const codex = fs.readFileSync(codexPath, 'utf-8');
+      expect(codex.toLowerCase()).toContain('design.md');
     }
   }, 420_000);
 
   testIfSelected('design-consultation-research', async () => {
     // Clean up from previous test
     try { fs.unlinkSync(path.join(designDir, 'DESIGN.md')); } catch {}
-    try { fs.unlinkSync(path.join(designDir, 'CLAUDE.md')); } catch {}
+    try { fs.unlinkSync(path.join(designDir, 'AGENTS.md')); } catch {}
 
     const result = await runSkillTest({
       prompt: `Read design-consultation/SKILL.md for the design consultation workflow.
@@ -3092,26 +3092,33 @@ describeIfSelected('Codex skill E2E', ['codex-review'], () => {
     run('git', ['add', 'user_controller.rb']);
     run('git', ['commit', '-m', 'add vulnerable controller']);
 
-    // Copy the codex skill file
-    fs.copyFileSync(path.join(ROOT, 'codex', 'SKILL.md'), path.join(codexDir, 'codex-SKILL.md'));
+    fs.writeFileSync(path.join(codexDir, 'codex-review.md'), [
+      '# Independent Codex Review',
+      '',
+      'Use the Codex CLI to review the current diff against main.',
+      'Focus on concrete bugs, security issues, and regressions.',
+      'Write findings first, then a short GATE verdict.',
+      'If the Codex CLI is unavailable, say that explicitly and perform the review yourself.',
+      '',
+    ].join('\n'));
   });
 
   afterAll(() => {
     try { fs.rmSync(codexDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/codex review produces findings and GATE verdict', async () => {
+  test('Codex review produces findings and GATE verdict', async () => {
     // Check codex is available — skip if not installed
     const codexCheck = spawnSync('which', ['codex'], { stdio: 'pipe', timeout: 3000 });
     if (codexCheck.status !== 0) {
-      console.warn('codex CLI not installed — skipping E2E test');
+      console.warn('codex not installed — skipping E2E test');
       return;
     }
 
     const result = await runSkillTest({
       prompt: `You are in a git repo on branch feature/add-vuln with changes against main.
-Read codex-SKILL.md for the /codex skill instructions.
-Run /codex review to review the current diff against main.
+Read codex-review.md for the Codex review instructions.
+Run independent Codex review to review the current diff against main.
 Write the full output (including the GATE verdict) to ${codexDir}/codex-output.md`,
       workingDirectory: codexDir,
       maxTurns: 10,
@@ -3120,8 +3127,8 @@ Write the full output (including the GATE verdict) to ${codexDir}/codex-output.m
       runId,
     });
 
-    logCost('/codex review', result);
-    recordE2E('/codex review', 'Codex skill E2E', result);
+    logCost('Codex review', result);
+    recordE2E('Codex review', 'Codex skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Check that output file was created with review content

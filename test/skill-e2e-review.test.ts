@@ -514,7 +514,7 @@ Analyze the git history and produce the narrative report as described in the SKI
       timeout: 300_000,
       testName: 'retro',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/retro', result);
@@ -562,8 +562,8 @@ describeIfSelected('Review Dashboard Via Attribution', ['review-dashboard-via'],
     const commit = headResult.stdout.toString().trim();
 
     // Pre-populate review log with autoplan-sourced entries
-    // gstack-review-read reads from ~/.gstack/projects/$SLUG/$BRANCH-reviews.jsonl
-    // For the test, we'll write a mock gstack-review-read script that returns our test data
+    // cgstack-review-read reads from ~/.cgstack/projects/$SLUG/$BRANCH-reviews.jsonl
+    // For the test, we'll write a mock cgstack-review-read script that returns our test data
     const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
     const reviewData = [
       `{"skill":"plan-eng-review","timestamp":"${timestamp}","status":"clean","unresolved":0,"critical_gaps":0,"issues_found":0,"mode":"FULL_REVIEW","via":"autoplan","commit":"${commit}"}`,
@@ -571,10 +571,10 @@ describeIfSelected('Review Dashboard Via Attribution', ['review-dashboard-via'],
       `{"skill":"codex-plan-review","timestamp":"${timestamp}","status":"clean","source":"codex","commit":"${commit}"}`,
     ].join('\n');
 
-    // Write a mock gstack-review-read that returns our test data
+    // Write a mock cgstack-review-read that returns our test data
     const mockBinDir = path.join(dashDir, '.mock-bin');
     fs.mkdirSync(mockBinDir, { recursive: true });
-    fs.writeFileSync(path.join(mockBinDir, 'gstack-review-read'), [
+    fs.writeFileSync(path.join(mockBinDir, 'cgstack-review-read'), [
       '#!/usr/bin/env bash',
       `echo '${reviewData.split('\n').join("'\necho '")}'`,
       'echo "---CONFIG---"',
@@ -582,7 +582,7 @@ describeIfSelected('Review Dashboard Via Attribution', ['review-dashboard-via'],
       'echo "---HEAD---"',
       `echo "${commit}"`,
     ].join('\n'));
-    fs.chmodSync(path.join(mockBinDir, 'gstack-review-read'), 0o755);
+    fs.chmodSync(path.join(mockBinDir, 'cgstack-review-read'), 0o755);
 
     // Extract only the Review Readiness Dashboard section from ship/SKILL.md
     // (copying the full 1900-line file causes agent context bloat and timeouts)
@@ -603,7 +603,7 @@ describeIfSelected('Review Dashboard Via Attribution', ['review-dashboard-via'],
     const result = await runSkillTest({
       prompt: `Read ship-SKILL.md. You only need to run the Review Readiness Dashboard section.
 
-Instead of running ~/.claude/skills/gstack/bin/gstack-review-read, run this mock: ${mockBinDir}/gstack-review-read
+Instead of running ~/.codex/skills/cgstack/bin/cgstack-review-read, run this mock: ${mockBinDir}/cgstack-review-read
 
 Parse the output and display the dashboard table. Pay attention to:
 1. The "via" field in entries — show source attribution (e.g., "via /autoplan")

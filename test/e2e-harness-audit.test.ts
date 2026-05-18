@@ -2,10 +2,10 @@
  * E2E harness audit — every skill with `interactive: true` in its frontmatter
  * must have at least one test file that drives a real interactive session.
  * Two valid coverage paths:
- *   1. `canUseTool` via the agent-sdk-runner (legacy SDK-based path)
- *   2. `runPlanSkillObservation` via the claude-pty-runner (real-PTY path
+ *   1. `canUseTool` via the agent-sdk-runner compatibility shim
+ *   2. `runPlanSkillObservation` via the codex-pty-runner (real-PTY path
  *      added when the SDK harness was found unable to observe plan mode's
- *      native confirmation UI — see test/helpers/claude-pty-runner.ts)
+ *      native confirmation UI — see test/helpers/codex-pty-runner.ts)
  *
  * Runs as a free unit test (no API calls). Pure filesystem scan.
  */
@@ -21,7 +21,6 @@ const SKILL_GLOBS = [
   'plan-design-review',
   'plan-devex-review',
   'office-hours',
-  'codex',
   'investigate',
   'qa',
   'retro',
@@ -45,10 +44,9 @@ const SKILL_GLOBS = [
   'canary',
   'learn',
   'benchmark',
-  'benchmark-models',
   'make-pdf',
-  'open-gstack-browser',
-  'gstack-upgrade',
+  'open-cgstack-browser',
+  'cgstack-upgrade',
   'pair-agent',
   'design-html',
   'freeze',

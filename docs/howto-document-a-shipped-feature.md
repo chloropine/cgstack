@@ -4,7 +4,7 @@ This is the post-ship workflow: you merged a PR, the docs are stale, and you wan
 
 ## Prerequisites
 
-- gstack installed (`./setup` complete; verify with `which gstack` or by typing `/` in Claude Code and seeing skills listed)
+- cgstack installed (`./setup` complete; verify with `which cgstack` or by typing `/` in Codex and seeing skills listed)
 - The branch with your shipped feature is checked out
 - A PR exists on GitHub or GitLab (recommended — the workflow updates the PR body with a coverage map)
 
@@ -100,6 +100,6 @@ File a bug. The skill's Step 1 archaeology is supposed to read implementation fi
 ## Related
 
 - **Tutorial: first time using `/document-generate`:** [tutorial-document-generate.md](./tutorial-document-generate.md)
-- **Why gstack uses the Diataxis framework:** [explanation-diataxis-in-gstack.md](./explanation-diataxis-in-gstack.md)
+- **Why cgstack uses the Diataxis framework:** [explanation-diataxis-in-cgstack.md](./explanation-diataxis-in-cgstack.md)
 - **Reference for the audit skill:** [`document-release/SKILL.md`](../document-release/SKILL.md)
 - **Reference for the generation skill:** [`document-generate/SKILL.md`](../document-generate/SKILL.md)

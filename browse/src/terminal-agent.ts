@@ -1,7 +1,7 @@
 /**
- * Terminal Agent — PTY-backed Claude Code terminal for the gstack browser
+ * Terminal Agent — PTY-backed Codex terminal for the cgstack browser
  * sidebar. Translates the phoenix gbrowser PTY (cmd/gbd/terminal.go) into
- * Bun, with a few changes informed by codex's outside-voice review:
+ * Bun, with a few changes informed by Codex review:
  *
  *  - Lives in a separate non-compiled bun process from sidebar-agent.ts so
  *    a bug in WS framing or PTY cleanup can't take down the chat path.
@@ -11,8 +11,8 @@
  *    target.
  *  - Cookie-based auth via /internal/grant from the parent server, not a
  *    token in /health.
- *  - Lazy spawn: claude PTY is not spawned until the WS receives its first
- *    data frame. Sidebar opens that never type don't burn a claude session.
+ *  - Lazy spawn: Codex PTY is not spawned until the WS receives its first
+ *    data frame. Sidebar opens that never type don't burn a Codex session.
  *  - PTY dies with WS close (one PTY per WS). v1.1 may add session
  *    survival; for v1 we match phoenix's lifecycle.
  *
@@ -26,7 +26,7 @@ import * as crypto from 'crypto';
 import { writeSecureFile, mkdirSecure } from './file-permissions';
 import { safeUnlink } from './error-handling';
 
-const STATE_FILE = process.env.BROWSE_STATE_FILE || path.join(process.env.HOME || '/tmp', '.gstack', 'browse.json');
+const STATE_FILE = process.env.BROWSE_STATE_FILE || path.join(process.env.HOME || '/tmp', '.cgstack', 'browse.json');
 const PORT_FILE = path.join(path.dirname(STATE_FILE), 'terminal-port');
 const BROWSE_SERVER_PORT = parseInt(process.env.BROWSE_SERVER_PORT || '0', 10);
 const EXTENSION_ID = process.env.BROWSE_EXTENSION_ID || ''; // optional: tighten Origin check
@@ -56,24 +56,24 @@ interface PtySession {
 
 const sessions = new WeakMap<any, PtySession>(); // ws -> session
 
-/** Find claude on PATH. */
-function findClaude(): string | null {
+/** Find Codex on PATH. */
+function findCodex(): string | null {
   // Test-only override. Lets the integration tests spawn /bin/bash instead
-  // of requiring claude to be installed on every CI runner. NEVER read in
+  // of requiring Codex to be installed on every CI runner. NEVER read in
   // production (sidebar UI). Documented in browse/test/terminal-agent-integration.test.ts.
   const override = process.env.BROWSE_TERMINAL_BINARY;
   if (override && fs.existsSync(override)) return override;
   // Bun.which is sync and respects PATH. Falls back to a small list of
   // common install locations if PATH is stripped (e.g., launched from
   // Conductor with a minimal env).
-  const which = (Bun as any).which?.('claude');
+  const which = (Bun as any).which?.('codex');
   if (which) return which;
   const candidates = [
-    '/opt/homebrew/bin/claude',
-    '/usr/local/bin/claude',
-    `${process.env.HOME}/.local/bin/claude`,
-    `${process.env.HOME}/.bun/bin/claude`,
-    `${process.env.HOME}/.npm-global/bin/claude`,
+    '/opt/homebrew/bin/codex',
+    '/usr/local/bin/codex',
+    `${process.env.HOME}/.local/bin/codex`,
+    `${process.env.HOME}/.bun/bin/codex`,
+    `${process.env.HOME}/.npm-global/bin/codex`,
   ];
   for (const c of candidates) {
     try { fs.accessSync(c, fs.constants.X_OK); return c; } catch {}
@@ -81,19 +81,19 @@ function findClaude(): string | null {
   return null;
 }
 
-/** Probe + persist claude availability for the bootstrap card. */
-function writeClaudeAvailable(): void {
+/** Probe + persist Codex availability for the bootstrap card. */
+function writeCodexAvailable(): void {
   const stateDir = path.dirname(STATE_FILE);
   try { mkdirSecure(stateDir); } catch {}
-  const found = findClaude();
+  const found = findCodex();
   const status = {
     available: !!found,
     path: found || undefined,
-    install_url: 'https://docs.anthropic.com/en/docs/claude-code',
+    install_url: 'https://help.openai.com/en/articles/11096431-openai-codex-cli-getting-started',
     checked_at: new Date().toISOString(),
   };
-  const target = path.join(stateDir, 'claude-available.json');
-  const tmp = path.join(stateDir, `.tmp-claude-${process.pid}`);
+  const target = path.join(stateDir, 'codex-available.json');
+  const tmp = path.join(stateDir, `.tmp-codex-${process.pid}`);
   try {
     writeSecureFile(tmp, JSON.stringify(status, null, 2));
     fs.renameSync(tmp, target);
@@ -102,53 +102,14 @@ function writeClaudeAvailable(): void {
   }
 }
 
-/**
- * System-prompt hint passed to claude via --append-system-prompt. Tells
- * claude what tab-awareness affordances exist in this session so it
- * doesn't have to discover them by trial. The user can override anything
- * here just by saying so — system prompt is a soft hint, not a contract.
- *
- * Two paths claude has:
- *   1. Read live state from <stateDir>/tabs.json + active-tab.json
- *      (updated continuously by the gstack browser extension).
- *   2. Run $B tab, $B tabs, $B tab-each <command> to act on tabs. The
- *      tab-each helper fans a single command across every open tab and
- *      returns per-tab results as JSON.
- */
-function buildTabAwarenessHint(stateDir: string): string {
-  const tabsFile = path.join(stateDir, 'tabs.json');
-  const activeFile = path.join(stateDir, 'active-tab.json');
-  return [
-    'You are running inside the gstack browser sidebar with live access to the user\'s browser tabs.',
-    '',
-    'Tab state files (kept fresh automatically by the extension):',
-    `  ${tabsFile}        — all open tabs (id, url, title, active, pinned)`,
-    `  ${activeFile}    — the currently active tab`,
-    'Read these any time the user asks about "tabs", "the current page", or anything multi-tab. Do NOT shell out to $B tabs just to learn what\'s open — read the file.',
-    '',
-    'Tab manipulation commands (via $B):',
-    '  $B tab <id>                 — switch to a tab',
-    '  $B newtab [url]             — open a new tab',
-    '  $B closetab [id]            — close a tab (current if no id)',
-    '  $B tab-each <command>       — fan out a command across every tab; returns JSON results',
-    '',
-    'When the user asks for multi-tab work, prefer $B tab-each. Examples:',
-    '  $B tab-each snapshot -i     — grab a snapshot from every tab',
-    '  $B tab-each text            — pull clean text from every tab',
-    '  $B tab-each title           — list every tab\'s title',
-    '',
-    'You\'re in a real terminal with a real PTY — slash commands, /resume, ANSI colors all work as in a normal claude session.',
-  ].join('\n');
-}
+/** Spawn Codex in a PTY. Returns null if Codex not on PATH. */
+function spawnCodex(cols: number, rows: number, onData: (chunk: Buffer) => void) {
+  const codexPath = findCodex();
+  if (!codexPath) return null;
 
-/** Spawn claude in a PTY. Returns null if claude not on PATH. */
-function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void) {
-  const claudePath = findClaude();
-  if (!claudePath) return null;
-
-  // Match phoenix env so claude knows which browse server to talk to and
+  // Match phoenix env so Codex knows which browse server to talk to and
   // doesn't try to autostart its own. BROWSE_HEADED=1 keeps the existing
-  // headed-mode browser; BROWSE_NO_AUTOSTART prevents claude's gstack
+  // headed-mode browser; BROWSE_NO_AUTOSTART prevents Codex's cgstack
   // tooling from racing to spawn another server.
   const env: Record<string, string> = {
     ...process.env as any,
@@ -160,15 +121,7 @@ function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void
     COLORTERM: 'truecolor',
   };
 
-  // --append-system-prompt is the right injection surface (per `claude --help`):
-  // it gets appended to the model's system prompt, so claude treats this as
-  // contextual guidance, not a user message. Don't use a leading PTY write
-  // for this — that would show up as if the user typed the hint, polluting
-  // the visible transcript.
-  const stateDir = path.dirname(STATE_FILE);
-  const tabHint = buildTabAwarenessHint(stateDir);
-
-  const proc = (Bun as any).spawn([claudePath, '--append-system-prompt', tabHint], {
+  const proc = (Bun as any).spawn([codexPath], {
     terminal: {
       rows,
       cols,
@@ -236,10 +189,10 @@ function buildServer() {
         }).catch(() => new Response('bad', { status: 400 }));
       }
 
-      // /claude-available — bootstrap card hits this when user clicks "I installed it".
-      if (url.pathname === '/claude-available' && req.method === 'GET') {
-        writeClaudeAvailable();
-        const found = findClaude();
+      // /codex-available — bootstrap card hits this when user clicks "I installed it".
+      if (url.pathname === '/codex-available' && req.method === 'GET') {
+        writeCodexAvailable();
+        const found = findCodex();
         return new Response(JSON.stringify({ available: !!found, path: found }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -253,7 +206,7 @@ function buildServer() {
       //       transports for compatibility:
       //         - Sec-WebSocket-Protocol (preferred for browsers — the only
       //           auth header settable from the browser WebSocket API)
-      //         - Cookie gstack_pty (works for non-browser callers and
+      //         - Cookie cgstack_pty (works for non-browser callers and
       //           same-port browser callers; doesn't survive the cross-port
       //           jump from server.ts:34567 to the agent's random port
       //           when SameSite=Strict is set)
@@ -271,14 +224,14 @@ function buildServer() {
         }
 
         // Try Sec-WebSocket-Protocol first. Format: a single token, possibly
-        // with a `gstack-pty.` prefix (which we strip). Browsers send a
+        // with a `cgstack-pty.` prefix (which we strip). Browsers send a
         // comma-separated list when multiple were requested; we pick the
         // first that matches a known token.
         const protoHeader = req.headers.get('sec-websocket-protocol') || '';
         let token: string | null = null;
         let acceptedProtocol: string | null = null;
         for (const raw of protoHeader.split(',').map(s => s.trim()).filter(Boolean)) {
-          const candidate = raw.startsWith('gstack-pty.') ? raw.slice('gstack-pty.'.length) : raw;
+          const candidate = raw.startsWith('cgstack-pty.') ? raw.slice('cgstack-pty.'.length) : raw;
           if (validTokens.has(candidate)) {
             token = candidate;
             acceptedProtocol = raw;
@@ -286,12 +239,12 @@ function buildServer() {
           }
         }
 
-        // Fallback: Cookie gstack_pty (legacy / non-browser callers).
+        // Fallback: Cookie cgstack_pty (legacy / non-browser callers).
         if (!token) {
           const cookieHeader = req.headers.get('cookie') || '';
           for (const part of cookieHeader.split(';')) {
             const [name, ...rest] = part.trim().split('=');
-            if (name === 'gstack_pty') {
+            if (name === 'cgstack_pty') {
               const candidate = rest.join('=') || null;
               if (candidate && validTokens.has(candidate)) {
                 token = candidate;
@@ -359,13 +312,13 @@ function buildServer() {
           return;
         }
 
-        // Binary input. Lazy-spawn claude on the first byte.
+        // Binary input. Lazy-spawn Codex on the first byte.
         if (!session.spawned) {
           session.spawned = true;
           // UTF-8 boundary detection to prevent splitting multi-byte characters (issue #1272).
           // Buffer incomplete UTF-8 sequences until the next chunk completes them.
           let leftover = Buffer.alloc(0);
-          const proc = spawnClaude(session.cols, session.rows, (chunk) => {
+          const proc = spawnCodex(session.cols, session.rows, (chunk) => {
             const combined = Buffer.concat([leftover, Buffer.from(chunk)]);
             // Find the last index where a UTF-8 codepoint ends. Look back at most 3 bytes.
             let safeEnd = combined.length;
@@ -387,15 +340,15 @@ function buildServer() {
             try {
               ws.send(JSON.stringify({
                 type: 'error',
-                code: 'CLAUDE_NOT_FOUND',
-                message: 'claude CLI not on PATH. Install: https://docs.anthropic.com/en/docs/claude-code',
+                code: 'CODEX_NOT_FOUND',
+                message: 'Codex CLI not on PATH. Install: https://help.openai.com/en/articles/11096431-openai-codex-cli-getting-started',
               }));
-              ws.close(4404, 'claude not found');
+              ws.close(4404, 'Codex not found');
             } catch {}
             return;
           }
           session.proc = proc;
-          // Watch for child exit so the WS closes cleanly when claude exits.
+          // Watch for child exit so the WS closes cleanly when Codex exits.
           proc.exited?.then?.(() => {
             try { ws.close(1000, 'pty exited'); } catch {}
           });
@@ -425,13 +378,13 @@ function buildServer() {
 }
 
 /**
- * Tab-switch helper: write the active tab to a state file (claude reads it)
+ * Tab-switch helper: write the active tab to a state file (Codex reads it)
  * and notify the parent server so its activeTabId stays synced. Skips
  * chrome:// and chrome-extension:// internal pages.
  */
 /**
  * Live tab snapshot. Writes <stateDir>/tabs.json (full list) and updates
- * <stateDir>/active-tab.json (current active). claude can read these any
+ * <stateDir>/active-tab.json (current active). Codex can read these any
  * time without invoking $B tabs — saves a round-trip when the model just
  * needs to check the landscape before deciding what to do.
  */
@@ -469,7 +422,7 @@ function handleTabState(msg: {
   }
 
   // active-tab.json — single active tab. Skip chrome-internal pages so
-  // claude doesn't see chrome:// or chrome-extension:// URLs as
+  // Codex doesn't see chrome:// or chrome-extension:// URLs as
   // "current target."
   const active = msg.active;
   if (active && active.url && !active.url.startsWith('chrome://') && !active.url.startsWith('chrome-extension://')) {
@@ -533,7 +486,7 @@ function readBrowseToken(): string {
 
 // Boot.
 function main() {
-  writeClaudeAvailable();
+  writeCodexAvailable();
   const server = buildServer();
   const port = (server as any).port || (server as any).address?.port;
   if (!port) {

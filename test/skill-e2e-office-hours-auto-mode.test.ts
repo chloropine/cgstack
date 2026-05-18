@@ -1,9 +1,9 @@
 /**
  * office-hours AskUserQuestion-blocked regression (gate, paid, real-PTY).
  *
- * v1.21+ regression: Conductor launches Claude Code with
+ * v1.21+ regression: Conductor launches Codex with
  * `--disallowedTools AskUserQuestion --permission-mode default` (verified
- * by inspecting the parent claude process via `ps`). office-hours' first
+ * by inspecting the parent codex process via `ps`). office-hours' first
  * step issues a startup-vs-builder mode AskUserQuestion
  * (office-hours/SKILL.md.tmpl:69); when AskUserQuestion is disallowed at
  * the tool-registry level the model cannot ask and silently picks one mode,
@@ -17,7 +17,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { runPlanSkillObservation, planFileHasDecisionsSection } from './helpers/claude-pty-runner';
+import { runPlanSkillObservation, planFileHasDecisionsSection } from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;

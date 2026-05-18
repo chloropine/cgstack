@@ -1,7 +1,7 @@
 /**
  * Layer 2: Server HTTP integration tests for sidebar endpoints.
  * Starts the browse server as a subprocess (no browser via BROWSE_HEADLESS_SKIP),
- * exercises sidebar HTTP endpoints with fetch(). No Chrome, no Claude, no sidebar-agent.
+ * exercises sidebar HTTP endpoints with fetch(). No Chrome, no Codex, no sidebar-agent.
  */
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'bun:test';
@@ -133,8 +133,8 @@ describe('sidebar-command → queue', () => {
     const entry = JSON.parse(lines[lines.length - 1]);
     // Active tab URL is carried on the queue entry metadata (entry.pageUrl),
     // NOT inlined into the prompt.  The system prompt deliberately tells
-    // Claude to run `browse url` instead of trusting any URL in the prompt
-    // body — that's the prompt-injection-via-URL defense.  See spawnClaude
+    // Codex to run `browse url` instead of trusting any URL in the prompt
+    // body — that's the prompt-injection-via-URL defense.  See spawnCodex
     // in browse/src/server.ts.
     expect(entry.pageUrl).toBe('https://example.com/test-page');
 
@@ -192,7 +192,7 @@ describe('sidebar-agent/event → chat buffer', () => {
     // Post pre-processed agent event.  The server's processAgentEvent
     // handles the simplified types that sidebar-agent.ts emits (text,
     // text_delta, tool_use, result, agent_error, security_event), NOT
-    // the raw Claude streaming format — pre-processing lives in
+    // the raw Codex streaming format — pre-processing lives in
     // sidebar-agent.ts, not in the server.
     await api('/sidebar-agent/event', {
       method: 'POST',

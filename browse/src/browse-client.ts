@@ -1,6 +1,6 @@
 /**
  * browse-client — canonical SDK that browser-skill scripts import to drive the
- * gstack daemon over loopback HTTP.
+ * cgstack daemon over loopback HTTP.
  *
  * Distribution model:
  *   This file is the canonical source. Each browser-skill ships a sibling
@@ -15,10 +15,10 @@
  *   against), no npm publish workflow, no fixed-path tilde imports.
  *
  * Auth resolution:
- *   1. GSTACK_PORT + GSTACK_SKILL_TOKEN env vars (set by `$B skill run` when
+ *   1. CGSTACK_PORT + CGSTACK_SKILL_TOKEN env vars (set by `$B skill run` when
  *      spawning the script). The token is a per-spawn scoped capability bound
  *      to read+write commands; it expires when the spawn ends.
- *   2. State file fallback: read `BROWSE_STATE_FILE` env or `<git-root>/.gstack/browse.json`
+ *   2. State file fallback: read `BROWSE_STATE_FILE` env or `<git-root>/.cgstack/browse.json`
  *      and use the `port` + `token` (the daemon root token). This path exists
  *      for developers running a skill directly via `bun run script.ts` outside
  *      the harness — your own authority, not an agent's.
@@ -36,15 +36,15 @@ import * as path from 'path';
 import * as cp from 'child_process';
 
 export interface BrowseClientOptions {
-  /** Override port. Default: GSTACK_PORT env or state file. */
+  /** Override port. Default: CGSTACK_PORT env or state file. */
   port?: number;
-  /** Override token. Default: GSTACK_SKILL_TOKEN env, then state file root token. */
+  /** Override token. Default: CGSTACK_SKILL_TOKEN env, then state file root token. */
   token?: string;
   /** Tab id to target (every command can scope to a tab). Default: BROWSE_TAB env or undefined (active tab). */
   tabId?: number;
   /** Per-request timeout in milliseconds. Default: 30_000. */
   timeoutMs?: number;
-  /** Override state-file path. Default: BROWSE_STATE_FILE env or <git-root>/.gstack/browse.json. */
+  /** Override state-file path. Default: BROWSE_STATE_FILE env or <git-root>/.cgstack/browse.json. */
   stateFile?: string;
 }
 
@@ -68,8 +68,8 @@ export function resolveBrowseAuth(opts: BrowseClientOptions = {}): ResolvedAuth 
   }
 
   // 1. Env vars (set by $B skill run when spawning).
-  const envPort = process.env.GSTACK_PORT;
-  const envToken = process.env.GSTACK_SKILL_TOKEN;
+  const envPort = process.env.CGSTACK_PORT;
+  const envToken = process.env.CGSTACK_SKILL_TOKEN;
   if (envPort && envToken) {
     const port = opts.port ?? parseIntegerEnvValue(envPort);
     if (port !== undefined) {
@@ -96,8 +96,8 @@ export function resolveBrowseAuth(opts: BrowseClientOptions = {}): ResolvedAuth 
 
   throw new Error(
     'browse-client: cannot find daemon port + token. Either spawn via `$B skill run` ' +
-    '(sets GSTACK_PORT + GSTACK_SKILL_TOKEN) or run from a project with a live daemon ' +
-    '(.gstack/browse.json must exist).'
+    '(sets CGSTACK_PORT + CGSTACK_SKILL_TOKEN) or run from a project with a live daemon ' +
+    '(.cgstack/browse.json must exist).'
   );
 }
 
@@ -106,9 +106,9 @@ function defaultStateFile(): string | null {
     const proc = cp.spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf-8', timeout: 2000 });
     const root = proc.status === 0 ? proc.stdout.trim() : null;
     const base = root || process.cwd();
-    return path.join(base, '.gstack', 'browse.json');
+    return path.join(base, '.cgstack', 'browse.json');
   } catch {
-    return path.join(process.cwd(), '.gstack', 'browse.json');
+    return path.join(process.cwd(), '.cgstack', 'browse.json');
   }
 }
 

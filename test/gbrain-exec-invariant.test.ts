@@ -3,7 +3,7 @@
  * sync code MUST route through `lib/gbrain-exec.ts` (or accept env via
  * the existing `lib/gbrain-sources.ts` opts surface). A future contributor
  * who adds a `spawnSync("gbrain", ...)` call directly in
- * `bin/gstack-gbrain-sync.ts` or `bin/gstack-memory-ingest.ts` silently
+ * `bin/cgstack-gbrain-sync.ts` or `bin/cgstack-memory-ingest.ts` silently
  * regresses the DATABASE_URL fix from #1508 + codex review #7 — gbrain's
  * dotenv autoload pulls a host project's `.env.local` value instead of
  * gbrain's own config.
@@ -16,7 +16,7 @@
  * The check is intentionally narrow: only the two files where the bug
  * actually hurts users are guarded. Other gbrain spawn sites
  * (`lib/gbrain-sources.ts`, `lib/gbrain-local-status.ts`,
- * `lib/gstack-memory-helpers.ts`, `bin/gstack-brain-context-load.ts`)
+ * `lib/cgstack-memory-helpers.ts`, `bin/cgstack-brain-context-load.ts`)
  * either already accept env from callers or run probes that don't need
  * DATABASE_URL. Expanding the invariant to those files is a follow-up.
  */
@@ -28,8 +28,8 @@ import { join } from "path";
 const ROOT = join(import.meta.dir, "..");
 
 const GUARDED_FILES = [
-  "bin/gstack-gbrain-sync.ts",
-  "bin/gstack-memory-ingest.ts",
+  "bin/cgstack-gbrain-sync.ts",
+  "bin/cgstack-memory-ingest.ts",
 ];
 
 // Patterns that would bypass lib/gbrain-exec.ts. Match the literal `"gbrain"`

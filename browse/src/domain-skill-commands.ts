@@ -17,7 +17,7 @@
  *     from the compiled binary, unlike the L4 ML classifier). The full L4
  *     scan happens in sidebar-agent.ts when the skill is loaded into a prompt.
  *   - Output is structured: every success/error includes problem + cause +
- *     suggested-action. Matches the gstack house style.
+ *     suggested-action. Matches the cgstack house style.
  *
  * The body for `save` is supplied via stdin or --from-file, NOT inline argv,
  * so multi-line markdown bodies don't get mangled by shell quoting.
@@ -75,7 +75,7 @@ function formatSavedOk(row: DomainSkillRow, slug: string): string {
     `Host: ${row.host}`,
     `Bytes: ${row.body.length}`,
     `Version: ${row.version}`,
-    `Stored at: ~/.gstack/projects/${slug}/learnings.jsonl`,
+    `Stored at: ~/.cgstack/projects/${slug}/learnings.jsonl`,
     '',
     `Next: skill is quarantined and won't fire in prompts until used 3 times`,
     `      without classifier flags. Run $B domain-skill list to see state.`,
@@ -118,7 +118,7 @@ async function handleSave(args: string[], bm: BrowserManager): Promise<string> {
   }
   // L1-L3 content filters (datamarking, hidden-element strip, ARIA regex,
   // URL blocklist). The full L4 ML classifier runs at sidebar-agent prompt
-  // injection time, not here (CLAUDE.md: classifier can't import in compiled binary).
+  // injection time, not here (AGENTS.md: classifier can't import in compiled binary).
   const filterResult = runContentFilters(body, page.url(), 'domain-skill-save');
   if (filterResult.blocked) {
     logTelemetry({ event: 'domain_skill_save_blocked', host, reason: filterResult.message });
@@ -188,7 +188,7 @@ async function handleEdit(args: string[]): Promise<string> {
     );
   }
   const editor = process.env.EDITOR || 'vi';
-  const tmpFile = path.join(os.tmpdir(), `gstack-domain-skill-${process.pid}-${Date.now()}.md`);
+  const tmpFile = path.join(os.tmpdir(), `cgstack-domain-skill-${process.pid}-${Date.now()}.md`);
   await fs.writeFile(tmpFile, current.body, 'utf8');
   const result = spawnSync(editor, [tmpFile], { stdio: 'inherit' });
   if (result.status !== 0) {
@@ -222,7 +222,7 @@ async function handlePromoteToGlobal(args: string[]): Promise<string> {
   const row = await promoteToGlobal(host, slug);
   return [
     `Promoted ${row.host} to global scope (v${row.version}).`,
-    `Stored at: ~/.gstack/global-domain-skills.jsonl`,
+    `Stored at: ~/.cgstack/global-domain-skills.jsonl`,
     '',
     `This skill now fires for all projects unless they have a per-project skill for the same host.`,
   ].join('\n');

@@ -12,7 +12,7 @@ import * as os from 'os';
 //   2. BROWSE_HEADED=1 disables the watchdog entirely (server-side defense for headed
 //      mode, where the user controls window lifecycle).
 //   3. Default headless mode + parent dies: server STAYS ALIVE. The original
-//      "kill on parent death" was inverted by #994 because Claude Code's Bash
+//      "kill on parent death" was inverted by #994 because Codex's Bash
 //      sandbox kills the parent shell between every tool invocation, and #994
 //      makes browse persist across $B calls. Idle timeout (30 min) handles
 //      eventual cleanup.
@@ -36,7 +36,7 @@ let serverProc: Subprocess | null = null;
 let parentProc: Subprocess | null = null;
 
 afterEach(async () => {
-  // Kill any survivors so subsequent tests get a clean slate.
+  // Kill any survivors so subsequent tests get a clean codex.
   try { parentProc?.kill('SIGKILL'); } catch {}
   try { serverProc?.kill('SIGKILL'); } catch {}
   // Give processes a moment to exit before tmpDir cleanup.

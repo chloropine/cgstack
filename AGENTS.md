@@ -1,115 +1,77 @@
-# gstack — AI Engineering Workflow
+# cgstack — Codex Engineering Workflow
 
-gstack is a collection of SKILL.md files that give AI agents structured roles for
-software development. Each skill is a specialist: CEO reviewer, eng manager,
-designer, QA lead, release engineer, debugger, and more.
+cgstack is a Codex-only collection of `SKILL.md` files and runtime tools for
+software development. Skills live under `.agents/skills/` for repo-local
+development and `~/.codex/skills/` for global Codex installs.
 
-## Available skills
-
-Skills live in `.agents/skills/` (or `~/.claude/skills/gstack/` on Claude Code).
-Invoke them by name (e.g., `/office-hours`).
-
-### Plan-mode reviews
-
-| Skill | What it does |
-|-------|-------------|
-| `/office-hours` | Start here. Reframes your product idea before you write code. |
-| `/plan-ceo-review` | CEO-level review: find the 10-star product in the request. |
-| `/plan-eng-review` | Lock architecture, data flow, edge cases, and tests. |
-| `/plan-design-review` | Rate each design dimension 0-10, explain what a 10 looks like. |
-| `/plan-devex-review` | DX-mode review: TTHW, magical moments, friction points, persona traces. |
-| `/plan-tune` | Self-tune AskUserQuestion sensitivity per question. |
-| `/autoplan` | One command runs CEO → design → eng → DX review. |
-| `/design-consultation` | Build a complete design system from scratch. |
-
-### Implementation + review
-
-| Skill | What it does |
-|-------|-------------|
-| `/review` | Pre-landing PR review. Finds bugs that pass CI but break in prod. |
-| `/codex` | Second opinion via OpenAI Codex. Review, challenge, or consult modes. |
-| `/investigate` | Systematic root-cause debugging. No fixes without investigation. |
-| `/design-review` | Live-site visual audit + fix loop with atomic commits. |
-| `/design-shotgun` | Generate multiple AI design variants, comparison board, iterate. |
-| `/design-html` | Generate production-quality Pretext-native HTML/CSS. |
-| `/devex-review` | Live developer experience audit (TTHW measured against the real flow). |
-| `/qa` | Open a real browser, find bugs, fix them, re-verify. |
-| `/qa-only` | Same methodology as /qa but report only — no code changes. |
-| `/scrape` | Pull data from a web page. First call prototypes; codified call runs in ~200ms. |
-| `/skillify` | Codify the most recent successful `/scrape` flow into a permanent browser-skill. |
-
-### Release + deploy
-
-| Skill | What it does |
-|-------|-------------|
-| `/ship` | Run tests, review, push, open PR. Workspace-aware version queue. |
-| `/land-and-deploy` | Merge the PR, wait for CI and deploy, verify production health. |
-| `/canary` | Post-deploy monitoring loop using the browse daemon. |
-| `/landing-report` | Read-only dashboard for the workspace-aware ship queue. |
-| `/document-release` | Update all docs to match what you just shipped. |
-| `/document-generate` | Generate Diataxis docs (tutorial / how-to / reference / explanation) from code. |
-| `/setup-deploy` | One-time deploy config detection (Fly.io, Render, Vercel, etc.). |
-| `/gstack-upgrade` | Update gstack to the latest version. |
-
-### Operational + memory
-
-| Skill | What it does |
-|-------|-------------|
-| `/context-save` | Save working context (git state, decisions, remaining work). |
-| `/context-restore` | Resume from a saved context, even across Conductor workspaces. |
-| `/learn` | Manage what gstack learned across sessions. |
-| `/retro` | Weekly retro with per-person breakdowns and shipping streaks. |
-| `/health` | Code quality dashboard (type checker, linter, tests, dead code). |
-| `/benchmark` | Performance regression detection (page load, Core Web Vitals). |
-| `/benchmark-models` | Cross-model benchmark for skills (Claude, GPT, Gemini side-by-side). |
-| `/cso` | OWASP Top 10 + STRIDE security audit. |
-| `/setup-gbrain` | Set up gbrain for cross-machine session memory sync. |
-| `/sync-gbrain` | Keep gbrain current with this repo's code; refresh agent search guidance in CLAUDE.md. |
-
-### Browser + agent integration
-
-| Skill | What it does |
-|-------|-------------|
-| `/browse` | Headless browser — real Chromium, real clicks, ~100ms/command. |
-| `/open-gstack-browser` | Launch the visible GStack Browser with sidebar + stealth. |
-| `/setup-browser-cookies` | Import cookies from your real browser for authenticated testing. |
-| `/pair-agent` | Pair a remote AI agent (OpenClaw, Codex, etc.) with your browser. |
-
-### Safety + scoping
-
-| Skill | What it does |
-|-------|-------------|
-| `/careful` | Warn before destructive commands (rm -rf, DROP TABLE, force-push). |
-| `/freeze` | Lock edits to one directory. Hard block, not just a warning. |
-| `/guard` | Activate both careful + freeze at once. |
-| `/unfreeze` | Remove directory edit restrictions. |
-| `/make-pdf` | Turn any markdown file into a publication-quality PDF. |
-
-## Build commands
+## Build Commands
 
 ```bash
 bun install              # install dependencies
-bun test                 # run free tests (no API spend)
-bun run test:windows     # curated Windows-safe subset (runs on windows-latest)
-bun run build            # generate docs + compile binaries
-bun run gen:skill-docs   # regenerate SKILL.md files from templates
-bun run skill:check      # health dashboard for all skills
+bun run gen:skill-docs   # regenerate Codex SKILL.md files from templates
+bun run build            # generate docs and compile binaries
+bun test                 # run free tests
+bun run test:windows     # curated Windows-safe subset
+bun run skill:check      # skill health dashboard
 ```
 
-## Platform support
+## Key Conventions
 
-- **macOS** + **Linux**: full test suite supported.
-- **Windows**: curated Windows-safe subset runs on `windows-latest` via the
-  `windows-free-tests` CI job. Setup script (`./setup`) requires Git Bash or
-  MSYS today; native PowerShell support is a future expansion. The `bin/gstack-paths`
-  helper resolves state roots through `CLAUDE_PLUGIN_DATA` / `GSTACK_HOME` so plugin
-  installs work on every platform.
+- cgstack targets OpenAI Codex only.
+- `SKILL.md` files are generated from `.tmpl` templates. Edit the template, not the generated output.
+- Run `bun run gen:skill-docs` after template or resolver changes.
+- Runtime state lives in `~/.cgstack` unless `CGSTACK_HOME` is set.
+- Codex global skill runtime lives at `~/.codex/skills/cgstack`.
+- Repo-local generated skills live at `.agents/skills/cgstack-*`.
+- The browser binary provides Chromium access. Use `$B <command>` in skills.
+- Safety skills (`/careful`, `/freeze`, `/guard`) use advisory prose and explicit checks before risky operations.
 
-## Key conventions
+## Available Skills
 
-- SKILL.md files are **generated** from `.tmpl` templates. Edit the template, not the output.
-- Run `bun run gen:skill-docs --host codex` to regenerate Codex-specific output.
-- The browse binary provides headless browser access. Use `$B <command>` in skills.
-- Safety skills (careful, freeze, guard) use inline advisory prose — always confirm before destructive operations.
-- State paths resolve via `bin/gstack-paths` (sourced via `eval "$(...)"`). Honors `GSTACK_HOME`, `CLAUDE_PLUGIN_DATA`, `CLAUDE_PLANS_DIR`.
-- The `claude` CLI binary resolves via `browse/src/claude-bin.ts` (`Bun.which()` + `GSTACK_CLAUDE_BIN` override). Set `GSTACK_CLAUDE_BIN=wsl` plus `GSTACK_CLAUDE_BIN_ARGS='["claude"]'` to run Claude through WSL on Windows.
+| Skill | What it does |
+|-------|-------------|
+| `/cgstack` | Root skill and routing index. |
+| `/office-hours` | Reframes product ideas before code. |
+| `/plan-ceo-review` | CEO-level scope and strategy review. |
+| `/plan-eng-review` | Architecture, data flow, edge cases, and tests. |
+| `/plan-design-review` | Design review with explicit quality dimensions. |
+| `/plan-devex-review` | Developer experience review. |
+| `/plan-tune` | Tunes question sensitivity for plan workflows. |
+| `/autoplan` | Runs the plan review pipeline. |
+| `/design-consultation` | Builds a design system from scratch. |
+| `/design-review` | Live visual audit and fix workflow. |
+| `/design-shotgun` | Generates and compares multiple design directions. |
+| `/design-html` | Produces production-quality HTML/CSS from a design direction. |
+| `/devex-review` | Live developer experience audit. |
+| `/review` | Finds bugs and regressions before landing. |
+| `/investigate` | Root-cause debugging workflow. |
+| `/qa` | Browser QA with fixes and re-verification. |
+| `/qa-only` | Browser QA report only. |
+| `/ship` | Tests, reviews, pushes, and prepares a PR. |
+| `/land-and-deploy` | Merges, waits for CI/deploy, and verifies production. |
+| `/canary` | Post-deploy monitoring. |
+| `/landing-report` | Read-only release queue dashboard. |
+| `/benchmark` | Performance regression detection. |
+| `/document-release` | Updates docs after shipping. |
+| `/document-generate` | Generates missing docs from code. |
+| `/setup-deploy` | Detects and records deployment configuration. |
+| `/browse` | Headless Chromium browser access. |
+| `/open-cgstack-browser` | Visible CGStack Browser with sidebar. |
+| `/setup-browser-cookies` | Imports cookies for authenticated browser testing. |
+| `/pair-agent` | Shares the browser with another Codex session-like client through a scoped token. |
+| `/scrape` | Extracts data from web pages. |
+| `/skillify` | Turns repeatable scraping flows into browser skills. |
+| `/cso` | OWASP Top 10 + STRIDE security audit. |
+| `/retro` | Engineering retrospective. |
+| `/health` | Code quality dashboard. |
+| `/learn` | Manages project learnings. |
+| `/context-save` | Saves working context. |
+| `/context-restore` | Restores saved context. |
+| `/setup-gbrain` | Sets up optional GBrain memory integration. |
+| `/sync-gbrain` | Syncs code and memory into GBrain. |
+| `/careful` | Warns before destructive commands. |
+| `/freeze` | Restricts edits to a selected path. |
+| `/guard` | Enables careful + freeze. |
+| `/unfreeze` | Removes edit restrictions. |
+| `/make-pdf` | Builds a PDF from Markdown. |
+| `/cgstack-upgrade` | Updates cgstack. |

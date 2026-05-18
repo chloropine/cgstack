@@ -7,7 +7,7 @@
 //   argv[2] — path to next.json (the util's JSON output)
 //   argv[3] — optional PR number for log lines
 //
-// Design note: fail-open on util error. A gstack bug must never freeze the
+// Design note: fail-open on util error. A cgstack bug must never freeze the
 // merge queue. The gate enforces ONE rule: this PR must not claim the same
 // version as another open PR. Lower-than-the-util's-suggestion is fine if
 // the slot is unclaimed — that preserves monotonic version ordering on main

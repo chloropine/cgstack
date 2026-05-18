@@ -14,14 +14,14 @@ import * as fs from 'fs';
  * Approach: spawn a fresh Bun subprocess that imports the module and emits a
  * structured snapshot (initial vs post-import process state). Parent asserts
  * that no listeners were bound, no Bun.serve started, and no SIGINT handlers
- * were registered. The subprocess uses HOME=tmp + GSTACK_HOME=tmp so any
+ * were registered. The subprocess uses HOME=tmp + CGSTACK_HOME=tmp so any
  * accidental state-dir write lands in a place we can verify is empty.
  */
 describe('server.ts module import has no auto-start side effects', () => {
   test('importing server.ts does not bind Bun.serve, register signal handlers, or write state', async () => {
     const tmpHome = path.join(os.tmpdir(), `browse-no-sfx-${Date.now()}-${process.pid}`);
     fs.mkdirSync(tmpHome, { recursive: true });
-    const tmpGstack = path.join(tmpHome, '.gstack');
+    const tmpGstack = path.join(tmpHome, '.cgstack');
 
     const childScript = `
 const sigintBefore = process.listenerCount('SIGINT');
@@ -41,11 +41,11 @@ const sigintAfter = process.listenerCount('SIGINT');
 const sigtermAfter = process.listenerCount('SIGTERM');
 const uncaughtAfter = process.listenerCount('uncaughtException');
 
-// Check that the gstack home directory wasn't populated as a side effect.
-let gstackPopulated = false;
+// Check that the cgstack home directory wasn't populated as a side effect.
+let cgstackPopulated = false;
 try {
   const entries = fs.readdirSync(${JSON.stringify(tmpGstack)});
-  gstackPopulated = entries.length > 0;
+  cgstackPopulated = entries.length > 0;
 } catch {
   // Doesn't exist — that's the win we want.
 }
@@ -54,7 +54,7 @@ console.log(JSON.stringify({
   sigintBefore, sigintAfter,
   sigtermBefore, sigtermAfter,
   uncaughtBefore, uncaughtAfter,
-  gstackPopulated,
+  cgstackPopulated,
 }));
 // Force exit so any background intervals don't keep this child alive
 // (the test framework would see a hang otherwise — which itself is a
@@ -66,11 +66,11 @@ process.exit(0);
       env: {
         ...process.env,
         HOME: tmpHome,
-        GSTACK_HOME: tmpGstack,
+        CGSTACK_HOME: tmpGstack,
         // Empty so the AUTH_TOKEN env path doesn't deterministically set a token.
         AUTH_TOKEN: '',
         // Force a stub state file so resolveConfig() at module load (if it
-        // happens) won't crawl the host's real .gstack/.
+        // happens) won't crawl the host's real .cgstack/.
         BROWSE_STATE_FILE: path.join(tmpGstack, 'browse.json'),
       },
       stdout: 'pipe',
@@ -93,12 +93,12 @@ process.exit(0);
     expect(snapshot.sigtermAfter).toBe(snapshot.sigtermBefore);
     expect(snapshot.uncaughtAfter).toBe(snapshot.uncaughtBefore);
 
-    // gstack home should remain empty — initRegistry/initAuditLog/etc. side
+    // cgstack home should remain empty — initRegistry/initAuditLog/etc. side
     // effects from module load are acceptable (they happen at module level),
     // but only insofar as they don't bind listeners or write project state.
     // The presence/absence test here proves we didn't bind Bun.serve (which
     // would also try to write the state file).
-    expect(snapshot.gstackPopulated).toBe(false);
+    expect(snapshot.cgstackPopulated).toBe(false);
 
     // Cleanup
     try { fs.rmSync(tmpHome, { recursive: true, force: true }); } catch { /* best effort */ }

@@ -15,7 +15,7 @@ import { parseSnapshotArgs } from '../../browse/src/snapshot';
 import * as fs from 'fs';
 import * as path from 'path';
 
-/** CLI-only commands: valid $B invocations that are handled by the CLI, not the server */
+/** Codex-only commands: valid $B invocations that are handled by the CLI, not the server. */
 const CLI_COMMANDS = new Set([
   'status', 'pair-agent', 'tunnel',
 ]);

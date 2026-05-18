@@ -1,12 +1,12 @@
 /**
  * AskUserQuestion format regression test for /plan-ceo-review and /plan-eng-review.
  *
- * Context: a user on Opus 4.7 reported the RECOMMENDATION line and the
+ * Context: a user on GPT 4.7 reported the RECOMMENDATION line and the
  * `Completeness: N/10` per-option score stopped appearing on AskUserQuestion
  * prompts. This test captures the agent's AskUserQuestion output verbatim
  * and asserts the format rule is applied.
  *
- * Capture shape: `claude -p` sessions inside this harness do not have the
+ * Capture shape: `codex -p` sessions inside this harness do not have the
  * AskUserQuestion MCP tool wired. We instruct the agent to write the verbatim
  * AskUserQuestion text it would have made to $OUT_FILE instead of calling
  * any tool. Assertions read that file.
@@ -34,7 +34,7 @@ const evalCollector = createEvalCollector('e2e-plan-format');
 
 // Regex predicates applied to captured AskUserQuestion content.
 // Recommendation-line presence + substance is now graded by judgeRecommendation
-// (deterministic regex for present/commits/has_because, Haiku for substance);
+// (deterministic regex for present/commits/has_because, Mini for substance);
 // the prior strict `[Rr]ecommendation:[*\s]*Choose` regex pinned down a
 // template-example wording ("Choose [X]") that the format spec doesn't require
 // — the canonical form per generate-ask-user-format.ts is just
@@ -137,7 +137,7 @@ After writing the file, stop. Do not continue the review.`,
       timeout: 240_000,
       testName: 'plan-ceo-review-format-mode',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-ceo-review format (mode)', result);
@@ -194,7 +194,7 @@ After writing the file, stop. Do not continue the review.`,
       timeout: 240_000,
       testName: 'plan-ceo-review-format-approach',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-ceo-review format (approach)', result);
@@ -253,7 +253,7 @@ After writing the file with that ONE question, stop. Do not continue the review.
       timeout: 240_000,
       testName: 'plan-eng-review-format-coverage',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-eng-review format (coverage)', result);
@@ -309,7 +309,7 @@ After writing the file with that ONE question, stop. Do not continue the review.
       timeout: 240_000,
       testName: 'plan-eng-review-format-kind',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-eng-review format (kind)', result);

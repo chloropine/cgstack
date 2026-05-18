@@ -1,11 +1,11 @@
 /**
- * Taste engine — end-to-end tests for `gstack-taste-update`.
+ * Taste engine — end-to-end tests for `cgstack-taste-update`.
  *
  * Covers the v1 taste profile contract: schema shape, Laplace-smoothed confidence,
  * 5%/week decay, dimension extraction from reason strings, session cap, schema
  * migration, conflict detection (taste drift), malformed-input recovery.
  *
- * All tests use GSTACK_STATE_DIR pointing at a temp dir so no real home dir is
+ * All tests use CGSTACK_STATE_DIR pointing at a temp dir so no real home dir is
  * touched. Each test isolates its own state directory.
  */
 
@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const BIN = path.join(ROOT, 'bin', 'gstack-taste-update');
+const BIN = path.join(ROOT, 'bin', 'cgstack-taste-update');
 
 interface Preference {
   value: string;
@@ -39,7 +39,7 @@ let workdir: string;
 beforeEach(() => {
   stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'taste-state-'));
   workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'taste-work-'));
-  // Initialize a git repo so gstack-taste-update's getSlug() finds a toplevel
+  // Initialize a git repo so cgstack-taste-update's getSlug() finds a toplevel
   spawnSync('git', ['init', '-b', 'main'], { cwd: workdir, stdio: 'pipe' });
 });
 
@@ -51,7 +51,7 @@ afterEach(() => {
 function run(args: string[]): { status: number | null; stdout: string; stderr: string } {
   const result = spawnSync('bun', ['run', BIN, ...args], {
     cwd: workdir,
-    env: { ...process.env, GSTACK_STATE_DIR: stateDir, HOME: stateDir },
+    env: { ...process.env, CGSTACK_STATE_DIR: stateDir, HOME: stateDir },
     encoding: 'utf-8',
     timeout: 10000,
   });

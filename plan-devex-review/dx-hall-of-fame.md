@@ -111,9 +111,9 @@ Five fields, zero ambiguity.
 2. **DevEx** (ACM Queue, 2023): Feedback Loops, Cognitive Load, Flow State. Combine perceptual + workflow data.
 3. **Fagerholm & Munch** (IEEE, 2012): Cognition, Affect, Conation. The psychological "trilogy of mind."
 
-## Claude Code Skill DX Checklist
+## Codex Skill DX Checklist
 
-Use when reviewing plans for Claude Code skills, MCP servers, or AI agent tools.
+Use when reviewing plans for Codex skills, MCP servers, or AI agent tools.
 
 - [ ] **AskUserQuestion design**: One issue per call. Re-ground context (project, branch, task). Browser handoff for visual feedback.
 - [ ] **State storage**: Global (~/.tool/) vs per-project ($SLUG/) vs per-session. Append-only JSONL for audit trails.
@@ -124,4 +124,4 @@ Use when reviewing plans for Claude Code skills, MCP servers, or AI agent tools.
 - [ ] **Session continuity**: Timeline events. Compaction recovery. Cross-session learnings.
 - [ ] **Bounded autonomy**: Clear operational limits. Mandatory escalation for destructive actions. Audit trails.
 
-Reference implementations: gstack's design-shotgun loop, auto-upgrade flow, progressive consent, hierarchical storage.
+Reference implementations: cgstack's design-shotgun loop, auto-upgrade flow, progressive consent, hierarchical storage.

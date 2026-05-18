@@ -1,8 +1,8 @@
 /**
  * Centralized gbrain CLI invocation.
  *
- * Every `gbrain ...` spawn from `bin/gstack-gbrain-sync.ts` and
- * `bin/gstack-memory-ingest.ts` MUST go through `spawnGbrain` (or
+ * Every `gbrain ...` spawn from `bin/cgstack-gbrain-sync.ts` and
+ * `bin/cgstack-memory-ingest.ts` MUST go through `spawnGbrain` (or
  * `execGbrainJson`), and the invariant test
  * `test/gbrain-exec-invariant.test.ts` enforces this with a static-source
  * grep. The helper layer guarantees three properties:
@@ -21,12 +21,12 @@
  *      spawn. This is the central bug the helper exists to prevent
  *      regressing on.
  *
- *   3. **`GBRAIN_HOME` honored consistently.** Other gstack helpers
+ *   3. **`GBRAIN_HOME` honored consistently.** Other cgstack helpers
  *      (`detectEngineTier`) already honor `GBRAIN_HOME`. `buildGbrainEnv`
  *      reads from `${GBRAIN_HOME:-$HOME/.gbrain}/config.json` so all
- *      gstack-side gbrain calls agree on which config file matters.
+ *      cgstack-side gbrain calls agree on which config file matters.
  *
- * **Escape hatch:** `GSTACK_RESPECT_ENV_DATABASE_URL=1` returns the
+ * **Escape hatch:** `CGSTACK_RESPECT_ENV_DATABASE_URL=1` returns the
  * caller's env unchanged. Use only when the brain intentionally lives in
  * the project's local DB (rare).
  */
@@ -58,7 +58,7 @@ export interface BuildGbrainEnvOptions {
  * Build an env dict with DATABASE_URL seeded from
  * `${GBRAIN_HOME:-$HOME/.gbrain}/config.json`. Returns the base env
  * unchanged when:
- *   - `GSTACK_RESPECT_ENV_DATABASE_URL=1` (intentional opt-out),
+ *   - `CGSTACK_RESPECT_ENV_DATABASE_URL=1` (intentional opt-out),
  *   - the config file is missing or unparseable,
  *   - the config has no `database_url`,
  *   - the caller already set DATABASE_URL to the same value.
@@ -70,7 +70,7 @@ export interface BuildGbrainEnvOptions {
 export function buildGbrainEnv(opts: BuildGbrainEnvOptions = {}): NodeJS.ProcessEnv {
   const baseEnv = opts.baseEnv || process.env;
   const out: NodeJS.ProcessEnv = { ...baseEnv };
-  if (baseEnv.GSTACK_RESPECT_ENV_DATABASE_URL === "1") return out;
+  if (baseEnv.CGSTACK_RESPECT_ENV_DATABASE_URL === "1") return out;
 
   const homeBase = baseEnv.HOME || homedir();
   const gbrainHome = baseEnv.GBRAIN_HOME || join(homeBase, ".gbrain");
@@ -144,7 +144,7 @@ export function execGbrainJson<T = unknown>(args: string[], opts: SpawnGbrainOpt
 
 /**
  * Async streaming variant for callers that need to attach stdout/stderr
- * listeners (e.g., `gbrain import` in `gstack-memory-ingest.ts`). Always
+ * listeners (e.g., `gbrain import` in `cgstack-memory-ingest.ts`). Always
  * injects the seeded env. Returns the raw `ChildProcess` so the caller
  * can wire up its own promise around exit/timeout/signal handling.
  */

@@ -5,8 +5,8 @@
  * output, and returns structured results. Follows the same pattern as
  * session-runner.ts but adapted for the Codex CLI.
  *
- * Key differences from Claude session-runner:
- * - Uses `codex exec` instead of `claude -p`
+ * Key differences from Codex session-runner:
+ * - Uses `codex exec` instead of `codex -p`
  * - Output is JSONL with different event types (item.completed, turn.completed, thread.started)
  * - Uses `--json` flag instead of `--output-format stream-json`
  * - Needs temp HOME with skill installed at ~/.codex/skills/{skillName}/SKILL.md
@@ -30,7 +30,7 @@ export interface CodexResult {
   stderr: string;           // Stderr output (skill loading errors, auth failures)
 }
 
-// --- JSONL parser (ported from Python in codex/SKILL.md.tmpl) ---
+// --- JSONL parser for `codex exec --json` ---
 
 export interface ParsedCodexJSONL {
   output: string;
@@ -154,7 +154,7 @@ export async function runCodexSkill(opts: {
   } = opts;
 
   const startTime = Date.now();
-  const name = skillName || path.basename(skillDir) || 'gstack';
+  const name = skillName || path.basename(skillDir) || 'cgstack';
 
   // Check if codex binary exists
   const whichResult = Bun.spawnSync(['which', 'codex']);

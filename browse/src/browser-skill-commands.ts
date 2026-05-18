@@ -9,7 +9,7 @@
  *   rm <name> [--global]                       — tombstone a user-tier skill
  *
  * Load-bearing: spawnSkill mints a per-spawn scoped token (read+write scope)
- * and passes it via GSTACK_SKILL_TOKEN. The skill never sees the daemon root
+ * and passes it via CGSTACK_SKILL_TOKEN. The skill never sees the daemon root
  * token. Untrusted skills get a scrubbed env (no $HOME, $PATH minimal, no
  * secrets like $GITHUB_TOKEN/$OPENAI_API_KEY/etc.) and a locked cwd. Trusted
  * skills (frontmatter `trusted: true`) inherit the full process env.
@@ -239,7 +239,7 @@ export interface SpawnSkillResult {
  *
  * 1. Mint a scoped token (read+write only; expires at timeout + 30s slack).
  * 2. Build the env: trusted=true → process.env; trusted=false → scrubbed.
- *    GSTACK_PORT and GSTACK_SKILL_TOKEN are always set.
+ *    CGSTACK_PORT and CGSTACK_SKILL_TOKEN are always set.
  * 3. Spawn `bun run script.ts -- <args>` with cwd=skill.dir.
  * 4. Capture stdout (capped at 1MB) and stderr; enforce timeout.
  * 5. On exit/timeout, revoke the token. Always.
@@ -338,15 +338,15 @@ async function readCapped(stream: ReadableStream<Uint8Array> | undefined, capByt
 const SECRET_KEY_PATTERNS = [
   /TOKEN/i, /KEY/i, /SECRET/i, /PASSWORD/i, /CREDENTIAL/i,
   /^AWS_/, /^AZURE_/, /^GCP_/, /^GOOGLE_APPLICATION_/,
-  /^ANTHROPIC_/, /^OPENAI_/, /^GITHUB_/, /^GH_/,
+  /^OPENAI_/, /^GITHUB_/, /^GH_/,
   /^SSH_/, /^GPG_/,
   /^NPM_TOKEN/, /^PYPI_/,
 ];
 
 /**
  * Allowlist for untrusted spawns. Anything not in this list is dropped.
- * Includes: minimal PATH, locale, terminal type. Skills get GSTACK_PORT +
- * GSTACK_SKILL_TOKEN injected separately.
+ * Includes: minimal PATH, locale, terminal type. Skills get CGSTACK_PORT +
+ * CGSTACK_SKILL_TOKEN injected separately.
  */
 const UNTRUSTED_ALLOWLIST = new Set([
   'LANG', 'LC_ALL', 'LC_CTYPE',
@@ -368,7 +368,7 @@ export function buildSpawnEnv(opts: BuildEnvOptions): Record<string, string> {
     // if the parent had one in env (defense in depth).
     for (const [k, v] of Object.entries(process.env)) {
       if (v === undefined) continue;
-      if (k === 'GSTACK_TOKEN') continue; // never propagate root token
+      if (k === 'CGSTACK_TOKEN') continue; // never propagate root token
       out[k] = v;
     }
     // Set a minimal PATH if missing.
@@ -386,7 +386,7 @@ export function buildSpawnEnv(opts: BuildEnvOptions): Record<string, string> {
   }
 
   // Drop anything that pattern-matches a secret. (Trusted path can have secrets
-  // intentionally — e.g. an internal-tool skill — but we still strip GSTACK_TOKEN
+  // intentionally — e.g. an internal-tool skill — but we still strip CGSTACK_TOKEN
   // above.)
   if (!opts.trusted) {
     for (const k of Object.keys(out)) {
@@ -395,8 +395,8 @@ export function buildSpawnEnv(opts: BuildEnvOptions): Record<string, string> {
   }
 
   // Inject the daemon connection (always last so callers can't override).
-  out.GSTACK_PORT = String(opts.port);
-  out.GSTACK_SKILL_TOKEN = opts.skillToken;
+  out.CGSTACK_PORT = String(opts.port);
+  out.CGSTACK_SKILL_TOKEN = opts.skillToken;
 
   return out;
 }

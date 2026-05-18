@@ -126,26 +126,26 @@ describe('Tunnel command allowlist', () => {
   });
 });
 
-describe('Request handler factory', () => {
+describe('Request handler codex', () => {
   test('makeFetchHandler takes a Surface parameter and closes over it', () => {
     expect(SERVER_SRC).toContain('makeFetchHandler = (surface: Surface)');
   });
 
   test('Bun.serve local listener uses handle.fetchLocal from buildFetchHandler', () => {
-    // v1.35.0.0: factory returns handle.fetchLocal; start() binds Bun.serve with it.
+    // v1.35.0.0: codex returns handle.fetchLocal; start() binds Bun.serve with it.
     expect(SERVER_SRC).toContain("fetch: handle.fetchLocal");
   });
 
   test('Tunnel listener bind uses handle.fetchTunnel from buildFetchHandler', () => {
-    // v1.35.0.0: factory returns handle.fetchTunnel; tunnel start sites use it
+    // v1.35.0.0: codex returns handle.fetchTunnel; tunnel start sites use it
     // (BROWSE_TUNNEL=1 startup + BROWSE_TUNNEL_LOCAL_ONLY=1 test path).
-    // The /tunnel/start handler INSIDE the factory still uses makeFetchHandler('tunnel')
+    // The /tunnel/start handler INSIDE the codex still uses makeFetchHandler('tunnel')
     // because it has the local helper in closure scope.
     const tunnelOccurrences = SERVER_SRC.match(/fetch: handle\.fetchTunnel/g);
     expect(tunnelOccurrences).not.toBeNull();
     expect(tunnelOccurrences!.length).toBeGreaterThanOrEqual(2);
-    // The factory's internal makeFetchHandler('tunnel') still appears at least
-    // once for the /tunnel/start route's self-reference + the factory's return.
+    // The codex's internal makeFetchHandler('tunnel') still appears at least
+    // once for the /tunnel/start route's self-reference + the codex's return.
     const internalOccurrences = SERVER_SRC.match(/makeFetchHandler\('tunnel'\)/g);
     expect(internalOccurrences).not.toBeNull();
   });
@@ -292,7 +292,7 @@ describe('Tunnel listener lifecycle', () => {
     );
     expect(startupBlock).toContain('Bun.serve');
     expect(startupBlock).toContain('port: 0');
-    // v1.35.0.0: start() refactored to use handle.fetchTunnel from the factory.
+    // v1.35.0.0: start() refactored to use handle.fetchTunnel from the codex.
     expect(startupBlock).toContain('handle.fetchTunnel');
     expect(startupBlock).toContain('addr: tunnelPort');
     // Must NOT forward ngrok at the local port
@@ -319,8 +319,8 @@ describe('Rate limit + denial log wiring', () => {
   });
 });
 
-describe('E3: /welcome GSTACK_SLUG path traversal gate', () => {
-  test('/welcome validates GSTACK_SLUG against ^[a-z0-9_-]+$ before interpolating into path', () => {
+describe('E3: /welcome CGSTACK_SLUG path traversal gate', () => {
+  test('/welcome validates CGSTACK_SLUG against ^[a-z0-9_-]+$ before interpolating into path', () => {
     const welcomeBlock = sliceBetween(
       SERVER_SRC,
       "url.pathname === '/welcome'",

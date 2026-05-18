@@ -16,7 +16,7 @@
  *
  * Capture pattern matches existing harness: agent writes verbatim
  * AskUserQuestion text to $OUT_FILE; regex predicates run on the captured
- * file. Classified periodic (Opus 4.7 non-deterministic).
+ * file. Classified periodic (GPT 4.7 non-deterministic).
  *
  * FOLLOW-UP (not in v1.7.0.0):
  * - True cadence eval (3 findings → 3 distinct asks across turns). Current
@@ -164,7 +164,7 @@ After writing the file, stop.`,
       timeout: 240_000,
       testName: 'plan-review-prosons-format',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-review prosons format positive', result);
@@ -223,7 +223,7 @@ After writing the file, stop.`,
       timeout: 240_000,
       testName: 'plan-review-prosons-hardstop-neg',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-review prosons hard-stop negative', result);
@@ -273,7 +273,7 @@ After writing the file, stop.`,
       timeout: 240_000,
       testName: 'plan-review-prosons-neutral-neg',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-review prosons neutral negative', result);
@@ -324,7 +324,7 @@ After writing the file, stop.`,
       timeout: 240_000,
       testName: 'plan-ceo-review-prosons-cadence',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-review prosons hard-stop positive', result);

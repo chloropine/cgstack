@@ -60,35 +60,35 @@ if (evalsEnabled && process.env.EVALS_TIER) {
 // --- Helper functions ---
 
 /** Copy all SKILL.md files for auto-discovery.
- *  Installs to project-level (.claude/skills/) only. Writing to the user's
- *  ~/.claude/skills/ is unsafe: it may contain symlinks from the real gstack
+ *  Installs to project-level (.codex/skills/) only. Writing to the user's
+ *  ~/.codex/skills/ is unsafe: it may contain symlinks from the real cgstack
  *  install that point to different worktrees or dangling targets. */
 function installSkills(tmpDir: string) {
   const skillDirs = [
-    '', // root gstack SKILL.md
+    '', // root cgstack SKILL.md
     'qa', 'qa-only', 'ship', 'review', 'plan-ceo-review', 'plan-eng-review',
     'plan-design-review', 'design-review', 'design-consultation', 'retro',
     'document-release', 'investigate', 'office-hours', 'browse', 'setup-browser-cookies',
-    'gstack-upgrade', 'humanizer',
+    'cgstack-upgrade', 'humanizer',
   ];
 
-  const targetBase = path.join(tmpDir, '.claude', 'skills');
+  const targetBase = path.join(tmpDir, '.codex', 'skills');
 
   for (const skill of skillDirs) {
     const srcPath = path.join(ROOT, skill, 'SKILL.md');
     if (!fs.existsSync(srcPath)) continue;
 
-    const skillName = skill || 'gstack';
+    const skillName = skill || 'cgstack';
     const destDir = path.join(targetBase, skillName);
     fs.mkdirSync(destDir, { recursive: true });
     fs.copyFileSync(srcPath, path.join(destDir, 'SKILL.md'));
   }
 
-  // Write a CLAUDE.md with explicit routing instructions.
+  // Write a AGENTS.md with explicit routing instructions.
   // The skill descriptions in system-reminder aren't strong enough to override
-  // Claude's default behavior of answering directly. A CLAUDE.md instruction
-  // puts routing rules in project context which Claude weighs more heavily.
-  fs.writeFileSync(path.join(tmpDir, 'CLAUDE.md'), `# Project Instructions
+  // Codex's default behavior of answering directly. A AGENTS.md instruction
+  // puts routing rules in project context which Codex weighs more heavily.
+  fs.writeFileSync(path.join(tmpDir, 'AGENTS.md'), `# Project Instructions
 
 ## Skill routing
 
@@ -121,16 +121,16 @@ function initGitRepo(dir: string) {
 
 /**
  * Create a routing test working directory.
- * Uses the actual repo checkout (ROOT) which has CLAUDE.md, .claude/skills/,
+ * Uses the actual repo checkout (ROOT) which has AGENTS.md, .codex/skills/,
  * and full project context. This matches the local environment where routing
  * tests pass reliably. In containerized CI, bare tmpDirs lack the context
- * Claude needs to make correct routing decisions.
+ * Codex needs to make correct routing decisions.
  */
 function createRoutingWorkDir(suffix: string): string {
   // Clone the repo checkout into a tmpDir so concurrent tests don't interfere
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `routing-${suffix}-`));
   // Copy essential context files
-  const filesToCopy = ['CLAUDE.md', 'README.md', 'package.json', 'ETHOS.md'];
+  const filesToCopy = ['AGENTS.md', 'README.md', 'package.json', 'ETHOS.md'];
   for (const f of filesToCopy) {
     const src = path.join(ROOT, f);
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(tmpDir, f));
@@ -203,7 +203,7 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -253,7 +253,7 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -261,7 +261,7 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
   }, 150_000);
 
   // Removed: journey-think-bigger
-  // Tested ambiguous routing ("think bigger" → plan-ceo-review) but Claude
+  // Tested ambiguous routing ("think bigger" → plan-ceo-review) but Codex
   // legitimately answers directly instead of routing. Never passed reliably.
   // The other 10 journey tests cover routing with clear signals.
 
@@ -315,7 +315,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       const validSkills = ['investigate', 'qa'];
       expect(validSkills, `Expected one of ${validSkills.join('/')} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
@@ -352,7 +352,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect(acceptable, `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -392,7 +392,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -431,7 +431,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -468,7 +468,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -511,7 +511,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -540,7 +540,7 @@ export default app;
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -591,7 +591,7 @@ body { font-family: sans-serif; }
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
+      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Codex may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
       const validSkills = ['design-review', 'qa', 'qa-only', 'browse'];
       expect(validSkills, `Expected one of ${validSkills.join('/')} but got ${actualSkill}`).toContain(actualSkill);
     } finally {

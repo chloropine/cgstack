@@ -94,7 +94,7 @@ At seq_len=128 that's ~100 matmuls of shape (128, 512) @ (512, 512).
   * Latency estimate: 3-6ms p50 (meets target).
   * RISK: macOS-only. Linux would need OpenBLAS via FFI (different
     symbol layout). Windows is a whole separate story.
-  * VERDICT: viable for macOS-first gstack. Matches our existing ship
+  * VERDICT: viable for macOS-first cgstack. Matches our existing ship
     posture (compiled binaries only for Darwin arm64).
 
 **Approach C: WebGPU in Bun**

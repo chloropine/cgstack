@@ -24,7 +24,7 @@
  *
  * Posture assertions: each mode has distinct downstream language. The
  * checks below are deliberately permissive — they catch the binary
- * "did the mode posture even apply" question, not Opus-specific phrasing.
+ * "did the mode posture even apply" question, not GPT-specific phrasing.
  *
  *   HOLD SCOPE        — "rigor" or "bulletproof" or "hold scope"
  *   SCOPE EXPANSION   — "expansion" or "10x" or "delight" or "dream"
@@ -32,7 +32,7 @@
 
 import { describe, test } from 'bun:test';
 import {
-  launchClaudePty,
+  launchCodexPty,
   isNumberedOptionListVisible,
   isPermissionDialogVisible,
   parseNumberedOptions,
@@ -40,8 +40,8 @@ import {
   MODE_RE,
   optionsSignature,
   TAIL_SCAN_BYTES,
-  type ClaudePtySession,
-} from './helpers/claude-pty-runner';
+  type CodexPtySession,
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -66,7 +66,7 @@ const CASES: ModeCase[] = [
  * the overall budget.
  */
 async function navigateToModeAskUserQuestion(
-  session: ClaudePtySession,
+  session: CodexPtySession,
   since: number,
   targetMode: ModeCase['mode'],
   opts: { maxNav?: number; budgetMs?: number } = {},
@@ -84,7 +84,7 @@ async function navigateToModeAskUserQuestion(
   while (Date.now() - start < budgetMs) {
     if (session.exited()) {
       throw new Error(
-        `claude exited (code=${session.exitCode()}) during nav.\n` +
+        `codex exited (code=${session.exitCode()}) during nav.\n` +
         `Last visible:\n${session.visibleSince(since).slice(-2000)}`,
       );
     }
@@ -119,7 +119,7 @@ async function navigateToModeAskUserQuestion(
     //
     // Note: runPlanSkillObservation has its own permission-dialog filter that
     // simply skips classification (since it observes, doesn't drive). This nav
-    // loop drives the PTY directly via launchClaudePty and so owns its own
+    // loop drives the PTY directly via launchCodexPty and so owns its own
     // dialog handling — granting with "1" so the workflow advances. Both
     // paths share TAIL_SCAN_BYTES as the recent-tail window so tuning stays
     // in sync.
@@ -149,7 +149,7 @@ describeE2E('/plan-ceo-review mode routing (gate)', () => {
     test(
       `mode "${c.mode}" routes to its distinctive posture`,
       async () => {
-        const session = await launchClaudePty({
+        const session = await launchCodexPty({
           permissionMode: 'plan',
           timeoutMs: 540_000,
         });
@@ -174,7 +174,7 @@ describeE2E('/plan-ceo-review mode routing (gate)', () => {
             await Bun.sleep(2500);
             if (session.exited()) {
               throw new Error(
-                `claude exited (code=${session.exitCode()}) after mode pick.\n` +
+                `codex exited (code=${session.exitCode()}) after mode pick.\n` +
                 `Downstream:\n${session.visibleSince(sincePick).slice(-2000)}`,
               );
             }

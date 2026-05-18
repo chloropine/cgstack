@@ -14,7 +14,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const MODEL_DIR = path.join(os.homedir(), '.gstack', 'models', 'testsavant-small');
+const MODEL_DIR = path.join(os.homedir(), '.cgstack', 'models', 'testsavant-small');
 const TOKENIZER_AVAILABLE = fs.existsSync(path.join(MODEL_DIR, 'tokenizer.json'));
 
 describe('bun-native tokenizer', () => {
@@ -67,7 +67,7 @@ describe('bun-native tokenizer', () => {
     const { env, AutoTokenizer } = await import('@huggingface/transformers');
     env.allowLocalModels = true;
     env.allowRemoteModels = false;
-    env.localModelPath = path.join(os.homedir(), '.gstack', 'models');
+    env.localModelPath = path.join(os.homedir(), '.cgstack', 'models');
 
     const tok = loadHFTokenizer(MODEL_DIR);
     const ref = await AutoTokenizer.from_pretrained('testsavant-small');

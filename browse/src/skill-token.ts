@@ -14,7 +14,7 @@
  *   deterministic when the script exits or times out.
  *
  * Lifecycle:
- *   spawn start → mintSkillToken() → set GSTACK_SKILL_TOKEN in child env
+ *   spawn start → mintSkillToken() → set CGSTACK_SKILL_TOKEN in child env
  *                                  ↓
  *   script makes HTTP calls       /command with Bearer <skill-token>
  *                                  ↓
@@ -67,7 +67,7 @@ export interface MintSkillTokenOptions {
  * Mint a fresh scoped token for a skill spawn.
  *
  * Returns the token info; the caller passes `info.token` to the child via the
- * GSTACK_SKILL_TOKEN env var. The clientId is deterministic from skillName +
+ * CGSTACK_SKILL_TOKEN env var. The clientId is deterministic from skillName +
  * spawnId so the corresponding `revokeSkillToken()` always finds the right
  * record.
  */

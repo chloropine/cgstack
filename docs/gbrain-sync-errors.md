@@ -1,6 +1,6 @@
 # gbrain-sync error lookup
 
-Every error message `gstack-brain-*` can print, with problem, cause, and fix.
+Every error message `cgstack-brain-*` can print, with problem, cause, and fix.
 
 Search this file by the prefix after `BRAIN_SYNC:` or by the binary name in
 the command output.
@@ -9,21 +9,21 @@ the command output.
 
 ## `BRAIN_SYNC: brain repo detected: <url>`
 
-**Problem.** You're on a machine that has `~/.gstack-brain-remote.txt` (copied
-from another machine) but no local git repo at `~/.gstack/.git`.
+**Problem.** You're on a machine that has `~/.cgstack-brain-remote.txt` (copied
+from another machine) but no local git repo at `~/.cgstack/.git`.
 
-**Cause.** You've set up GBrain sync elsewhere and your gstack hasn't been
+**Cause.** You've set up GBrain sync elsewhere and your cgstack hasn't been
 restored on this machine yet.
 
 **Fix.**
 ```bash
-gstack-brain-restore
+cgstack-brain-restore
 ```
-This pulls the repo into `~/.gstack/` and re-registers merge drivers.
+This pulls the repo into `~/.cgstack/` and re-registers merge drivers.
 
 If you don't want to restore here, dismiss the hint with:
 ```bash
-gstack-config set artifacts_sync_mode_prompted true
+cgstack-config set artifacts_sync_mode_prompted true
 ```
 
 ---
@@ -45,13 +45,13 @@ embedded in JSON.
 2. **If the pattern is a false positive** (e.g., your learning contains a
    GitHub token pattern in an example string that you *want* to publish):
    ```bash
-   gstack-brain-sync --skip-file <path>
+   cgstack-brain-sync --skip-file <path>
    ```
    This permanently excludes the path from future syncs.
 
 3. **If you want to abandon this sync batch entirely** (start fresh):
    ```bash
-   gstack-brain-sync --drop-queue --yes
+   cgstack-brain-sync --drop-queue --yes
    ```
    This clears the queue without committing. Future writes will re-populate
    it normally.
@@ -83,27 +83,27 @@ git's error appears after the colon.
 **Cause.** Could be network issue, rejected push (remote ahead), server 500,
 or repo access revoked.
 
-**Fix.** Look at `~/.gstack/.brain-sync-status.json` for more detail, or run:
+**Fix.** Look at `~/.cgstack/.brain-sync-status.json` for more detail, or run:
 ```bash
-cd ~/.gstack && git status && git push origin HEAD
+cd ~/.cgstack && git status && git push origin HEAD
 ```
 to see git's full error. The queue is cleared after any push attempt, but
 your local commit still exists — the next skill run will retry the push.
 
 ---
 
-## `gstack-brain-init: ~/.gstack/.git is already a git repo pointing at <url>`
+## `cgstack-brain-init: ~/.cgstack/.git is already a git repo pointing at <url>`
 
 **Problem.** You tried to init with a remote URL that doesn't match the
 existing one.
 
-**Cause.** You already ran `gstack-brain-init` with a different remote.
+**Cause.** You already ran `cgstack-brain-init` with a different remote.
 
 **Fix.** Either:
 
-- Use the existing remote: run `gstack-brain-init` without `--remote`, or
+- Use the existing remote: run `cgstack-brain-init` without `--remote`, or
   with the matching URL.
-- Switch remotes: `gstack-brain-uninstall` first, then re-init with the new
+- Switch remotes: `cgstack-brain-uninstall` first, then re-init with the new
   URL. This does not delete your data.
 
 ---
@@ -126,7 +126,7 @@ If that fails, check:
 
 ---
 
-## `gstack-brain-init: failed to create or find '<name>'`
+## `cgstack-brain-init: failed to create or find '<name>'`
 
 **Problem.** Auto-repo-creation via `gh repo create` failed and the repo
 isn't discoverable via `gh repo view` either.
@@ -141,47 +141,47 @@ gh auth status
 If unauth'd, run `gh auth login`. If the repo name collides, pass a different
 name:
 ```bash
-gstack-brain-init --remote git@github.com:YOURUSER/custom-name.git
+cgstack-brain-init --remote git@github.com:YOURUSER/custom-name.git
 ```
 
 ---
 
-## `gstack-brain-restore: ~/.gstack/.git already points at <url>`
+## `cgstack-brain-restore: ~/.cgstack/.git already points at <url>`
 
 **Problem.** You tried to restore from a URL that doesn't match the existing
 git config.
 
 **Cause.** Stale `.git` from a previous init with a different remote.
 
-**Fix.** `gstack-brain-uninstall`, then re-run `gstack-brain-restore <url>`.
+**Fix.** `cgstack-brain-uninstall`, then re-run `cgstack-brain-restore <url>`.
 
 ---
 
-## `gstack-brain-restore: ~/.gstack/ has existing allowlisted files that would be clobbered`
+## `cgstack-brain-restore: ~/.cgstack/ has existing allowlisted files that would be clobbered`
 
-**Problem.** You're trying to restore, but `~/.gstack/` already contains
+**Problem.** You're trying to restore, but `~/.cgstack/` already contains
 learnings or plans that would be overwritten.
 
 **Cause.** Either (a) this machine has accumulated state from a pre-sync
-gstack session, or (b) a previous failed restore left partial state.
+cgstack session, or (b) a previous failed restore left partial state.
 
 **Fix (three options).**
 
 1. **If this machine's state should become the new truth**: run
-   `gstack-brain-init` instead of restore — this creates a brand-new brain
+   `cgstack-brain-init` instead of restore — this creates a brand-new brain
    repo from this machine's state.
 
 2. **If you want to adopt the remote and discard this machine's state**:
-   back up `~/.gstack/projects/` first, then remove the offending files and
+   back up `~/.cgstack/projects/` first, then remove the offending files and
    re-run restore.
 
 3. **If you want to merge**: there's no automatic merge for this. Manually
-   copy learnings from `~/.gstack/` into your running gstack on a machine
+   copy learnings from `~/.cgstack/` into your running cgstack on a machine
    with sync already on, then restore here.
 
 ---
 
-## `gstack-brain-restore: <url> does not look like a gstack-brain repo`
+## `cgstack-brain-restore: <url> does not look like a cgstack-brain repo`
 
 **Problem.** The clone succeeded but the repo is missing `.brain-allowlist`
 and `.gitattributes`.
@@ -189,7 +189,7 @@ and `.gitattributes`.
 **Cause.** You pointed restore at a random git repo, or someone deleted the
 canonical config files from the brain repo.
 
-**Fix.** Verify the URL. If it's correct, run `gstack-brain-init --remote
+**Fix.** Verify the URL. If it's correct, run `cgstack-brain-init --remote
 <url>` to re-seed the canonical config.
 
 ---
@@ -198,17 +198,17 @@ canonical config files from the brain repo.
 
 **Not an error, but a common gotcha.** Check in order:
 
-1. `gstack-brain-sync --status` — is mode `off`?
-2. `~/.gstack/.git` exists?
-3. `gstack-config get artifacts_sync_mode` — should be `full` or `artifacts-only`.
+1. `cgstack-brain-sync --status` — is mode `off`?
+2. `~/.cgstack/.git` exists?
+3. `cgstack-config get artifacts_sync_mode` — should be `full` or `artifacts-only`.
 4. The file you expect to sync — is it in the allowlist?
-   `cat ~/.gstack/.brain-allowlist`
+   `cat ~/.cgstack/.brain-allowlist`
 5. Privacy class filter — if mode is `artifacts-only`, behavioral files
    (timelines, developer-profile) are intentionally skipped.
 
 If all those look right, run:
 ```bash
-gstack-brain-sync --discover-new
-gstack-brain-sync --once
+cgstack-brain-sync --discover-new
+cgstack-brain-sync --once
 ```
 to force a drain.

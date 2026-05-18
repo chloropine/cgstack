@@ -30,7 +30,7 @@ version-gate:
     # Util fail-open: on non-zero exit, emit offline marker
     - |
       set +e
-      bun run bin/gstack-next-version \
+      bun run bin/cgstack-next-version \
         --base "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" \
         --bump "$LEVEL" \
         --current-version "$BASE_VERSION" \

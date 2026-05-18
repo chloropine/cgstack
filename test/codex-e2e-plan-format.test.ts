@@ -8,8 +8,8 @@
  * forget to recommend" almost every time. This test pins that behavior so future
  * regressions surface automatically.
  *
- * Mirrors test/skill-e2e-plan-format.test.ts (the Claude version) but uses
- * test/helpers/codex-session-runner.ts to drive `codex exec` instead of `claude -p`.
+ * Mirrors test/skill-e2e-plan-format.test.ts (the Codex version) but uses
+ * test/helpers/codex-session-runner.ts to drive `codex exec` instead of `codex -p`.
  *
  * Four cases:
  *   1. plan-ceo-review mode selection (kind-differentiated)
@@ -53,10 +53,10 @@ const describeCodex = SKIP ? describe.skip : describe;
 // --- Touchfiles ---
 
 const CODEX_FORMAT_TOUCHFILES: Record<string, string[]> = {
-  'codex-plan-ceo-format-mode':      ['.agents/skills/gstack-plan-ceo-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
-  'codex-plan-ceo-format-approach':  ['.agents/skills/gstack-plan-ceo-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
-  'codex-plan-eng-format-coverage':  ['.agents/skills/gstack-plan-eng-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
-  'codex-plan-eng-format-kind':      ['.agents/skills/gstack-plan-eng-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
+  'codex-plan-ceo-format-mode':      ['.agents/skills/cgstack-plan-ceo-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
+  'codex-plan-ceo-format-approach':  ['.agents/skills/cgstack-plan-ceo-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
+  'codex-plan-eng-format-coverage':  ['.agents/skills/cgstack-plan-eng-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
+  'codex-plan-eng-format-kind':      ['.agents/skills/cgstack-plan-eng-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'model-overlays/gpt.md', 'model-overlays/gpt-5.4.md'],
 };
 
 let selectedTests: string[] | null = null;
@@ -137,9 +137,9 @@ function setupCodexSkillDir(tmpPrefix: string, skillName: 'plan-ceo-review' | 'p
   run('git', ['add', '.']);
   run('git', ['commit', '-m', 'add plan']);
 
-  // Codex skill lives in .agents/skills/gstack-{name}/ per the gstack host convention.
-  const codexSkillSource = path.join(ROOT, '.agents', 'skills', `gstack-${skillName}`);
-  const skillDir = path.join(planDir, '.agents', 'skills', `gstack-${skillName}`);
+  // Codex skill lives in .agents/skills/cgstack-{name}/ per the cgstack host convention.
+  const codexSkillSource = path.join(ROOT, '.agents', 'skills', `cgstack-${skillName}`);
+  const skillDir = path.join(planDir, '.agents', 'skills', `cgstack-${skillName}`);
   fs.mkdirSync(skillDir, { recursive: true });
   fs.cpSync(codexSkillSource, skillDir, { recursive: true });
 
@@ -147,7 +147,7 @@ function setupCodexSkillDir(tmpPrefix: string, skillName: 'plan-ceo-review' | 'p
   return { skillDir, planDir, outFile };
 }
 
-// Capture instruction — same shape as the Claude version. Codex may ignore tool calls,
+// Capture instruction — same shape as the Codex version. Codex may ignore tool calls,
 // so we tell it to write prose to the file directly.
 function captureInstruction(outFile: string): string {
   return `Write the verbatim text of every AskUserQuestion you would have presented to the user to the file ${outFile} (one question per session, full text including the re-ground, ELI10 paragraph, RECOMMENDATION line, and options). Do NOT ask the user interactively. Do NOT paraphrase. This is a format-capture test, not an interactive session.`;
@@ -183,7 +183,7 @@ describeCodex('Codex Plan Format — CEO Mode Selection', () => {
       prompt: `Read the plan-ceo-review skill. Read plan.md (the plan to review). Proceed to Step 0F (Mode Selection) where the skill presents 4 mode options (SCOPE EXPANSION, SELECTIVE EXPANSION, HOLD SCOPE, SCOPE REDUCTION) via AskUserQuestion. These options differ in kind (review posture), not coverage. ${captureInstruction(outFile)}`,
       timeoutMs: 300_000,
       cwd: planDir,
-      skillName: 'gstack-plan-ceo-review',
+      skillName: 'cgstack-plan-ceo-review',
       sandbox: 'workspace-write',
     });
 
@@ -223,7 +223,7 @@ describeCodex('Codex Plan Format — CEO Approach Menu', () => {
       prompt: `Read the plan-ceo-review skill. Read plan.md. Proceed to Step 0C-bis (Implementation Alternatives / Approach Menu) where the skill generates 2-3 approaches (minimal viable vs ideal architecture) and presents them via AskUserQuestion. These options differ in coverage so Completeness: N/10 applies. ${captureInstruction(outFile)}`,
       timeoutMs: 300_000,
       cwd: planDir,
-      skillName: 'gstack-plan-ceo-review',
+      skillName: 'cgstack-plan-ceo-review',
       sandbox: 'workspace-write',
     });
 
@@ -260,7 +260,7 @@ describeCodex('Codex Plan Format — Eng Coverage Issue', () => {
       prompt: `Read the plan-eng-review skill. Read plan.md. In your Section 3 Test Review, generate ONE AskUserQuestion about test coverage depth where options are clearly coverage-differentiated: A) full coverage incl. edge + error paths (Completeness 10/10), B) happy path only (7/10), C) smoke test (3/10). ${captureInstruction(outFile)}`,
       timeoutMs: 300_000,
       cwd: planDir,
-      skillName: 'gstack-plan-eng-review',
+      skillName: 'cgstack-plan-eng-review',
       sandbox: 'workspace-write',
     });
 
@@ -297,7 +297,7 @@ describeCodex('Codex Plan Format — Eng Kind Issue', () => {
       prompt: `Read the plan-eng-review skill. Read plan.md. In your Section 1 Architecture review, generate ONE AskUserQuestion about an architectural choice where the options differ in kind (e.g. Redis vs Postgres materialized view vs in-process cache — different kinds of systems with different tradeoffs, NOT more-or-less-complete versions of the same thing). ${captureInstruction(outFile)}`,
       timeoutMs: 300_000,
       cwd: planDir,
-      skillName: 'gstack-plan-eng-review',
+      skillName: 'cgstack-plan-eng-review',
       sandbox: 'workspace-write',
     });
 

@@ -2,13 +2,13 @@
  * /plan-eng-review AskUserQuestion floor regression (gate, paid, real-PTY).
  *
  * Catches the May 2026 transcript bug where /plan-eng-review wrote a
- * multi-section review plan to ~/.claude/plans/ and called ExitPlanMode
+ * multi-section review plan to ~/.codex/plans/ and called ExitPlanMode
  * without firing any AskUserQuestion. See
  * `.context/attachments/pasted_text_2026-05-06_10-25-23.txt`.
  *
  * Uses runPlanSkillFloorCheck — a minimal "did the agent fire ANY AUQ?"
  * observer that exits early on the first non-permission numbered-option
- * render. See claude-pty-runner.ts for why this is separate from the
+ * render. See codex-pty-runner.ts for why this is separate from the
  * runPlanSkillCounting harness used by periodic finding-count tests.
  *
  * Tier: gate. Budget: 10 min (early exit on success ~30-90s typical).
@@ -16,7 +16,7 @@
  */
 
 import { describe, test } from 'bun:test';
-import { runPlanSkillFloorCheck } from './helpers/claude-pty-runner';
+import { runPlanSkillFloorCheck } from './helpers/codex-pty-runner';
 import { FORCING_FLOOR_ENG } from './fixtures/forcing-finding-seeds';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';

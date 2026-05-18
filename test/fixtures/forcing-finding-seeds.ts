@@ -6,7 +6,7 @@
  * (test/skill-e2e-plan-{eng,ceo,design,devex}-finding-floor.test.ts) as
  * the minimum-cost regression for the May 2026 transcript bug:
  *   "/plan-eng-review reviewed a real PR diff, wrote a multi-section
- *    review plan to ~/.claude/plans/ and called ExitPlanMode without
+ *    review plan to ~/.codex/plans/ and called ExitPlanMode without
  *    ever firing AskUserQuestion."
  *
  * Each seed is small and pre-loaded with one obvious finding the
@@ -24,7 +24,7 @@
  */
 
 export const FORCING_FLOOR_ENG = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-eng-floor.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-eng-floor.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Add request-id propagation across services',
   '',
@@ -36,7 +36,7 @@ export const FORCING_FLOOR_ENG = [
 ].join('\n');
 
 export const FORCING_FLOOR_CEO = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-ceo-floor.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-ceo-floor.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Launch a "developer-friendly" pricing tier',
   '',
@@ -52,7 +52,7 @@ export const FORCING_FLOOR_CEO = [
 ].join('\n');
 
 export const FORCING_FLOOR_DESIGN = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-design-floor.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-design-floor.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Marketing landing page',
   '',
@@ -64,7 +64,7 @@ export const FORCING_FLOOR_DESIGN = [
 ].join('\n');
 
 export const FORCING_FLOOR_DEVEX = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-devex-floor.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-devex-floor.md (use Edit/Write to that exact path).',
   '',
   '# Plan: SDK quickstart docs',
   '',
@@ -96,7 +96,7 @@ export const FORCING_FLOOR_DEVEX = [
  * the [N-1] tolerance from the existing finding-count band convention.
  */
 export const FORCING_BATCHING_ENG = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-eng-batching.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-eng-batching.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Add background job retry framework',
   '',

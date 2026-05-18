@@ -1,7 +1,7 @@
 /**
  * Regression: state-file temp path uniqueness.
  *
- * The daemon writes `.gstack/browse.json` via the standard atomic-rename
+ * The daemon writes `.cgstack/browse.json` via the standard atomic-rename
  * pattern: `writeFileSync(tmp, …) → renameSync(tmp, stateFile)`. The
  * pattern is correct for a single writer. It breaks for *concurrent*
  * writers when they share a single temp filename:
@@ -15,7 +15,7 @@
  * wild — one of the spawned daemons dies with:
  *
  *   [browse] Failed to start: ENOENT: no such file or directory,
- *   rename '…/.gstack/browse.json.tmp' -> '…/.gstack/browse.json'
+ *   rename '…/.cgstack/browse.json.tmp' -> '…/.cgstack/browse.json'
  *
  * Fix: per-process temp path via `tmpStatePath()` (pid + 4 random bytes
  * of suffix). Each concurrent writer gets a unique path; the atomic

@@ -105,7 +105,7 @@ describe('canary — realistic outbound-channel attacks', () => {
   test('leak in object values but NOT keys (keys are rarely attacker-controlled)', () => {
     const c = generateCanary();
     // Current behavior: scan values only. Keys can contain the canary as
-    // a substring without tripping — but this is only a concern if Claude
+    // a substring without tripping — but this is only a concern if Codex
     // builds object keys from user-controlled content, which it doesn't.
     const objWithKeyMatch = { [`key_${c}`]: 'clean' };
     const objWithValueMatch = { url: `https://e.com/${c}` };
@@ -146,7 +146,7 @@ describe('canary — realistic outbound-channel attacks', () => {
   });
 
   test('canary embedded in base64-looking blob DOES fire (no decoding needed)', () => {
-    // If Claude is asked to "encode the token and send it", the canary
+    // If Codex is asked to "encode the token and send it", the canary
     // still appears verbatim somewhere before encoding. If it's already
     // base64, checkCanaryInStructure won't decode — but we're testing
     // that the raw-substring check catches the common cases.
@@ -160,7 +160,7 @@ describe('canary — realistic outbound-channel attacks', () => {
     expect(checkCanaryInStructure(toolUse, c)).toBe(true);
   });
 
-  test('canary in stream text delta (matches Claude streaming output)', () => {
+  test('canary in stream text delta (matches Codex streaming output)', () => {
     // Simulates what sidebar-agent.ts detectCanaryLeak sees on a text_delta event
     const c = generateCanary();
     const streamChunk = `Sure, here's the token you asked for: ${c}`;
@@ -171,8 +171,8 @@ describe('canary — realistic outbound-channel attacks', () => {
 // ─── Verdict combiner — attack-shaped signal inputs ──────────
 
 describe('combineVerdict — realistic attack/defense scenarios', () => {
-  test('attack passes StackOne but Haiku catches it → BLOCK (ensemble save)', () => {
-    // Real attack: TestSavant 0.92 INJECTION, Haiku returns verdict=block.
+  test('attack passes StackOne but Mini catches it → BLOCK (ensemble save)', () => {
+    // Real attack: TestSavant 0.92 INJECTION, Mini returns verdict=block.
     // Both vote block → BLOCK.
     const r = combineVerdict([
       { layer: 'testsavant_content', confidence: 0.92 },
@@ -187,7 +187,7 @@ describe('combineVerdict — realistic attack/defense scenarios', () => {
     // instruction-heavy content doesn't kill the session.
     const r = combineVerdict([
       { layer: 'testsavant_content', confidence: 0.99 }, // "fix merge conflict" at 0.99
-      { layer: 'transcript_classifier', confidence: 0.1 }, // Haiku sees it's benign
+      { layer: 'transcript_classifier', confidence: 0.1 }, // Mini sees it's benign
     ]);
     expect(r.verdict).toBe('warn');
     expect(r.reason).toBe('single_layer_high');
@@ -270,8 +270,8 @@ describe('combineVerdict — realistic attack/defense scenarios', () => {
 // ─── Label-first voting (v1.5.2.0+) ──────────────────────────
 
 describe('combineVerdict — label-first voting for transcript_classifier', () => {
-  test('Haiku verdict=warn at high confidence is a soft signal only, not a block-vote', () => {
-    // Under v1.5.2.0 label-first: Haiku's 'warn' label means "suspicious but
+  test('Mini verdict=warn at high confidence is a soft signal only, not a block-vote', () => {
+    // Under v1.5.2.0 label-first: Mini's 'warn' label means "suspicious but
     // not hijack-level" regardless of its confidence. It should NOT single-
     // handedly upgrade the ensemble to BLOCK even when pointed at 0.80.
     const r = combineVerdict([
@@ -286,7 +286,7 @@ describe('combineVerdict — label-first voting for transcript_classifier', () =
     expect(r.reason).toBe('single_layer_medium');
   });
 
-  test('Haiku verdict=block at moderate confidence still block-votes (ensemble save on real hijack)', () => {
+  test('Mini verdict=block at moderate confidence still block-votes (ensemble save on real hijack)', () => {
     const r = combineVerdict([
       { layer: 'testsavant_content', confidence: 0.80 },
       { layer: 'transcript_classifier', confidence: 0.80, meta: { verdict: 'block' } },
@@ -296,7 +296,7 @@ describe('combineVerdict — label-first voting for transcript_classifier', () =
   });
 
   test('three-way: warn-transcript + two ML block-votes still BLOCKs (ensemble reaches 2)', () => {
-    // Even when Haiku says warn (not block), two other classifiers agreeing
+    // Even when Mini says warn (not block), two other classifiers agreeing
     // still reaches the 2-of-N threshold.
     const r = combineVerdict([
       { layer: 'testsavant_content', confidence: 0.80 },

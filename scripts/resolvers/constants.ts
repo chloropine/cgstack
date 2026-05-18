@@ -1,7 +1,7 @@
 // ─── Shared Design Constants ────────────────────────────────
 
 /**
- * gstack's AI slop anti-patterns — shared between DESIGN_METHODOLOGY and DESIGN_HARD_RULES.
+ * cgstack's AI slop anti-patterns — shared between DESIGN_METHODOLOGY and DESIGN_HARD_RULES.
  *
  * Overused fonts worth calling out in templates (not a pattern to blacklist, but a
  * convergence risk): Inter, Roboto, Arial, Helvetica, Open Sans, Lato, Montserrat,
@@ -33,7 +33,7 @@ export const OPENAI_HARD_REJECTIONS = [
   'App UI made of stacked cards instead of layout',
 ];
 
-/** OpenAI litmus checks — 7 yes/no tests for cross-model consensus scoring */
+/** OpenAI litmus checks — 7 yes/no tests for independent Codex consensus scoring */
 export const OPENAI_LITMUS_CHECKS = [
   'Brand/product unmistakable in first screen?',
   'One strong visual anchor present?',

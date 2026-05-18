@@ -1,9 +1,9 @@
 /**
- * Cross-platform file permission restriction for sensitive gstack state.
+ * Cross-platform file permission restriction for sensitive cgstack state.
  *
  * Why this exists
  * ----------------
- * POSIX mode bits (`0o600` for files, `0o700` for dirs) are how gstack marks
+ * POSIX mode bits (`0o600` for files, `0o700` for dirs) are how cgstack marks
  * sensitive state files — auth tokens, canary tokens, chat history, agent
  * queue, device salt, per-tab security decisions. On Linux and macOS,
  * `fs.chmodSync(path, 0o600)` and `fs.writeFileSync(path, data, { mode: 0o600 })`
@@ -11,8 +11,8 @@
  * by the owning user, no access for group / other.
  *
  * On Windows, both calls are effectively no-ops. NTFS uses ACLs, not POSIX
- * mode bits, and Node's fs module doesn't translate. So on every Windows
- * install, sensitive gstack state files inherit whatever ACL the parent
+ * mode bits, and Node's fs module doesn't transform. So on every Windows
+ * install, sensitive cgstack state files inherit whatever ACL the parent
  * directory grants — typically user-full + inherited admin-full. That's
  * fine on a single-user laptop but leaks on:
  *
@@ -48,7 +48,7 @@ function warnIcaclsFailure(fsPath: string, err: unknown): void {
   const msg = err instanceof Error ? err.message : String(err);
   // biome-ignore lint/suspicious/noConsole: intentional user-facing warning
   console.warn(
-    `[gstack] Failed to restrict Windows ACL on ${fsPath}: ${msg}\n` +
+    `[cgstack] Failed to restrict Windows ACL on ${fsPath}: ${msg}\n` +
     `  Sensitive files may be readable by other accounts on this machine.\n` +
     `  This warning appears once per process; subsequent failures are silent.`
   );

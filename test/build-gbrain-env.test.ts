@@ -2,7 +2,7 @@
  * Unit tests for `buildGbrainEnv` in lib/gbrain-exec.ts.
  *
  * The helper is the single source of truth for "what DATABASE_URL does
- * gbrain see when spawned from gstack." The bug it prevents: gbrain's
+ * gbrain see when spawned from cgstack." The bug it prevents: gbrain's
  * dotenv autoload pulls a host project's `.env.local` `DATABASE_URL`
  * instead of gbrain's own `~/.gbrain/config.json`. Every helper test
  * asserts on the **effective value** of the returned env, never object
@@ -22,7 +22,7 @@ describe("buildGbrainEnv", () => {
   let gbrainHome: string;
 
   beforeEach(() => {
-    home = mkdtempSync(join(tmpdir(), "gstack-build-env-"));
+    home = mkdtempSync(join(tmpdir(), "cgstack-build-env-"));
     gbrainHome = join(home, ".gbrain");
     mkdirSync(gbrainHome, { recursive: true });
   });
@@ -45,12 +45,12 @@ describe("buildGbrainEnv", () => {
     expect(result.DATABASE_URL).toBe("postgresql://gbrain/db");
   });
 
-  it("leaves DATABASE_URL untouched when GSTACK_RESPECT_ENV_DATABASE_URL=1", () => {
+  it("leaves DATABASE_URL untouched when CGSTACK_RESPECT_ENV_DATABASE_URL=1", () => {
     writeFileSync(join(gbrainHome, "config.json"), JSON.stringify({ database_url: "postgresql://gbrain/db" }));
     const baseEnv = {
       HOME: home,
       DATABASE_URL: "postgresql://intentional/app-db",
-      GSTACK_RESPECT_ENV_DATABASE_URL: "1",
+      CGSTACK_RESPECT_ENV_DATABASE_URL: "1",
     };
     const result = buildGbrainEnv({ baseEnv });
     expect(result.DATABASE_URL).toBe("postgresql://intentional/app-db");

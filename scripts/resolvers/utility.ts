@@ -1,11 +1,11 @@
 import type { TemplateContext } from './types';
 
 export function generateSlugEval(ctx: TemplateContext): string {
-  return `eval "$(${ctx.paths.binDir}/gstack-slug 2>/dev/null)"`;
+  return `eval "$(${ctx.paths.binDir}/cgstack-slug 2>/dev/null)"`;
 }
 
 export function generateSlugSetup(ctx: TemplateContext): string {
-  return `eval "$(${ctx.paths.binDir}/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG`;
+  return `eval "$(${ctx.paths.binDir}/cgstack-slug 2>/dev/null)" && mkdir -p ~/.cgstack/projects/$SLUG`;
 }
 
 export function generateBaseBranchDetect(_ctx: TemplateContext): string {
@@ -51,8 +51,8 @@ branch name wherever the instructions say "the base branch" or \`<default>\`.
 
 export function generateDeployBootstrap(_ctx: TemplateContext): string {
   return `\`\`\`bash
-# Check for persisted deploy config in CLAUDE.md
-DEPLOY_CONFIG=$(grep -A 20 "## Deploy Configuration" CLAUDE.md 2>/dev/null || echo "NO_CONFIG")
+# Check for persisted deploy config in AGENTS.md
+DEPLOY_CONFIG=$(grep -A 20 "## Deploy Configuration" AGENTS.md 2>/dev/null || echo "NO_CONFIG")
 echo "$DEPLOY_CONFIG"
 
 # If config exists, parse it
@@ -78,7 +78,7 @@ for f in $(find .github/workflows -maxdepth 1 \\( -name '*.yml' -o -name '*.yaml
 done
 \`\`\`
 
-If \`PERSISTED_PLATFORM\` and \`PERSISTED_URL\` were found in CLAUDE.md, use them directly
+If \`PERSISTED_PLATFORM\` and \`PERSISTED_URL\` were found in AGENTS.md, use them directly
 and skip manual detection. If no persisted config exists, use the auto-detected platform
 to guide deploy verification. If nothing is detected, ask the user via AskUserQuestion
 in the decision tree below.
@@ -369,7 +369,7 @@ Minimum 0 per category.
 export function generateCoAuthorTrailer(ctx: TemplateContext): string {
   const { getHostConfig } = require('../../hosts/index');
   const hostConfig = getHostConfig(ctx.host);
-  return hostConfig.coAuthorTrailer || 'Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>';
+  return hostConfig.coAuthorTrailer || 'Co-Authored-By: Codex GPT 4.7 <noreply@openai.com>';
 }
 
 export function generateChangelogWorkflow(_ctx: TemplateContext): string {

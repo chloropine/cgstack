@@ -2,31 +2,31 @@
 
 ## Problem
 
-When Claude controls your real browser via CDP (gstack `$B connect`), you look at two
-windows: **Conductor** (to see Claude's thinking) and **Chrome** (to see Claude's actions).
+When Codex controls your real browser via CDP (cgstack `$B connect`), you look at two
+windows: **Conductor** (to see Codex's thinking) and **Chrome** (to see Codex's actions).
 
-gstack's Chrome extension Side Panel shows browse activity — every command, result,
-and error. But for *full* session mirroring (Claude's thinking, tool calls, code edits),
+cgstack's Chrome extension Side Panel shows browse activity — every command, result,
+and error. But for *full* session mirroring (Codex's thinking, tool calls, code edits),
 the Side Panel needs Conductor to expose the conversation stream.
 
 ## What this enables
 
-A "Session" tab in the gstack Chrome extension Side Panel that shows:
-- Claude's thinking/content (truncated for performance)
+A "Session" tab in the cgstack Chrome extension Side Panel that shows:
+- Codex's thinking/content (truncated for performance)
 - Tool call names + icons (Edit, Bash, Read, etc.)
 - Turn boundaries with cost estimates
 - Real-time updates as the conversation progresses
 
-The user sees everything in one place — Claude's actions in their browser + Claude's
+The user sees everything in one place — Codex's actions in their browser + Codex's
 thinking in the Side Panel — without switching windows.
 
 ## Proposed API
 
 ### `GET http://127.0.0.1:{PORT}/workspace/{ID}/session/stream`
 
-Server-Sent Events endpoint that re-emits Claude Code's conversation as NDJSON events.
+Server-Sent Events endpoint that re-emits Codex's conversation as NDJSON events.
 
-**Event types** (reuse Claude Code's `--output-format stream-json` format):
+**Event types** (reuse Codex's `--output-format stream-json` format):
 
 ```
 event: assistant
@@ -54,9 +54,9 @@ Discovery endpoint listing active workspaces.
   "workspaces": [
     {
       "id": "abc123",
-      "name": "gstack",
+      "name": "cgstack",
       "branch": "garrytan/chrome-extension-ctrl",
-      "directory": "/Users/garry/gstack",
+      "directory": "/Users/garry/cgstack",
       "pid": 12345,
       "active": true
     }
@@ -69,13 +69,13 @@ The Chrome extension auto-selects a workspace by matching the browse server's gi
 
 ## Security
 
-- **Localhost-only.** Same trust model as Claude Code's own debug output.
+- **Localhost-only.** Same trust model as Codex's own debug output.
 - **No auth required.** If Conductor wants auth, include a Bearer token in the
   workspace listing that the extension passes on SSE requests.
 - **Content truncation** is a privacy feature — long code outputs, file contents, and
   sensitive tool results never leave Conductor's full UI.
 
-## What gstack builds (extension side)
+## What cgstack builds (extension side)
 
 Already scaffolded in the Side Panel "Session" tab (currently shows placeholder).
 
@@ -90,11 +90,11 @@ Estimated effort: ~200 LOC in `sidepanel.js`.
 
 ## What Conductor builds (server side)
 
-1. SSE endpoint that re-emits Claude Code's stream-json per workspace
+1. SSE endpoint that re-emits Codex's stream-json per workspace
 2. `/api/workspaces` discovery endpoint with active workspace list
 3. Content truncation (500 char cap on tool inputs/outputs)
 
-Estimated effort: ~100-200 LOC if Conductor already captures the Claude Code stream
+Estimated effort: ~100-200 LOC if Conductor already captures the Codex stream
 internally (which it does for its own UI rendering).
 
 ## Design decisions
@@ -102,7 +102,7 @@ internally (which it does for its own UI rendering).
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Transport | SSE (not WebSocket) | Unidirectional, auto-reconnect, simpler |
-| Format | Claude's stream-json | Conductor already parses this; no new schema |
+| Format | Codex's stream-json | Conductor already parses this; no new schema |
 | Discovery | HTTP endpoint (not file) | Chrome extensions can't read filesystem |
-| Auth | None (localhost) | Same as browse server, CDP port, Claude Code |
+| Auth | None (localhost) | Same as browse server, CDP port, Codex |
 | Truncation | 500 chars | Side Panel is ~300px wide; long content useless |

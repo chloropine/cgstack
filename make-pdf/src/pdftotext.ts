@@ -14,12 +14,12 @@
  *        diff and a paragraph-boundary assertion on top.
  *
  * Resolution order for the pdftotext binary (v1.24-aligned):
- *   1. $GSTACK_PDFTOTEXT_BIN env override (preferred, matches v1.24 GSTACK_*_BIN pattern)
+ *   1. $CGSTACK_PDFTOTEXT_BIN env override (preferred, matches v1.24 CGSTACK_*_BIN pattern)
  *   2. $PDFTOTEXT_BIN env override (back-compat alias)
  *   3. PATH lookup via Bun.which('pdftotext') — handles Windows PATHEXT natively
  *   4. standard POSIX paths (Homebrew + distro) — no Windows candidates because
  *      Poppler scatters across Scoop / Chocolatey / oschwartz10612-poppler-windows
- *      and guessing causes false positives. Set GSTACK_PDFTOTEXT_BIN explicitly.
+ *      and guessing causes false positives. Set CGSTACK_PDFTOTEXT_BIN explicitly.
  *   5. throws a friendly "install poppler" error
  *
  * The wrapper is *optional at runtime*: production renders don't need it.
@@ -72,8 +72,8 @@ function resolveOverride(value: string | undefined, env: NodeJS.ProcessEnv): str
  * Locate pdftotext. Throws PdftotextUnavailableError if none is found.
  */
 export function resolvePdftotext(env: NodeJS.ProcessEnv = process.env): PdftotextInfo {
-  // 1 + 2: env overrides (GSTACK_PDFTOTEXT_BIN preferred, PDFTOTEXT_BIN back-compat).
-  const overrideRaw = env.GSTACK_PDFTOTEXT_BIN ?? env.PDFTOTEXT_BIN;
+  // 1 + 2: env overrides (CGSTACK_PDFTOTEXT_BIN preferred, PDFTOTEXT_BIN back-compat).
+  const overrideRaw = env.CGSTACK_PDFTOTEXT_BIN ?? env.PDFTOTEXT_BIN;
   const override = resolveOverride(overrideRaw, env);
   if (override) return describeBinary(override);
 
@@ -84,7 +84,7 @@ export function resolvePdftotext(env: NodeJS.ProcessEnv = process.env): Pdftotex
 
   // 4: POSIX-only standard locations. No Windows candidates — Poppler installs
   // scatter across Scoop/Chocolatey/portable zips and guessing causes false
-  // positives. Windows users set GSTACK_PDFTOTEXT_BIN explicitly.
+  // positives. Windows users set CGSTACK_PDFTOTEXT_BIN explicitly.
   const posixCandidates = [
     "/opt/homebrew/bin/pdftotext",     // Apple Silicon Homebrew
     "/usr/local/bin/pdftotext",        // Intel Mac or Linuxbrew
@@ -107,10 +107,10 @@ export function resolvePdftotext(env: NodeJS.ProcessEnv = process.env): Pdftotex
     "  Windows:  scoop install poppler  (or download from",
     "            https://github.com/oschwartz10612/poppler-windows)",
     "",
-    "Or set GSTACK_PDFTOTEXT_BIN to an explicit path:",
+    "Or set CGSTACK_PDFTOTEXT_BIN to an explicit path:",
     process.platform === "win32"
-      ? '  setx GSTACK_PDFTOTEXT_BIN "C:\\path\\to\\pdftotext.exe"'
-      : "  export GSTACK_PDFTOTEXT_BIN=/path/to/pdftotext",
+      ? '  setx CGSTACK_PDFTOTEXT_BIN "C:\\path\\to\\pdftotext.exe"'
+      : "  export CGSTACK_PDFTOTEXT_BIN=/path/to/pdftotext",
   ].join("\n"));
 }
 

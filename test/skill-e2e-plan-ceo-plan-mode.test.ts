@@ -20,24 +20,24 @@
  * numbered prompt.
  *
  * Env passthrough: passes `QUESTION_TUNING=false` and `EXPLAIN_LEVEL=default`
- * via the runner's env option. Today these are advisory — `gstack-config`
- * reads `~/.gstack/config.yaml`, not env vars, so a contributor with
+ * via the runner's env option. Today these are advisory — `cgstack-config`
+ * reads `~/.cgstack/config.yaml`, not env vars, so a contributor with
  * `question_tuning: true` set in their YAML config can still see AUTO_DECIDE
- * masking. The env passthrough is wired so a future gstack-config change to
+ * masking. The env passthrough is wired so a future cgstack-config change to
  * honor env overrides will make this test hermetic without further edits.
  * Tracked as a post-merge follow-up.
  *
  * FAIL conditions: 'plan_ready' first, silent Write/Edit before any prompt,
- * claude crash, timeout.
+ * codex crash, timeout.
  *
- * See test/helpers/claude-pty-runner.ts for runner internals.
+ * See test/helpers/codex-pty-runner.ts for runner internals.
  */
 
 import { describe, test } from 'bun:test';
 import {
   runPlanSkillObservation,
   assertReportAtBottomIfPlanWritten,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;

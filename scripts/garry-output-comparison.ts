@@ -11,7 +11,7 @@
  *
  * Algorithm (per Codex Pass 2 review in PLAN_TUNING_V1):
  *   1. For each year (2013, 2026), enumerate authored commits. Author filter
- *      comes from --email CLI flags (repeatable), the GSTACK_AUTHOR_EMAILS env
+ *      comes from --email CLI flags (repeatable), the CGSTACK_AUTHOR_EMAILS env
  *      var (comma-separated), or falls back to `git config user.email`.
  *   2. For each commit, git diff <commit>^ <commit> produces a unified diff.
  *   3. Extract ADDED lines from the diff. Classify as "logical" by filtering
@@ -23,7 +23,7 @@
  *
  * Requires: scc (for classification when available; falls back to regex).
  * Run: bun run scripts/garry-output-comparison.ts [--repo-root <path>] [--email <addr>...]
- *      GSTACK_AUTHOR_EMAILS=a@x.com,b@y.com bun run scripts/garry-output-comparison.ts
+ *      CGSTACK_AUTHOR_EMAILS=a@x.com,b@y.com bun run scripts/garry-output-comparison.ts
  * Output: docs/throughput-2013-vs-2026.json
  */
 import * as fs from 'fs';
@@ -40,7 +40,7 @@ function resolveAuthorEmails(argv: string[]): string[] {
   }
   if (fromArgs.length > 0) return fromArgs;
 
-  const envVar = process.env.GSTACK_AUTHOR_EMAILS;
+  const envVar = process.env.CGSTACK_AUTHOR_EMAILS;
   if (envVar && envVar.trim()) {
     return envVar.split(',').map(s => s.trim()).filter(Boolean);
   }
@@ -57,7 +57,7 @@ function resolveAuthorEmails(argv: string[]): string[] {
 
   process.stderr.write(
     'No author email configured. Pass --email <addr> (repeatable), ' +
-    'set GSTACK_AUTHOR_EMAILS=a@x.com,b@y.com, or configure git user.email.\n'
+    'set CGSTACK_AUTHOR_EMAILS=a@x.com,b@y.com, or configure git user.email.\n'
   );
   process.exit(1);
 }
@@ -400,7 +400,7 @@ function main() {
         ? 'Logical-line classification uses scc-aware regex (approximate).'
         : 'Logical-line classification uses a crude regex fallback (scc not installed). Exclude blank lines + single-line comments; does not catch block comments or docstrings. Approximate.',
       'This script analyzes a single repo at a time. Full 2013-vs-2026 picture requires running against every public repo with commits in both years and summing results (future work).',
-      'Authorship attribution relies on commit email matching. Supply historical aliases via --email flags or GSTACK_AUTHOR_EMAILS.',
+      'Authorship attribution relies on commit email matching. Supply historical aliases via --email flags or CGSTACK_AUTHOR_EMAILS.',
     ],
     version: 1,
   };

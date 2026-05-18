@@ -32,9 +32,9 @@ jobs:
           OLD_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
-          chmod +x ./bin/gstack-pr-title-rewrite.sh
+          chmod +x ./bin/cgstack-pr-title-rewrite.sh
           VERSION=$(cat VERSION | tr -d '[:space:]')
-          NEW_TITLE=$(./bin/gstack-pr-title-rewrite.sh "$VERSION" "$OLD_TITLE")
+          NEW_TITLE=$(./bin/cgstack-pr-title-rewrite.sh "$VERSION" "$OLD_TITLE")
           if [ "$NEW_TITLE" = "$OLD_TITLE" ]; then
             echo "Title already correct; no change."
             exit 0

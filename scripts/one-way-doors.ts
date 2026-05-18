@@ -17,7 +17,7 @@
  *
  * Ordering
  * --------
- * isOneWayDoor() is called by gstack-question-sensitivity --check in this
+ * isOneWayDoor() is called by cgstack-question-sensitivity --check in this
  * order:
  *   1. Look up registry by id → use registry.door_type if found
  *   2. If not in registry: apply keyword patterns below

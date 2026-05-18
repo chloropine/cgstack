@@ -5,7 +5,7 @@
  */
 
 import { describe, test } from 'bun:test';
-import { runPlanSkillFloorCheck } from './helpers/claude-pty-runner';
+import { runPlanSkillFloorCheck } from './helpers/codex-pty-runner';
 import { FORCING_FLOOR_DESIGN } from './fixtures/forcing-finding-seeds';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';

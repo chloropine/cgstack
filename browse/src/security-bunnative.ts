@@ -143,7 +143,7 @@ export function encodeWordPiece(text: string, tok: TokenizerState, maxLength: nu
 
 export function getCachedTokenizer(): TokenizerState {
   if (cachedTokenizer) return cachedTokenizer;
-  const dir = path.join(os.homedir(), '.gstack', 'models', 'testsavant-small');
+  const dir = path.join(os.homedir(), '.cgstack', 'models', 'testsavant-small');
   cachedTokenizer = loadHFTokenizer(dir);
   return cachedTokenizer;
 }
@@ -175,7 +175,7 @@ export async function classify(text: string): Promise<ClassifyResult> {
   const { pipeline, env } = await import('@huggingface/transformers');
   env.allowLocalModels = true;
   env.allowRemoteModels = false;
-  env.localModelPath = path.join(os.homedir(), '.gstack', 'models');
+  env.localModelPath = path.join(os.homedir(), '.cgstack', 'models');
   const cls: any = await pipeline('text-classification', 'testsavant-small', { dtype: 'fp32' });
   if (cls?.tokenizer?._tokenizerConfig) cls.tokenizer._tokenizerConfig.model_max_length = 512;
 

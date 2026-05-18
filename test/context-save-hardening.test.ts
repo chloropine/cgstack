@@ -2,7 +2,7 @@
  * Tier-2 hardening tests for context-save + context-restore.
  *
  * These exercise the exact bash snippets from the SKILL.md templates,
- * without spawning claude -p. Free tier, runs in milliseconds.
+ * without spawning codex -p. Free tier, runs in milliseconds.
  *
  * Covers the hardening work from commit 3df8ea86:
  *   - Bash-side title sanitizer (allowlist a-z0-9.-, cap 60, default "untitled")
@@ -303,7 +303,7 @@ describe('context-restore: find + sort + head cap', () => {
     // NOT have that behavior. Running from a dir with many .md files.
     const out = runBash(RESTORE_FIND_BASH, {
       CHECKPOINT_DIR: tmp,
-      // Intentionally: working directory is the gstack repo which has many .md files.
+      // Intentionally: working directory is the cgstack repo which has many .md files.
     }).stdout;
     expect(out.trim()).toBe('NO_CHECKPOINTS');
     // Must NOT contain any .md filename from cwd.
@@ -316,13 +316,13 @@ describe('context-restore: find + sort + head cap', () => {
 
 describe('migration v1.1.3.0: HOME guard', () => {
   let tmp: string;
-  const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.1.3.0.sh');
+  const MIGRATION = path.join(ROOT, 'cgstack-upgrade', 'migrations', 'v1.1.3.0.sh');
 
   beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-home-')); });
   afterEach(() => { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {} });
 
   test('HOME unset → exits 0 with diagnostic, no filesystem changes', () => {
-    // Create a file that would be wiped by an HOME="" bug: /.claude/skills/gstack/checkpoint
+    // Create a file that would be wiped by an HOME="" bug: /.agents/skills/cgstack/checkpoint
     // (not actually writable by the test, but we verify the script doesn't TRY).
     // Spawn without HOME in env.
     const env = { PATH: process.env.PATH || '/usr/bin:/bin' } as Record<string, string>;

@@ -1,15 +1,15 @@
 import type { TemplateContext } from '../types';
 
 export function generateContextRecovery(ctx: TemplateContext): string {
-  const binDir = ctx.host === 'codex' ? '$GSTACK_BIN' : ctx.paths.binDir;
+  const binDir = ctx.host === 'codex' ? '$CGSTACK_BIN' : ctx.paths.binDir;
 
   return `## Context Recovery
 
 At session start or after compaction, recover recent project context.
 
 \`\`\`bash
-eval "$(${binDir}/gstack-slug 2>/dev/null)"
-_PROJ="\${GSTACK_HOME:-$HOME/.gstack}/projects/\${SLUG:-unknown}"
+eval "$(${binDir}/cgstack-slug 2>/dev/null)"
+_PROJ="\${CGSTACK_HOME:-$HOME/.cgstack}/projects/\${SLUG:-unknown}"
 if [ -d "$_PROJ" ]; then
   echo "--- RECENT ARTIFACTS ---"
   find "$_PROJ/ceo-plans" "$_PROJ/checkpoints" -type f -name "*.md" 2>/dev/null | xargs ls -t 2>/dev/null | head -3

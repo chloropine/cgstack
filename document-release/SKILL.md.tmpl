@@ -5,11 +5,11 @@ version: 1.0.0
 description: |
   Post-ship documentation update. Reads all project docs, cross-references the
   diff, builds a Diataxis coverage map (reference/how-to/tutorial/explanation),
-  updates README/ARCHITECTURE/CONTRIBUTING/CLAUDE.md to match what shipped,
+  updates README/ARCHITECTURE/CONTRIBUTING/AGENTS.md to match what shipped,
   detects architecture diagram drift, polishes CHANGELOG voice with a sell-test
   rubric, cleans up TODOS, and optionally bumps VERSION. Surfaces documentation
   debt in the PR body. Use when asked to "update the docs", "sync documentation",
-  or "post-ship docs". Proactively suggest after a PR is merged or code is shipped. (gstack)
+  or "post-ship docs". Proactively suggest after a PR is merged or code is shipped. (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -80,7 +80,7 @@ git diff <base>...HEAD --name-only
 3. Discover all documentation files in the repo:
 
 ```bash
-find . -maxdepth 2 -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.gstack/*" -not -path "./.context/*" | sort
+find . -maxdepth 2 -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.cgstack/*" -not -path "./.context/*" | sort
 ```
 
 4. Classify the changes into categories relevant to documentation:
@@ -138,7 +138,7 @@ When significant gaps are found, suggest running `/document-generate` to fill th
 ## Step 2: Per-File Documentation Audit
 
 Read each documentation file and cross-reference it against the diff. Use these generic heuristics
-(adapt to whatever project you're in — these are not gstack-specific):
+(adapt to whatever project you're in — these are not cgstack-specific):
 
 **README.md:**
 - Does it describe all features and capabilities visible in the diff?
@@ -159,7 +159,7 @@ Read each documentation file and cross-reference it against the diff. Use these 
 - Are workflow descriptions (dev setup, operational learnings, etc.) current?
 - Flag anything that would fail or confuse a first-time contributor.
 
-**CLAUDE.md / project instructions:**
+**AGENTS.md / project instructions:**
 - Does the project structure section match the actual file tree?
 - Are listed commands and scripts accurate?
 - Do build/test instructions match what's in package.json (or equivalent)?
@@ -244,11 +244,11 @@ preserved them. This skill must NEVER do that.
 
 After auditing each file individually, do a cross-doc consistency pass:
 
-1. Does the README's feature/capability list match what CLAUDE.md (or project instructions) describes?
+1. Does the README's feature/capability list match what AGENTS.md (or project instructions) describes?
 2. Does ARCHITECTURE's component list match CONTRIBUTING's project structure description?
 3. Does CHANGELOG's latest version match the VERSION file?
-4. **Discoverability:** Is every documentation file reachable from README.md or CLAUDE.md? If
-   ARCHITECTURE.md exists but neither README nor CLAUDE.md links to it, flag it. Every doc
+4. **Discoverability:** Is every documentation file reachable from README.md or AGENTS.md? If
+   ARCHITECTURE.md exists but neither README nor AGENTS.md links to it, flag it. Every doc
    should be discoverable from one of the two entry-point files.
 5. Flag any contradictions between documents. Auto-fix clear factual inconsistencies (e.g., a
    version mismatch). Use AskUserQuestion for narrative contradictions.
@@ -348,12 +348,12 @@ git push
 
 **If GitHub:**
 ```bash
-gh pr view --json body -q .body > /tmp/gstack-pr-body-$$.md
+gh pr view --json body -q .body > /tmp/cgstack-pr-body-$$.md
 ```
 
 **If GitLab:**
 ```bash
-glab mr view -F json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('description',''))" > /tmp/gstack-pr-body-$$.md
+glab mr view -F json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('description',''))" > /tmp/cgstack-pr-body-$$.md
 ```
 
 2. If the tempfile already contains a `## Documentation` section, replace that section with the
@@ -379,11 +379,11 @@ glab mr view -F json 2>/dev/null | python3 -c "import sys,json; print(json.load(
 
 **If GitHub:**
 ```bash
-gh pr edit --body-file /tmp/gstack-pr-body-$$.md
+gh pr edit --body-file /tmp/cgstack-pr-body-$$.md
 ```
 
 **If GitLab:**
-Read the contents of `/tmp/gstack-pr-body-$$.md` using the Read tool, then pass it to `glab mr update` using a heredoc to avoid shell metacharacter issues:
+Read the contents of `/tmp/cgstack-pr-body-$$.md` using the Read tool, then pass it to `glab mr update` using a heredoc to avoid shell metacharacter issues:
 ```bash
 glab mr update -d "$(cat <<'MRBODY'
 <paste the file contents here>
@@ -394,7 +394,7 @@ MRBODY
 5. Clean up the tempfile:
 
 ```bash
-rm -f /tmp/gstack-pr-body-$$.md
+rm -f /tmp/cgstack-pr-body-$$.md
 ```
 
 6. If `gh pr view` / `glab mr view` fails (no PR/MR exists): skip with message "No PR/MR found — skipping body update."
@@ -430,7 +430,7 @@ If `CURRENT_TITLE` is empty (no open PR/MR), skip with message "No PR/MR found �
 3. Compute the corrected title using the shared helper (single source of truth — same one `/ship` uses):
 
 ```bash
-NEW_TITLE=$(~/.claude/skills/gstack/bin/gstack-pr-title-rewrite.sh "$V" "$CURRENT_TITLE")
+NEW_TITLE=$(~/.codex/skills/cgstack/bin/cgstack-pr-title-rewrite.sh "$V" "$CURRENT_TITLE")
 ```
 
 The helper handles three cases: title already correct (no-op), title has a different `v<X.Y.Z.W>` prefix (replace it), or title has no version prefix (prepend one).
@@ -494,7 +494,7 @@ If all coverage is complete and no diagrams drifted, output: "Coverage: all ship
 - **Never bump VERSION silently.** Always ask. Even if already bumped, check whether it covers the full scope of changes.
 - **Be explicit about what changed.** Every edit gets a one-line summary.
 - **Generic heuristics, not project-specific.** The audit checks work on any repo.
-- **Discoverability matters.** Every doc file should be reachable from README or CLAUDE.md.
+- **Discoverability matters.** Every doc file should be reachable from README or AGENTS.md.
 - **Coverage map informs, never generates.** The Diataxis coverage map flags gaps for the PR body
   and future work. It does NOT auto-generate missing documentation pages or sections. When gaps
   are found, suggest `/document-generate` as the follow-up skill.

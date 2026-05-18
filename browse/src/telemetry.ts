@@ -1,10 +1,10 @@
 /**
  * Lightweight telemetry — DX D9 from /plan-devex-review.
  *
- * Piggybacks on ~/.gstack/analytics/skill-usage.jsonl pattern (existing
- * gstack telemetry). Hostname + aggregate counters only; no body content,
+ * Piggybacks on ~/.cgstack/analytics/skill-usage.jsonl pattern (existing
+ * cgstack telemetry). Hostname + aggregate counters only; no body content,
  * no agent text, no command args. Respects the user's telemetry tier
- * setting (off | anonymous | community) via gstack-config.
+ * setting (off | anonymous | community) via cgstack-config.
  *
  * Fire-and-forget: never blocks the calling path. Errors swallowed.
  *
@@ -22,12 +22,12 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-function gstackHome(): string {
-  return process.env.GSTACK_HOME || path.join(os.homedir(), '.gstack');
+function cgstackHome(): string {
+  return process.env.CGSTACK_HOME || path.join(os.homedir(), '.cgstack');
 }
 
 function analyticsDir(): string {
-  return path.join(gstackHome(), 'analytics');
+  return path.join(cgstackHome(), 'analytics');
 }
 
 function telemetryFile(): string {
@@ -46,12 +46,12 @@ let telemetryDisabled: boolean | null = null;
 function isDisabled(): boolean {
   if (telemetryDisabled !== null) return telemetryDisabled;
   // Check env (set by preamble or test harnesses).
-  if (process.env.GSTACK_TELEMETRY_OFF === '1') {
+  if (process.env.CGSTACK_TELEMETRY_OFF === '1') {
     telemetryDisabled = true;
     return true;
   }
   // Conservative default: telemetry ON unless explicitly off. Users opt out via
-  // gstack-config set telemetry off (preamble reads this; we trust the env hint).
+  // cgstack-config set telemetry off (preamble reads this; we trust the env hint).
   telemetryDisabled = false;
   return false;
 }

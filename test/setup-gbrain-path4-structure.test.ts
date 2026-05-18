@@ -2,13 +2,13 @@
 //
 // Verifies the SKILL.md.tmpl has the prose contract that Path 4 (Remote MCP)
 // depends on: STOP gates after verify failures, never-write-token rules,
-// mode-aware CLAUDE.md block, idempotent re-run path.
+// mode-aware AGENTS.md block, idempotent re-run path.
 //
 // Why a structural test instead of a full Agent SDK E2E:
-//   - Side effects (claude.json mutation, MCP registration) are covered
-//     by unit tests for gstack-gbrain-mcp-verify and gstack-artifacts-init.
+//   - Side effects (codex.json mutation, MCP registration) are covered
+//     by unit tests for cgstack-gbrain-mcp-verify and cgstack-artifacts-init.
 //   - The structural prose is the source of regressions for AUQ pacing
-//     (the failure mode the gstack repo has tracked since v1.26.x:
+//     (the failure mode the cgstack repo has tracked since v1.26.x:
 //     "wrote_findings_before_asking"). A grep-based regression on the
 //     template prose is fast (<200ms), free, and catches the same drift
 //     as the paid E2E without spending tokens.
@@ -41,8 +41,8 @@ describe('setup-gbrain Path 4 (Remote MCP) — structural contract', () => {
     expect(tmpl).toContain('read_secret_to_env GBRAIN_MCP_TOKEN');
   });
 
-  test('Step 4c invokes gstack-gbrain-mcp-verify and STOPs on failure', () => {
-    expect(tmpl).toContain('gstack-gbrain-mcp-verify');
+  test('Step 4c invokes cgstack-gbrain-mcp-verify and STOPs on failure', () => {
+    expect(tmpl).toContain('cgstack-gbrain-mcp-verify');
     // The STOP rule is what prevents partial registration after auth fail.
     const path4Section = tmpl.split('### Path 4')[1] || '';
     expect(path4Section).toMatch(/STOP/);
@@ -52,9 +52,9 @@ describe('setup-gbrain Path 4 (Remote MCP) — structural contract', () => {
     expect(tmpl).toMatch(/4d.*[Ss]kip Steps? 3, 4.*5.*7\.5/s);
   });
 
-  test('Step 5a has a Path 4 branch with claude mcp add --transport http', () => {
+  test('Step 5a has a Path 4 branch with codex mcp add --transport http', () => {
     expect(tmpl).toMatch(/Path 4 \(Remote MCP/);
-    expect(tmpl).toMatch(/claude mcp add --scope user --transport http gbrain/);
+    expect(tmpl).toMatch(/codex mcp add --scope user --transport http gbrain/);
     expect(tmpl).toContain('Authorization: Bearer $GBRAIN_MCP_TOKEN');
     // Token must be unset after registration so it doesn't linger in env.
     expect(tmpl).toMatch(/unset GBRAIN_MCP_TOKEN/);
@@ -62,23 +62,23 @@ describe('setup-gbrain Path 4 (Remote MCP) — structural contract', () => {
 
   test('Step 5a removes any prior gbrain registration before adding the new one', () => {
     // Otherwise local-stdio + remote-http coexist, which breaks routing.
-    expect(tmpl).toMatch(/claude mcp remove gbrain/);
+    expect(tmpl).toMatch(/codex mcp remove gbrain/);
   });
 
-  test('Step 7 calls gstack-artifacts-init with --url-form-supported flag', () => {
-    expect(tmpl).toMatch(/gstack-artifacts-init.*--url-form-supported/);
+  test('Step 7 calls cgstack-artifacts-init with --url-form-supported flag', () => {
+    expect(tmpl).toMatch(/cgstack-artifacts-init.*--url-form-supported/);
   });
 
-  test('Step 8 CLAUDE.md block branches on mode', () => {
+  test('Step 8 AGENTS.md block branches on mode', () => {
     // The remote-http block has Mode: remote-http; local-stdio block has Engine:.
     expect(tmpl).toMatch(/### Path 4 \(Remote MCP\)/);
     expect(tmpl).toMatch(/Mode: remote-http/);
     expect(tmpl).toMatch(/Mode: local-stdio/);
   });
 
-  test('Step 8 explicitly says the bearer is never written to CLAUDE.md', () => {
-    // Token-leak regression guard. CLAUDE.md is committed in many projects.
-    expect(tmpl).toMatch(/bearer token is \*\*never\*\* written to CLAUDE\.md/);
+  test('Step 8 explicitly says the bearer is never written to AGENTS.md', () => {
+    // Token-leak regression guard. AGENTS.md is committed in many projects.
+    expect(tmpl).toMatch(/bearer token is \*\*never\*\* written to CODEX\.md/);
   });
 
   test('Step 9 smoke test on Path 4 prints a placeholder, never the real token', () => {
@@ -123,7 +123,7 @@ describe('setup-gbrain Path 4 — token security regressions', () => {
     //   - $GBRAIN_MCP_TOKEN  (env-var expansion)
     //   - <bearer>, <YOUR_TOKEN>, <TOKEN>  (placeholder)
     //   - "..."  (rest-of-doc-text continuation; a doc note showing how
-    //     `claude mcp add --header` shapes its argv).
+    //     `codex mcp add --header` shapes its argv).
     const path4Section = tmpl.match(/### Path 4 \(Remote MCP[\s\S]*?(?=###|## )/g)?.join('') || '';
     const bearerLines = path4Section.match(/Bearer\s+\S+/g) || [];
     for (const line of bearerLines) {

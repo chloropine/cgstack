@@ -85,8 +85,6 @@ jobs:
             file: test/skill-routing-e2e.test.ts
           - name: e2e-codex
             file: test/codex-e2e.test.ts
-          - name: e2e-gemini
-            file: test/gemini-e2e.test.ts
     steps:
       - uses: actions/checkout@v4
         with:
@@ -129,5 +127,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: eval-periodic-${{ matrix.suite.name }}
-          path: ~/.gstack-dev/evals/*.json
+          path: ~/.cgstack-dev/evals/*.json
           retention-days: 90

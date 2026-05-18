@@ -9,13 +9,13 @@
  * sessions (e.g., gating questions on a phrase that isn't there), this
  * test catches it.
  *
- * Why this matters: outside plan mode, claude doesn't render a native
+ * Why this matters: outside plan mode, codex doesn't render a native
  * confirmation UI. The skill must drive its own AskUserQuestion. Same
  * runner, same outcome contract — just `inPlanMode: false`.
  */
 
 import { describe, test, expect } from 'bun:test';
-import { runPlanSkillObservation } from './helpers/claude-pty-runner';
+import { runPlanSkillObservation } from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;

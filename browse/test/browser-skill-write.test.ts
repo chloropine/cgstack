@@ -2,9 +2,9 @@
  * D3 helper tests — staging, atomic commit, and discard for /skillify.
  *
  * These tests use synthetic tier paths and a synthetic tmp root so they
- * never touch the user's real ~/.gstack/ tree. The contract under test:
+ * never touch the user's real ~/.cgstack/ tree. The contract under test:
  *
- *   stageSkill    → writes files into ~/.gstack/.tmp/skillify-<spawnId>/<name>/
+ *   stageSkill    → writes files into ~/.cgstack/.tmp/skillify-<spawnId>/<name>/
  *   commitSkill   → atomic rename to <tier-root>/<name>/, refuses to clobber
  *   discardStaged → rm -rf the staged dir + per-spawn wrapper, idempotent
  *
@@ -35,12 +35,12 @@ let stagingTmpRoot: string;
 beforeEach(() => {
   tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'browser-skill-write-test-'));
   tiers = {
-    project: path.join(tmpRoot, 'project', '.gstack', 'browser-skills'),
-    global: path.join(tmpRoot, 'home', '.gstack', 'browser-skills'),
-    bundled: path.join(tmpRoot, 'gstack-install', 'browser-skills'),
+    project: path.join(tmpRoot, 'project', '.cgstack', 'browser-skills'),
+    global: path.join(tmpRoot, 'home', '.cgstack', 'browser-skills'),
+    bundled: path.join(tmpRoot, 'cgstack-install', 'browser-skills'),
   };
-  // Synthetic tmp root keeps tests off the real ~/.gstack/.tmp/.
-  stagingTmpRoot = path.join(tmpRoot, 'home', '.gstack', '.tmp');
+  // Synthetic tmp root keeps tests off the real ~/.cgstack/.tmp/.
+  stagingTmpRoot = path.join(tmpRoot, 'home', '.cgstack', '.tmp');
 });
 
 afterEach(() => {

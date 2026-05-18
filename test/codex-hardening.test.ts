@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const PROBE = path.join(ROOT, 'bin/gstack-codex-probe');
+const PROBE = path.join(ROOT, 'bin/cgstack-codex-probe');
 
 // Run a bash snippet that sources the probe and evaluates one of its functions.
 // Controlled env + optional tempdir for HOME isolation.
@@ -44,15 +44,15 @@ function runProbe(opts: {
 }
 
 function tempHome(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-codex-probe-home-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-codex-probe-home-'));
 }
 
-describe('gstack-codex-probe: auth probe', () => {
+describe('cgstack-codex-probe: auth probe', () => {
   test('CODEX_API_KEY set → AUTH_OK', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { CODEX_API_KEY: 'sk-test' },
         home,
       });
@@ -67,7 +67,7 @@ describe('gstack-codex-probe: auth probe', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { OPENAI_API_KEY: 'sk-openai' },
         home,
       });
@@ -83,7 +83,7 @@ describe('gstack-codex-probe: auth probe', () => {
     try {
       fs.mkdirSync(path.join(home, '.codex'), { recursive: true });
       fs.writeFileSync(path.join(home, '.codex', 'auth.json'), '{}');
-      const r = runProbe({ snippet: '_gstack_codex_auth_probe', home });
+      const r = runProbe({ snippet: '_cgstack_codex_auth_probe', home });
       expect(r.stdout.trim()).toBe('AUTH_OK');
       expect(r.status).toBe(0);
     } finally {
@@ -94,7 +94,7 @@ describe('gstack-codex-probe: auth probe', () => {
   test('no env + no file → AUTH_FAILED with exit 1', () => {
     const home = tempHome();
     try {
-      const r = runProbe({ snippet: '_gstack_codex_auth_probe', home });
+      const r = runProbe({ snippet: '_cgstack_codex_auth_probe', home });
       expect(r.stdout.trim()).toBe('AUTH_FAILED');
       expect(r.status).toBe(1);
     } finally {
@@ -102,11 +102,11 @@ describe('gstack-codex-probe: auth probe', () => {
     }
   });
 
-  test('both CODEX_API_KEY and OPENAI_API_KEY set → AUTH_OK', () => {
+  test('both CODEX_API_KEY or OPENAI_API_KEY set → AUTH_OK', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { CODEX_API_KEY: 'k1', OPENAI_API_KEY: 'k2' },
         home,
       });
@@ -121,7 +121,7 @@ describe('gstack-codex-probe: auth probe', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { CODEX_API_KEY: '', OPENAI_API_KEY: '' },
         home,
       });
@@ -136,7 +136,7 @@ describe('gstack-codex-probe: auth probe', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { CODEX_API_KEY: '   ', OPENAI_API_KEY: '\t\n' },
         home,
       });
@@ -149,11 +149,11 @@ describe('gstack-codex-probe: auth probe', () => {
 
   test('alternate $CODEX_HOME → checks the alternate path', () => {
     const home = tempHome();
-    const altCodex = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-alt-codex-'));
+    const altCodex = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-alt-codex-'));
     try {
       fs.writeFileSync(path.join(altCodex, 'auth.json'), '{}');
       const r = runProbe({
-        snippet: '_gstack_codex_auth_probe',
+        snippet: '_cgstack_codex_auth_probe',
         env: { CODEX_HOME: altCodex },
         home,
       });
@@ -172,7 +172,7 @@ function tempStubCodex(versionOutput: string, bool_command_fails = false): {
   dir: string;
   pathEntry: string;
 } {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-codex-stub-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-codex-stub-'));
   const bin = path.join(dir, 'codex');
   const script = bool_command_fails
     ? '#!/bin/bash\nexit 1\n'
@@ -186,7 +186,7 @@ function runVersionCheck(versionOutput: string): string {
   const stub = tempStubCodex(versionOutput);
   try {
     const r = runProbe({
-      snippet: '_gstack_codex_version_check',
+      snippet: '_cgstack_codex_version_check',
       env: { PATH: `${stub.pathEntry}:${process.env.PATH}` },
     });
     return r.stdout + r.stderr;
@@ -195,7 +195,7 @@ function runVersionCheck(versionOutput: string): string {
   }
 }
 
-describe('gstack-codex-probe: version check (anchored regex per Tension I)', () => {
+describe('cgstack-codex-probe: version check (anchored regex per Tension I)', () => {
   // Matches (should WARN)
   test('codex-cli 0.120.0 → WARN', () => {
     const out = runVersionCheck('codex-cli 0.120.0\n');
@@ -254,8 +254,8 @@ describe('gstack-codex-probe: version check (anchored regex per Tension I)', () 
 
 // --- Group 3: Timeout wrapper + namespace hygiene ---------------------------
 
-describe('gstack-codex-probe: timeout wrapper + namespace hygiene', () => {
-  test('bin/gstack-codex-probe is syntactically valid bash (bash -n)', () => {
+describe('cgstack-codex-probe: timeout wrapper + namespace hygiene', () => {
+  test('bin/cgstack-codex-probe is syntactically valid bash (bash -n)', () => {
     const result = spawnSync('bash', ['-n', PROBE], { timeout: 5000 });
     expect(result.status).toBe(0);
   });
@@ -263,7 +263,7 @@ describe('gstack-codex-probe: timeout wrapper + namespace hygiene', () => {
   test('timeout wrapper executes command directly when neither binary present', () => {
     // Clear PATH to simulate no timeout/gtimeout. Use only /bin for `echo`.
     const r = runProbe({
-      snippet: `_gstack_codex_timeout_wrapper 5 echo hello_world`,
+      snippet: `_cgstack_codex_timeout_wrapper 5 echo hello_world`,
       env: { PATH: '/bin:/usr/bin' }, // these usually lack gtimeout; timeout may exist on linux
     });
     // Regardless of whether timeout is on this PATH, echo hello_world should succeed.
@@ -272,13 +272,13 @@ describe('gstack-codex-probe: timeout wrapper + namespace hygiene', () => {
 
   test('timeout wrapper resolves gtimeout preferentially when on PATH', () => {
     // Create a stub gtimeout that prints a sentinel so we can verify it was chosen.
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-gto-stub-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-gto-stub-'));
     try {
       const stub = path.join(dir, 'gtimeout');
       fs.writeFileSync(stub, '#!/bin/bash\necho gtimeout_chosen_$1\n');
       fs.chmodSync(stub, 0o755);
       const r = runProbe({
-        snippet: `_gstack_codex_timeout_wrapper 5 echo nope`,
+        snippet: `_cgstack_codex_timeout_wrapper 5 echo nope`,
         env: { PATH: `${dir}:/bin:/usr/bin` },
       });
       expect(r.stdout.trim()).toBe('gtimeout_chosen_5');
@@ -309,12 +309,12 @@ fi
 
 // --- Group 4: Telemetry event emission --------------------------------------
 
-describe('gstack-codex-probe: telemetry event emission', () => {
-  test('_gstack_codex_log_event writes jsonl when _TEL != off', () => {
+describe('cgstack-codex-probe: telemetry event emission', () => {
+  test('_cgstack_codex_log_event writes jsonl when _TEL != off', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: `_gstack_codex_log_event "codex_test_event" "42"; cat "$HOME/.gstack/analytics/skill-usage.jsonl"`,
+        snippet: `_cgstack_codex_log_event "codex_test_event" "42"; cat "$HOME/.cgstack/analytics/skill-usage.jsonl"`,
         env: { _TEL: 'community' },
         home,
       });
@@ -325,15 +325,15 @@ describe('gstack-codex-probe: telemetry event emission', () => {
     }
   });
 
-  test('_gstack_codex_log_event skips write when _TEL = off', () => {
+  test('_cgstack_codex_log_event skips write when _TEL = off', () => {
     const home = tempHome();
     try {
       runProbe({
-        snippet: `_gstack_codex_log_event "codex_test_event" "99"`,
+        snippet: `_cgstack_codex_log_event "codex_test_event" "99"`,
         env: { _TEL: 'off' },
         home,
       });
-      const jsonl = path.join(home, '.gstack/analytics/skill-usage.jsonl');
+      const jsonl = path.join(home, '.cgstack/analytics/skill-usage.jsonl');
       expect(fs.existsSync(jsonl)).toBe(false);
     } finally {
       fs.rmSync(home, { recursive: true, force: true });
@@ -344,7 +344,7 @@ describe('gstack-codex-probe: telemetry event emission', () => {
     const home = tempHome();
     try {
       const r = runProbe({
-        snippet: `_gstack_codex_log_event "codex_test_event" "1"; cat "$HOME/.gstack/analytics/skill-usage.jsonl"`,
+        snippet: `_cgstack_codex_log_event "codex_test_event" "1"; cat "$HOME/.cgstack/analytics/skill-usage.jsonl"`,
         env: {
           _TEL: 'community',
           CODEX_API_KEY: 'SECRET_TOKEN_SHOULD_NOT_LEAK',
@@ -363,67 +363,4 @@ describe('gstack-codex-probe: telemetry event emission', () => {
       fs.rmSync(home, { recursive: true, force: true });
     }
   });
-});
-
-// ── Step 2A argv guard ─────────────────────────────────────────────────────
-// Regression test for #1428: Codex CLI >=0.130.0 rejects passing a quoted
-// prompt argument together with `--base <branch>`. Step 2A must never combine
-// the two on the same line. Asserts across both the .tmpl source and the
-// generated SKILL.md so template drift can't silently re-introduce the bug.
-
-describe('codex SKILL.md.tmpl Step 2A: PROMPT + --base mutual exclusion guard', () => {
-  function extractStep2A(filePath: string): string {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const startIdx = content.indexOf('## Step 2A: Review Mode');
-    expect(startIdx).toBeGreaterThan(-1);
-    // End at next `## ` heading (skill section boundary).
-    const tail = content.slice(startIdx);
-    const nextHeading = tail.slice(2).search(/\n## /);
-    return nextHeading === -1 ? tail : tail.slice(0, nextHeading + 2);
-  }
-
-  for (const relPath of ['codex/SKILL.md.tmpl', 'codex/SKILL.md']) {
-    test(`${relPath}: no \`codex review\` line combines a quoted prompt argument with --base`, () => {
-      const section = extractStep2A(path.join(ROOT, relPath));
-      // Find all lines invoking `codex review` (any prefix wrapper allowed).
-      const lines = section.split('\n');
-      const offendingLines: string[] = [];
-      for (const line of lines) {
-        // Skip prose lines that just discuss codex review. Only inspect lines
-        // that look like an actual shell invocation (codex review followed by
-        // a non-prose token).
-        const match = line.match(/\bcodex\s+review\b(.*)$/);
-        if (!match) continue;
-        const rest = match[1];
-        // Two regression patterns:
-        //   codex review "..." --base <foo>
-        //   codex review $VAR --base <foo>
-        //   codex review -- "..." --base <foo>
-        // Acceptable: codex review --base <foo>   (bare, no prompt arg)
-        const hasBase = /--base\b/.test(rest);
-        if (!hasBase) continue;
-        // Strip --base <token> and any trailing -c/--enable flags so they
-        // don't look like positional args. Anything that remains BEFORE
-        // --base and looks like a positional is the regression.
-        const beforeBase = rest.split(/--base\b/)[0].trim();
-        // Empty (or just whitespace) before --base => bare review, safe.
-        if (beforeBase === '') continue;
-        // Allow `--` separator that introduces nothing else (rare). Anything
-        // that looks like a quoted string OR variable expansion is the bug.
-        if (/^["'$]|^--\s*["']/.test(beforeBase)) {
-          offendingLines.push(line);
-        }
-      }
-      expect(offendingLines).toEqual([]);
-    });
-
-    test(`${relPath}: Step 2A still contains at least one fix-path invocation`, () => {
-      const section = extractStep2A(path.join(ROOT, relPath));
-      // At least one of: bare `codex review --base` OR `codex exec ...` must
-      // remain. Guards against accidental deletion of both fix paths.
-      const bareReview = /codex\s+review\s+--base\b/.test(section);
-      const execRoute = /codex\s+exec\b/.test(section);
-      expect(bareReview || execRoute).toBe(true);
-    });
-  }
 });

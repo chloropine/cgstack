@@ -14,13 +14,13 @@ let cachedSlug: string | null = null;
 
 export function getCurrentProjectSlug(): string {
   if (cachedSlug) return cachedSlug;
-  const explicit = process.env.GSTACK_PROJECT_SLUG;
+  const explicit = process.env.CGSTACK_PROJECT_SLUG;
   if (explicit) {
     cachedSlug = explicit;
     return explicit;
   }
   try {
-    const slugBin = path.join(os.homedir(), '.claude/skills/gstack/bin/gstack-slug');
+    const slugBin = path.join(os.homedir(), '.agents/skills/cgstack/bin/cgstack-slug');
     const out = execSync(slugBin, { encoding: 'utf8', timeout: 2000 }).trim();
     const m = out.match(/SLUG="?([^"\n]+)"?/);
     cachedSlug = m ? m[1]! : (out || 'unknown');

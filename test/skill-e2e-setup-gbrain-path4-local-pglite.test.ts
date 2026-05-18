@@ -7,9 +7,9 @@
 //
 // Asserts that the model:
 //   1. ran the verify helper successfully (got past Step 4c)
-//   2. invoked gstack-gbrain-install (Step 4.5 Yes branch)
+//   2. invoked cgstack-gbrain-install (Step 4.5 Yes branch)
 //   3. invoked `gbrain init --pglite --json` (also Step 4.5 Yes branch)
-//   4. registered the remote MCP via claude mcp add --transport http
+//   4. registered the remote MCP via codex mcp add --transport http
 //   5. wrote a "Code search ..... OK local-pglite" row to the Step 10 verdict
 //
 // Periodic-tier (codex #12: AgentSDK harness is non-deterministic; gate-tier
@@ -26,7 +26,7 @@ import * as http from 'http';
 import {
   runAgentSdkTest,
   passThroughNonAskUserQuestion,
-  resolveClaudeBinary,
+  resolveCodexBinary,
 } from './helpers/agent-sdk-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
@@ -103,13 +103,13 @@ exit 0
 }
 
 /**
- * Fake `claude` CLI for mcp add/remove/get/list. Logs every call so we can
+ * Fake `codex` CLI for mcp add/remove/get/list. Logs every call so we can
  * assert remote MCP registration happened.
  */
-function makeFakeClaude(binDir: string): string {
-  const callLog = path.join(binDir, 'claude-calls.log');
+function makeFakeCodex(binDir: string): string {
+  const callLog = path.join(binDir, 'codex-calls.log');
   const script = `#!/bin/bash
-echo "claude $@" >> "${callLog}"
+echo "codex $@" >> "${callLog}"
 case "$1 $2" in
   "mcp add") exit 0 ;;
   "mcp list") echo "gbrain: http://stub/mcp (HTTP) — connected" ; exit 0 ;;
@@ -118,12 +118,12 @@ case "$1 $2" in
 esac
 exit 0
 `;
-  fs.writeFileSync(path.join(binDir, 'claude'), script, { mode: 0o755 });
+  fs.writeFileSync(path.join(binDir, 'codex'), script, { mode: 0o755 });
   return callLog;
 }
 
 /**
- * Fake gstack-gbrain-install so we don't actually clone the gbrain repo +
+ * Fake cgstack-gbrain-install so we don't actually clone the gbrain repo +
  * bun-link. The test only cares that the skill INVOKED it on the Yes branch.
  */
 function makeFakeInstall(binDir: string): string {
@@ -132,7 +132,7 @@ function makeFakeInstall(binDir: string): string {
 echo "install $@" >> "${callLog}"
 exit 0
 `;
-  fs.writeFileSync(path.join(binDir, 'gstack-gbrain-install'), script, {
+  fs.writeFileSync(path.join(binDir, 'cgstack-gbrain-install'), script, {
     mode: 0o755,
   });
   return callLog;
@@ -146,15 +146,15 @@ describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () 
     const gbrainConfigDir = path.join(sandboxHome, '.gbrain');
     fs.mkdirSync(gbrainConfigDir, { recursive: true });
     const gbrainConfigPath = path.join(gbrainConfigDir, 'config.json');
-    const claudeLog = makeFakeClaude(fakeBinDir);
+    const codexLog = makeFakeCodex(fakeBinDir);
     const gbrainLog = makeFakeGbrain(fakeBinDir, gbrainConfigPath);
     const installLog = makeFakeInstall(fakeBinDir);
 
-    const ORIGINAL_CLAUDE_MD = '# Test project\n';
-    fs.writeFileSync(path.join(sandboxHome, 'CLAUDE.md'), ORIGINAL_CLAUDE_MD);
+    const ORIGINAL_CODEX_MD = '# Test project\n';
+    fs.writeFileSync(path.join(sandboxHome, 'AGENTS.md'), ORIGINAL_CODEX_MD);
 
     const askLog: Array<{ question: string; choice: string }> = [];
-    const binary = resolveClaudeBinary();
+    const binary = resolveCodexBinary();
 
     const orig = {
       home: process.env.HOME,
@@ -173,7 +173,7 @@ describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () 
         'SKILL.md',
       );
       const result = await runAgentSdkTest({
-        systemPrompt: { type: 'preset', preset: 'claude_code' },
+        systemPrompt: { type: 'preset', preset: 'codex' },
         userPrompt:
           `Read the skill file at ${skillPath} and follow Path 4 (Remote MCP). ` +
           `Use this MCP URL: ${stubServer.url}. ` +
@@ -184,7 +184,7 @@ describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () 
         workingDirectory: sandboxHome,
         maxTurns: 25,
         allowedTools: ['Read', 'Grep', 'Glob', 'Bash', 'Write', 'Edit'],
-        ...(binary ? { pathToClaudeCodeExecutable: binary } : {}),
+        ...(binary ? { pathToCodexCodeExecutable: binary } : {}),
         canUseTool: async (toolName, input) => {
           if (toolName === 'AskUserQuestion') {
             const qs = input.questions as Array<{
@@ -224,9 +224,9 @@ describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () 
       expect(askLog.length).toBeGreaterThan(0);
 
       // Assertion 2: at LEAST ONE of the Path 4 / Step 4.5 commands fired:
-      //   - gstack-gbrain-install (install step)
+      //   - cgstack-gbrain-install (install step)
       //   - `gbrain init --pglite` (engine init)
-      //   - `claude mcp add` (remote MCP registration)
+      //   - `codex mcp add` (remote MCP registration)
       // Failing all three means the model didn't follow the skill at all.
       const installCalls = fs.existsSync(installLog)
         ? fs.readFileSync(installLog, 'utf-8')
@@ -234,21 +234,21 @@ describeE2E('/setup-gbrain Path 4 + Step 4.5 Yes → local PGLite for code', () 
       const gbrainCalls = fs.existsSync(gbrainLog)
         ? fs.readFileSync(gbrainLog, 'utf-8')
         : '';
-      const claudeCalls = fs.existsSync(claudeLog)
-        ? fs.readFileSync(claudeLog, 'utf-8')
+      const codexCalls = fs.existsSync(codexLog)
+        ? fs.readFileSync(codexLog, 'utf-8')
         : '';
       const followedPath =
         installCalls.length > 0 ||
         /gbrain init --pglite/.test(gbrainCalls) ||
-        /mcp add/.test(claudeCalls);
+        /mcp add/.test(codexCalls);
       expect(followedPath).toBe(true);
 
-      // Assertion 3: token never leaked to CLAUDE.md (security regression).
-      const finalClaudeMd = fs.readFileSync(
-        path.join(sandboxHome, 'CLAUDE.md'),
+      // Assertion 3: token never leaked to AGENTS.md (security regression).
+      const finalCodexMd = fs.readFileSync(
+        path.join(sandboxHome, 'AGENTS.md'),
         'utf-8',
       );
-      expect(finalClaudeMd).not.toContain('gbrain_fake_token_for_test');
+      expect(finalCodexMd).not.toContain('gbrain_fake_token_for_test');
     } finally {
       if (orig.home === undefined) delete process.env.HOME;
       else process.env.HOME = orig.home;

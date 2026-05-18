@@ -19,15 +19,15 @@ describe('config', () => {
       const gitRoot = getGitRoot();
       expect(gitRoot).not.toBeNull();
       expect(config.projectDir).toBe(gitRoot);
-      expect(config.stateDir).toBe(path.join(gitRoot!, '.gstack'));
-      expect(config.stateFile).toBe(path.join(gitRoot!, '.gstack', 'browse.json'));
+      expect(config.stateDir).toBe(path.join(gitRoot!, '.cgstack'));
+      expect(config.stateFile).toBe(path.join(gitRoot!, '.cgstack', 'browse.json'));
     });
 
     test('derives paths from BROWSE_STATE_FILE when set', () => {
-      const stateFile = '/tmp/test-config/.gstack/browse.json';
+      const stateFile = '/tmp/test-config/.cgstack/browse.json';
       const config = resolveConfig({ BROWSE_STATE_FILE: stateFile });
       expect(config.stateFile).toBe(stateFile);
-      expect(config.stateDir).toBe('/tmp/test-config/.gstack');
+      expect(config.stateDir).toBe('/tmp/test-config/.cgstack');
       expect(config.projectDir).toBe('/tmp/test-config');
     });
 
@@ -42,7 +42,7 @@ describe('config', () => {
   describe('ensureStateDir', () => {
     test('creates directory if it does not exist', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-config-test-${Date.now()}`);
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       expect(fs.existsSync(config.stateDir)).toBe(false);
       ensureStateDir(config);
       expect(fs.existsSync(config.stateDir)).toBe(true);
@@ -52,7 +52,7 @@ describe('config', () => {
 
     test('is a no-op if directory already exists', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-config-test-${Date.now()}`);
-      const stateDir = path.join(tmpDir, '.gstack');
+      const stateDir = path.join(tmpDir, '.cgstack');
       fs.mkdirSync(stateDir, { recursive: true });
       const config = resolveConfig({ BROWSE_STATE_FILE: path.join(stateDir, 'browse.json') });
       ensureStateDir(config); // should not throw
@@ -61,26 +61,26 @@ describe('config', () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    test('adds .gstack/ to .gitignore if not present', () => {
+    test('adds .cgstack/ to .gitignore if not present', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-gitignore-test-${Date.now()}`);
       fs.mkdirSync(tmpDir, { recursive: true });
       fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules/\n');
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       ensureStateDir(config);
       const content = fs.readFileSync(path.join(tmpDir, '.gitignore'), 'utf-8');
-      expect(content).toContain('.gstack/');
-      expect(content).toBe('node_modules/\n.gstack/\n');
+      expect(content).toContain('.cgstack/');
+      expect(content).toBe('node_modules/\n.cgstack/\n');
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    test('does not duplicate .gstack/ in .gitignore', () => {
+    test('does not duplicate .cgstack/ in .gitignore', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-gitignore-test-${Date.now()}`);
       fs.mkdirSync(tmpDir, { recursive: true });
-      fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules/\n.gstack/\n');
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules/\n.cgstack/\n');
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       ensureStateDir(config);
       const content = fs.readFileSync(path.join(tmpDir, '.gitignore'), 'utf-8');
-      expect(content).toBe('node_modules/\n.gstack/\n');
+      expect(content).toBe('node_modules/\n.cgstack/\n');
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
@@ -88,20 +88,20 @@ describe('config', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-gitignore-test-${Date.now()}`);
       fs.mkdirSync(tmpDir, { recursive: true });
       fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules');
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       ensureStateDir(config);
       const content = fs.readFileSync(path.join(tmpDir, '.gitignore'), 'utf-8');
-      expect(content).toBe('node_modules\n.gstack/\n');
+      expect(content).toBe('node_modules\n.cgstack/\n');
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
     test('logs warning to browse-server.log on non-ENOENT gitignore error', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-gitignore-test-${Date.now()}`);
       fs.mkdirSync(tmpDir, { recursive: true });
-      // Create a read-only .gitignore (no .gstack/ entry → would try to append)
+      // Create a read-only .gitignore (no .cgstack/ entry → would try to append)
       fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules/\n');
       fs.chmodSync(path.join(tmpDir, '.gitignore'), 0o444);
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       ensureStateDir(config); // should not throw
       // Verify warning was written to server log
       const logPath = path.join(config.stateDir, 'browse-server.log');
@@ -119,7 +119,7 @@ describe('config', () => {
     test('skips if no .gitignore exists', () => {
       const tmpDir = path.join(os.tmpdir(), `browse-gitignore-test-${Date.now()}`);
       fs.mkdirSync(tmpDir, { recursive: true });
-      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.gstack', 'browse.json') });
+      const config = resolveConfig({ BROWSE_STATE_FILE: path.join(tmpDir, '.cgstack', 'browse.json') });
       ensureStateDir(config);
       expect(fs.existsSync(path.join(tmpDir, '.gitignore'))).toBe(false);
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -136,24 +136,24 @@ describe('config', () => {
 
     test('parses SSH remote URLs', () => {
       // Test the regex directly since we can't mock Bun.spawnSync easily
-      const url = 'git@github.com:garrytan/gstack.git';
+      const url = 'git@github.com:chloropine/cgstack.git';
       const match = url.match(/[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);
       expect(match).not.toBeNull();
-      expect(`${match![1]}-${match![2]}`).toBe('garrytan-gstack');
+      expect(`${match![1]}-${match![2]}`).toBe('chloropine-cgstack');
     });
 
     test('parses HTTPS remote URLs', () => {
-      const url = 'https://github.com/garrytan/gstack.git';
+      const url = 'https://github.com/chloropine/cgstack.git';
       const match = url.match(/[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);
       expect(match).not.toBeNull();
-      expect(`${match![1]}-${match![2]}`).toBe('garrytan-gstack');
+      expect(`${match![1]}-${match![2]}`).toBe('chloropine-cgstack');
     });
 
     test('parses HTTPS remote URLs without .git suffix', () => {
-      const url = 'https://github.com/garrytan/gstack';
+      const url = 'https://github.com/chloropine/cgstack';
       const match = url.match(/[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);
       expect(match).not.toBeNull();
-      expect(`${match![1]}-${match![2]}`).toBe('garrytan-gstack');
+      expect(`${match![1]}-${match![2]}`).toBe('chloropine-cgstack');
     });
   });
 
@@ -316,24 +316,24 @@ describe('startup error log', () => {
 });
 
 describe('resolveGstackHome', () => {
-  test('honors GSTACK_HOME env var when set', () => {
-    const orig = process.env.GSTACK_HOME;
-    process.env.GSTACK_HOME = '/tmp/custom-gstack-home';
+  test('honors CGSTACK_HOME env var when set', () => {
+    const orig = process.env.CGSTACK_HOME;
+    process.env.CGSTACK_HOME = '/tmp/custom-cgstack-home';
     try {
-      expect(resolveGstackHome()).toBe('/tmp/custom-gstack-home');
+      expect(resolveGstackHome()).toBe('/tmp/custom-cgstack-home');
     } finally {
-      if (orig === undefined) delete process.env.GSTACK_HOME;
-      else process.env.GSTACK_HOME = orig;
+      if (orig === undefined) delete process.env.CGSTACK_HOME;
+      else process.env.CGSTACK_HOME = orig;
     }
   });
 
-  test('falls back to os.homedir() + /.gstack when env unset', () => {
-    const orig = process.env.GSTACK_HOME;
-    delete process.env.GSTACK_HOME;
+  test('falls back to os.homedir() + /.cgstack when env unset', () => {
+    const orig = process.env.CGSTACK_HOME;
+    delete process.env.CGSTACK_HOME;
     try {
-      expect(resolveGstackHome()).toBe(path.join(os.homedir(), '.gstack'));
+      expect(resolveGstackHome()).toBe(path.join(os.homedir(), '.cgstack'));
     } finally {
-      if (orig !== undefined) process.env.GSTACK_HOME = orig;
+      if (orig !== undefined) process.env.CGSTACK_HOME = orig;
     }
   });
 });
@@ -363,15 +363,15 @@ describe('resolveChromiumProfile', () => {
 
   test('falls back to resolveGstackHome()/chromium-profile when nothing set', () => {
     const origEnv = process.env.CHROMIUM_PROFILE;
-    const origHome = process.env.GSTACK_HOME;
+    const origHome = process.env.CGSTACK_HOME;
     delete process.env.CHROMIUM_PROFILE;
-    process.env.GSTACK_HOME = '/tmp/fallback-gstack';
+    process.env.CGSTACK_HOME = '/tmp/fallback-cgstack';
     try {
-      expect(resolveChromiumProfile()).toBe('/tmp/fallback-gstack/chromium-profile');
+      expect(resolveChromiumProfile()).toBe('/tmp/fallback-cgstack/chromium-profile');
     } finally {
       if (origEnv !== undefined) process.env.CHROMIUM_PROFILE = origEnv;
-      if (origHome === undefined) delete process.env.GSTACK_HOME;
-      else process.env.GSTACK_HOME = origHome;
+      if (origHome === undefined) delete process.env.CGSTACK_HOME;
+      else process.env.CGSTACK_HOME = origHome;
     }
   });
 

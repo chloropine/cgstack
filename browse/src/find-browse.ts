@@ -1,5 +1,5 @@
 /**
- * find-browse — locate the gstack browse binary.
+ * find-browse — locate the cgstack browse binary.
  *
  * Compiled to browse/dist/find-browse (standalone binary, no bun runtime needed).
  * Outputs the absolute path to the browse binary on stdout, or exits 1 if not found.
@@ -27,19 +27,19 @@ function getGitRoot(): string | null {
 export function locateBinary(): string | null {
   const root = getGitRoot();
   const home = homedir();
-  const markers = ['.codex', '.agents', '.claude'];
+  const markers = ['.codex', '.agents'];
 
   // Workspace-local takes priority (for development)
   if (root) {
     for (const m of markers) {
-      const local = join(root, m, 'skills', 'gstack', 'browse', 'dist', 'browse');
+      const local = join(root, m, 'skills', 'cgstack', 'browse', 'dist', 'browse');
       if (existsSync(local)) return local;
     }
   }
 
   // Global fallback
   for (const m of markers) {
-    const global = join(home, m, 'skills', 'gstack', 'browse', 'dist', 'browse');
+    const global = join(home, m, 'skills', 'cgstack', 'browse', 'dist', 'browse');
     if (existsSync(global)) return global;
   }
 

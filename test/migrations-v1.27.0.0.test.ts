@@ -1,5 +1,5 @@
 /**
- * v1.27.0.0 migration — gstack-brain → gstack-artifacts rename.
+ * v1.27.0.0 migration — cgstack-brain → cgstack-artifacts rename.
  *
  * Exercises the journaled migration in a temp HOME with mocked gh / git /
  * gbrain. Tests the four host-mode cases (GitHub, GitLab, remote-MCP,
@@ -13,7 +13,7 @@ import * as path from 'path';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.27.0.0.sh');
+const MIGRATION = path.join(ROOT, 'cgstack-upgrade', 'migrations', 'v1.27.0.0.sh');
 
 let tmpHome: string;
 let fakeBinDir: string;
@@ -33,7 +33,7 @@ case "$1" in
       view)
         # gh repo view <name>
         shift
-        ${alreadyRenamed ? `if echo "$@" | grep -q gstack-artifacts; then exit 0; else exit 1; fi` : `exit 1`}
+        ${alreadyRenamed ? `if echo "$@" | grep -q cgstack-artifacts; then exit 0; else exit 1; fi` : `exit 1`}
         ;;
       rename) ${renameSucceeds ? 'exit 0' : 'exit 1'} ;;
       edit) ${renameSucceeds ? 'exit 0' : 'exit 1'} ;;
@@ -54,7 +54,7 @@ function makeFakeGbrain(opts: { hasOldSource?: boolean; addSucceeds?: boolean; r
 echo "gbrain $@" >> "${callLog}"
 case "$1 $2" in
   "sources list")
-    ${hasOld ? `echo "gstack-brain-testuser ~/.gstack-brain-worktree"` : 'true'}
+    ${hasOld ? `echo "cgstack-brain-testuser ~/.cgstack-brain-worktree"` : 'true'}
     exit 0
     ;;
   "sources add") ${addOk ? 'exit 0' : 'exit 1'} ;;
@@ -84,7 +84,7 @@ function run(extraEnv: Record<string, string> = {}, input = ''): { code: number;
 beforeEach(() => {
   tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'mig-v1.27-'));
   fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mig-v1.27-fake-'));
-  fs.mkdirSync(path.join(tmpHome, '.gstack'), { recursive: true });
+  fs.mkdirSync(path.join(tmpHome, '.cgstack'), { recursive: true });
 });
 
 afterEach(() => {
@@ -94,26 +94,26 @@ afterEach(() => {
 
 describe('v1.27.0.0 migration — nothing to migrate', () => {
   test('no legacy state → exits 0, writes done touchfile, no journal', () => {
-    // Fresh HOME: no brain-remote.txt, no .gstack/.git
+    // Fresh HOME: no brain-remote.txt, no .cgstack/.git
     const r = run();
     expect(r.code).toBe(0);
     expect(r.stderr).toContain('nothing to migrate');
-    expect(fs.existsSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.done'))).toBe(true);
-    expect(fs.existsSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.journal'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.done'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.journal'))).toBe(false);
   });
 
   test('done touchfile present → exits 0 silently (no re-prompt)', () => {
-    fs.mkdirSync(path.join(tmpHome, '.gstack/.migrations'), { recursive: true });
-    fs.writeFileSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.done'), '');
+    fs.mkdirSync(path.join(tmpHome, '.cgstack/.migrations'), { recursive: true });
+    fs.writeFileSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.done'), '');
     const r = run();
     expect(r.code).toBe(0);
     expect(r.stderr).toBe('');
   });
 
   test('skipped-by-user touchfile → exits 0 silently', () => {
-    fs.mkdirSync(path.join(tmpHome, '.gstack/.migrations'), { recursive: true });
-    fs.writeFileSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.skipped-by-user'), '');
-    fs.writeFileSync(path.join(tmpHome, '.gstack-brain-remote.txt'), 'https://github.com/x/gstack-brain-testuser');
+    fs.mkdirSync(path.join(tmpHome, '.cgstack/.migrations'), { recursive: true });
+    fs.writeFileSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.skipped-by-user'), '');
+    fs.writeFileSync(path.join(tmpHome, '.cgstack-brain-remote.txt'), 'https://github.com/x/cgstack-brain-testuser');
     const r = run();
     expect(r.code).toBe(0);
     expect(r.stderr).toBe('');
@@ -123,11 +123,11 @@ describe('v1.27.0.0 migration — nothing to migrate', () => {
 describe('v1.27.0.0 migration — GitHub host (non-interactive)', () => {
   beforeEach(() => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack/config.yaml'),
+      path.join(tmpHome, '.cgstack/config.yaml'),
       'gbrain_sync_mode: full\ngbrain_sync_mode_prompted: true\n'
     );
     makeFakeGh({});
@@ -140,17 +140,17 @@ describe('v1.27.0.0 migration — GitHub host (non-interactive)', () => {
     const ghLog = fs.readFileSync(path.join(fakeBinDir, 'gh-calls.log'), 'utf-8');
     expect(ghLog).toMatch(/gh repo (rename|edit)/);
     // Old remote.txt is gone, new one exists with rewritten URL.
-    expect(fs.existsSync(path.join(tmpHome, '.gstack-brain-remote.txt'))).toBe(false);
-    const newUrl = fs.readFileSync(path.join(tmpHome, '.gstack-artifacts-remote.txt'), 'utf-8').trim();
-    expect(newUrl).toBe('https://github.com/testuser/gstack-artifacts-testuser');
+    expect(fs.existsSync(path.join(tmpHome, '.cgstack-brain-remote.txt'))).toBe(false);
+    const newUrl = fs.readFileSync(path.join(tmpHome, '.cgstack-artifacts-remote.txt'), 'utf-8').trim();
+    expect(newUrl).toBe('https://github.com/testuser/cgstack-artifacts-testuser');
     // Config key renamed.
-    const cfg = fs.readFileSync(path.join(tmpHome, '.gstack/config.yaml'), 'utf-8');
+    const cfg = fs.readFileSync(path.join(tmpHome, '.cgstack/config.yaml'), 'utf-8');
     expect(cfg).toContain('artifacts_sync_mode: full');
     expect(cfg).toContain('artifacts_sync_mode_prompted: true');
     expect(cfg).not.toContain('gbrain_sync_mode');
     // Done touchfile written, journal cleared.
-    expect(fs.existsSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.done'))).toBe(true);
-    expect(fs.existsSync(path.join(tmpHome, '.gstack/.migrations/v1.27.0.0.journal'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.done'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpHome, '.cgstack/.migrations/v1.27.0.0.journal'))).toBe(false);
   });
 
   test('idempotent: re-run after success is a no-op', () => {
@@ -171,15 +171,15 @@ describe('v1.27.0.0 migration — GitHub host (non-interactive)', () => {
 describe('v1.27.0.0 migration — interruption resume', () => {
   beforeEach(() => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
     makeFakeGh({});
   });
 
   test('partial journal: skips already-done steps', () => {
     // Pre-plant journal with steps 1+2 marked done.
-    const migDir = path.join(tmpHome, '.gstack/.migrations');
+    const migDir = path.join(tmpHome, '.cgstack/.migrations');
     fs.mkdirSync(migDir, { recursive: true });
     fs.writeFileSync(path.join(migDir, 'v1.27.0.0.journal'), 'gh_repo_renamed\nremote_txt_renamed\n');
 
@@ -200,11 +200,11 @@ describe('v1.27.0.0 migration — interruption resume', () => {
 describe('v1.27.0.0 migration — remote-MCP mode (step 5 prints, never executes)', () => {
   test('with mcpServers.gbrain.type=url → step 5 prints commands, doesn\'t call gbrain', () => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
     fs.writeFileSync(
-      path.join(tmpHome, '.claude.json'),
+      path.join(tmpHome, '.codex.json'),
       JSON.stringify({ mcpServers: { gbrain: { type: 'url', url: 'https://example.com/mcp' } } })
     );
     makeFakeGh({});
@@ -228,10 +228,10 @@ describe('v1.27.0.0 migration — remote-MCP mode (step 5 prints, never executes
 describe('v1.27.0.0 migration — local CLI sources swap (codex Finding #6 ordering)', () => {
   test('add-new before remove-old (verify by call order in log)', () => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
-    fs.mkdirSync(path.join(tmpHome, '.gstack/.git'), { recursive: true }); // brain repo present
+    fs.mkdirSync(path.join(tmpHome, '.cgstack/.git'), { recursive: true }); // brain repo present
     makeFakeGh({});
     makeFakeGbrain({ hasOldSource: true });
 
@@ -239,8 +239,8 @@ describe('v1.27.0.0 migration — local CLI sources swap (codex Finding #6 order
     expect(r.code).toBe(0);
 
     const log = fs.readFileSync(path.join(fakeBinDir, 'gbrain-calls.log'), 'utf-8');
-    const addIdx = log.indexOf('gbrain sources add gstack-artifacts-testuser');
-    const removeIdx = log.indexOf('gbrain sources remove gstack-brain-testuser');
+    const addIdx = log.indexOf('gbrain sources add cgstack-artifacts-testuser');
+    const removeIdx = log.indexOf('gbrain sources remove cgstack-brain-testuser');
     expect(addIdx).toBeGreaterThan(-1);
     expect(removeIdx).toBeGreaterThan(-1);
     // Critical: add must come BEFORE remove (no downtime window).
@@ -249,10 +249,10 @@ describe('v1.27.0.0 migration — local CLI sources swap (codex Finding #6 order
 
   test('add fails → old source stays registered (no silent loss)', () => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
-    fs.mkdirSync(path.join(tmpHome, '.gstack/.git'), { recursive: true });
+    fs.mkdirSync(path.join(tmpHome, '.cgstack/.git'), { recursive: true });
     makeFakeGh({});
     makeFakeGbrain({ addSucceeds: false });
 
@@ -265,25 +265,25 @@ describe('v1.27.0.0 migration — local CLI sources swap (codex Finding #6 order
   });
 });
 
-describe('v1.27.0.0 migration — CLAUDE.md block field rewrite', () => {
-  test('rewrites "- Memory sync:" → "- Artifacts sync:" in CLAUDE.md', () => {
+describe('v1.27.0.0 migration — AGENTS.md block field rewrite', () => {
+  test('rewrites "- Memory sync:" → "- Artifacts sync:" in AGENTS.md', () => {
     fs.writeFileSync(
-      path.join(tmpHome, '.gstack-brain-remote.txt'),
-      'https://github.com/testuser/gstack-brain-testuser\n'
+      path.join(tmpHome, '.cgstack-brain-remote.txt'),
+      'https://github.com/testuser/cgstack-brain-testuser\n'
     );
-    const claudeMd = `# Project notes
+    const codexMd = `# Project notes
 
 ## GBrain Configuration (configured by /setup-gbrain)
 - Engine: pglite
 - Memory sync: full
 - Current repo policy: read-write
 `;
-    fs.writeFileSync(path.join(tmpHome, 'CLAUDE.md'), claudeMd);
+    fs.writeFileSync(path.join(tmpHome, 'AGENTS.md'), codexMd);
     makeFakeGh({});
 
     const r = run();
     expect(r.code).toBe(0);
-    const updated = fs.readFileSync(path.join(tmpHome, 'CLAUDE.md'), 'utf-8');
+    const updated = fs.readFileSync(path.join(tmpHome, 'AGENTS.md'), 'utf-8');
     expect(updated).toContain('- Artifacts sync: full');
     expect(updated).not.toContain('- Memory sync:');
   });

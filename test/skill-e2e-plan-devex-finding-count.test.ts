@@ -14,7 +14,7 @@ import {
   runPlanSkillCounting,
   devexStep0Boundary,
   assertReviewReportAtBottom,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -24,7 +24,7 @@ const FLOOR = N - 1;
 const CEILING = N + 2;
 
 const PLAN_DEVEX_5_FINDINGS = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-devex.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-devex.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Public SDK Beta Launch',
   '',
@@ -50,7 +50,7 @@ const PLAN_DEVEX_5_FINDINGS = [
   'of solved problems.',
 ].join('\n');
 
-const PLAN_DEVEX_PATH = '/tmp/gstack-test-plan-devex.md';
+const PLAN_DEVEX_PATH = '/tmp/cgstack-test-plan-devex.md';
 
 describeE2E('/plan-devex-review per-finding AskUserQuestion count (periodic)', () => {
   test(

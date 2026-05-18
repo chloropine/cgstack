@@ -28,7 +28,7 @@ describe('setup: Apple Silicon codesign', () => {
     expect(binaries).toContain('browse/dist/browse');
     expect(binaries).toContain('browse/dist/find-browse');
     expect(binaries).toContain('design/dist/design');
-    expect(binaries).toContain('bin/gstack-global-discover');
+    expect(binaries).toContain('bin/cgstack-global-discover');
   });
 
   test('codesign block is inside the NEEDS_BUILD=1 branch', () => {
@@ -37,7 +37,7 @@ describe('setup: Apple Silicon codesign', () => {
     // `if [ ! -x "$BROWSE_BIN" ]` guard that checks the build succeeded.
     const buildIdx = content.indexOf('bun run build');
     const codesignIdx = content.indexOf('codesign --remove-signature');
-    const browseCheckIdx = content.indexOf('gstack setup failed: browse binary missing');
+    const browseCheckIdx = content.indexOf('cgstack setup failed: browse binary missing');
     expect(buildIdx).toBeGreaterThan(-1);
     expect(codesignIdx).toBeGreaterThan(buildIdx);
     expect(browseCheckIdx).toBeGreaterThan(codesignIdx);

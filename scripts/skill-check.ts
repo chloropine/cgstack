@@ -109,10 +109,10 @@ for (const hostConfig of getExternalHosts()) {
       if (fs.existsSync(skillMd)) {
         count++;
         const content = fs.readFileSync(skillMd, 'utf-8');
-        const hasClaude = content.includes('.claude/skills');
-        if (hasClaude) {
+        const hasCodex = content.includes('.codex/skills');
+        if (hasCodex) {
           hasErrors = true;
-          console.log(`  \u274c ${dir.padEnd(30)} — contains .claude/skills reference`);
+          console.log(`  \u274c ${dir.padEnd(30)} — contains .codex/skills reference`);
         } else {
           console.log(`  \u2705 ${dir.padEnd(30)} — OK`);
         }
@@ -133,7 +133,7 @@ for (const hostConfig of getExternalHosts()) {
 import { ALL_HOST_CONFIGS } from '../hosts/index';
 
 for (const hostConfig of ALL_HOST_CONFIGS) {
-  const hostFlag = hostConfig.name === 'claude' ? '' : ` --host ${hostConfig.name}`;
+  const hostFlag = hostConfig.name === 'codex' ? '' : ` --host ${hostConfig.name}`;
   console.log(`\n  Freshness (${hostConfig.displayName}):`);
   try {
     execSync(`bun run scripts/gen-skill-docs.ts${hostFlag} --dry-run`, { cwd: ROOT, stdio: 'pipe' });

@@ -3,7 +3,7 @@
  *
  * Each review skill (plan-ceo-review, plan-design-review, plan-eng-review,
  * plan-devex-review) writes one JSONL line per task during its synthesis step
- * to `~/.gstack/projects/$SLUG/tasks-{phase}-{datetime}.jsonl`.
+ * to `~/.cgstack/projects/$SLUG/tasks-{phase}-{datetime}.jsonl`.
  *
  * `/autoplan`'s Phase 4 aggregator reads ALL phase JSONL files, scopes them
  * by branch + commit window, dedupes by exact (component, sorted(files), title),
@@ -39,7 +39,7 @@ export interface ImplementationTask {
   files: string[];
   /** Human-team effort estimate (e.g., "2h", "1 day"). */
   effort_human: string;
-  /** CC+gstack effort estimate (e.g., "15min"). */
+  /** CC+cgstack effort estimate (e.g., "15min"). */
   effort_cc: string;
   /** Action-oriented title in imperative form ("Add commandResult-level sanitization"). */
   title: string;

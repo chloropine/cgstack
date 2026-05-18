@@ -4,7 +4,7 @@ import { AI_SLOP_BLACKLIST, OPENAI_HARD_REJECTIONS, OPENAI_LITMUS_CHECKS } from 
 export function generateDesignReviewLite(ctx: TemplateContext): string {
   const litmusList = OPENAI_LITMUS_CHECKS.map((item, i) => `${i + 1}. ${item}`).join(' ');
   const rejectionList = OPENAI_HARD_REJECTIONS.map((item, i) => `${i + 1}. ${item}`).join(' ');
-  // Codex block only for Claude host
+  // Codex block only for Codex host
   const codexBlock = ctx.host === 'codex' ? '' : `
 
 7. **Codex design voice** (optional, automatic if available):
@@ -32,10 +32,10 @@ Present Codex output under a \`CODEX (design):\` header, merged with the checkli
 
   return `## Design Review (conditional, diff-scoped)
 
-Check if the diff touches frontend files using \`gstack-diff-scope\`:
+Check if the diff touches frontend files using \`cgstack-diff-scope\`:
 
 \`\`\`bash
-source <(${ctx.paths.binDir}/gstack-diff-scope <base> 2>/dev/null)
+source <(${ctx.paths.binDir}/cgstack-diff-scope <base> 2>/dev/null)
 \`\`\`
 
 **If \`SCOPE_FRONTEND=false\`:** Skip design review silently. No output.
@@ -44,7 +44,7 @@ source <(${ctx.paths.binDir}/gstack-diff-scope <base> 2>/dev/null)
 
 1. **Check for DESIGN.md.** If \`DESIGN.md\` or \`design-system.md\` exists in the repo root, read it. All design findings are calibrated against it — patterns blessed in DESIGN.md are not flagged. If not found, use universal design principles.
 
-2. **Read \`.claude/skills/review/design-checklist.md\`.** If the file cannot be read, skip design review with a note: "Design checklist not found — skipping design review."
+2. **Read \`.codex/skills/review/design-checklist.md\`.** If the file cannot be read, skip design review with a note: "Design checklist not found — skipping design review."
 
 3. **Read each changed frontend file** (full file, not just diff hunks). Frontend files are identified by the patterns listed in the checklist.
 
@@ -58,7 +58,7 @@ source <(${ctx.paths.binDir}/gstack-diff-scope <base> 2>/dev/null)
 6. **Log the result** for the Review Readiness Dashboard:
 
 \`\`\`bash
-${ctx.paths.binDir}/gstack-review-log '{"skill":"design-review-lite","timestamp":"TIMESTAMP","status":"STATUS","findings":N,"auto_fixed":M,"commit":"COMMIT"}'
+${ctx.paths.binDir}/cgstack-review-log '{"skill":"design-review-lite","timestamp":"TIMESTAMP","status":"STATUS","findings":N,"auto_fixed":M,"commit":"COMMIT"}'
 \`\`\`
 
 Substitute: TIMESTAMP = ISO 8601 datetime, STATUS = "clean" if 0 findings or "issues_found", N = total findings, M = auto-fixed count, COMMIT = output of \`git rev-parse --short HEAD\`.${codexBlock}`;
@@ -361,13 +361,13 @@ Compare screenshots and observations across pages for:
 
 ### Output Locations
 
-**Local:** \`.gstack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md\`
+**Local:** \`.cgstack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md\`
 
 **Project-scoped:**
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)" && mkdir -p ~/.cgstack/projects/$SLUG
 \`\`\`
-Write to: \`~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md\`
+Write to: \`~/.cgstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md\`
 
 **Baseline:** Write \`design-baseline.json\` for regression mode:
 \`\`\`json
@@ -481,14 +481,14 @@ Generate a single-page HTML file with these constraints:
 
 Write to a temp file:
 \`\`\`bash
-SKETCH_FILE="/tmp/gstack-sketch-$(date +%s).html"
+SKETCH_FILE="/tmp/cgstack-sketch-$(date +%s).html"
 \`\`\`
 
 **Step 3: Render and capture**
 
 \`\`\`bash
 $B goto "file://$SKETCH_FILE"
-$B screenshot /tmp/gstack-sketch.png
+$B screenshot /tmp/cgstack-sketch.png
 \`\`\`
 
 If \`$B\` is not available (browse binary not set up), skip the render step. Tell the
@@ -504,7 +504,7 @@ If they approve or say "good enough," proceed.
 **Step 5: Include in design doc**
 
 Reference the wireframe screenshot in the design doc's "Recommended Approach" section.
-The screenshot file at \`/tmp/gstack-sketch.png\` can be referenced by downstream skills
+The screenshot file at \`/tmp/cgstack-sketch.png\` can be referenced by downstream skills
 (\`/plan-design-review\`, \`/design-review\`) to see what was originally envisioned.
 
 **Step 6: Outside design voices** (optional)
@@ -516,7 +516,7 @@ which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_NOT_AVAILABLE"
 \`\`\`
 
 If Codex is available, use AskUserQuestion:
-> "Want outside design perspectives on the chosen approach? Codex proposes a visual thesis, content plan, and interaction ideas. A Claude subagent proposes an alternative aesthetic direction."
+> "Want outside design perspectives on the chosen approach? Codex proposes a visual thesis, content plan, and interaction ideas. A Codex subagent proposes an alternative aesthetic direction."
 >
 > A) Yes — get outside design voices
 > B) No — proceed without
@@ -531,10 +531,10 @@ codex exec "For this product approach, provide: a visual thesis (one sentence �
 \`\`\`
 Use a 5-minute timeout (\`timeout: 300000\`). After completion: \`cat "$TMPERR_SKETCH" && rm -f "$TMPERR_SKETCH"\`
 
-2. **Claude subagent** (via Agent tool):
+2. **Codex subagent** (via Agent tool):
 "For this product approach, what design direction would you recommend? What aesthetic, typography, and interaction patterns fit? What would make this approach feel inevitable to the user? Be specific — font names, hex colors, spacing values."
 
-Present Codex output under \`CODEX SAYS (design sketch):\` and subagent output under \`CLAUDE SUBAGENT (design direction):\`.
+Present Codex output under \`CODEX SAYS (design sketch):\` and subagent output under \`CODEX SUBAGENT (design direction):\`.
 Error handling: all non-blocking. On failure, skip and continue.`;
 }
 
@@ -636,7 +636,7 @@ Be bold. Be specific. No hedging.`;
   const optInSection = isAutomatic ? `
 **Automatic:** Outside voices run automatically when Codex is available. No opt-in needed.` : `
 Use AskUserQuestion:
-> "Want outside design voices${isPlanDesignReview ? ' before the detailed review' : ''}? Codex evaluates against OpenAI's design hard rules + litmus checks; Claude subagent does an independent ${isDesignConsultation ? 'design direction proposal' : 'completeness review'}."
+> "Want outside design voices${isPlanDesignReview ? ' before the detailed review' : ''}? Codex evaluates against OpenAI's design hard rules + litmus checks; Codex subagent does an independent ${isDesignConsultation ? 'design direction proposal' : 'completeness review'}."
 >
 > A) Yes — run outside design voices
 > B) No — proceed without
@@ -650,7 +650,7 @@ If user chooses B, skip this step and continue.`;
 \`\`\`
 DESIGN OUTSIDE VOICES — LITMUS SCORECARD:
 ═══════════════════════════════════════════════════════════════
-  Check                                    Claude  Codex  Consensus
+  Check                                    Codex  Codex  Consensus
   ─────────────────────────────────────── ─────── ─────── ─────────
   1. Brand unmistakable in first screen?   —       —      —
   2. One strong visual anchor?             —       —      —
@@ -672,14 +672,14 @@ Fill in each cell from the Codex and subagent outputs. CONFIRMED = both agree. D
 - Litmus CONFIRMED failures → pre-loaded as known issues in the relevant pass
 - Passes can skip discovery and go straight to fixing for pre-identified issues` :
     isDesignConsultation ? `
-**Synthesis:** Claude main references both Codex and subagent proposals in the Phase 3 proposal. Present:
-- Areas of agreement between all three voices (Claude main + Codex + subagent)
+**Synthesis:** Codex main references both Codex and subagent proposals in the Phase 3 proposal. Present:
+- Areas of agreement between all three voices (Codex main + Codex + subagent)
 - Genuine divergences as creative alternatives for the user to choose from
 - "Codex and I agree on X. Codex suggested Y where I'm proposing Z — here's why..."` : `
 **Synthesis — Litmus scorecard:**
 
 Use the same scorecard format as /plan-design-review (shown above). Fill in from both outputs.
-Merge findings into the triage with \`[codex]\` / \`[subagent]\` / \`[cross-model]\` tags.`;
+Merge findings into the triage with \`[codex]\` / \`[subagent]\` / \`[independent Codex]\` tags.`;
 
   const escapedCodexPrompt = codexPrompt.replace(/`/g, '\\`').replace(/\$/g, '\\$');
 
@@ -704,7 +704,7 @@ Use a 5-minute timeout (\`timeout: 300000\`). After the command completes, read 
 cat "$TMPERR_DESIGN" && rm -f "$TMPERR_DESIGN"
 \`\`\`
 
-2. **Claude design subagent** (via Agent tool):
+2. **Codex design subagent** (via Agent tool):
 Dispatch a subagent with this prompt:
 "${subagentPrompt}"
 
@@ -712,21 +712,21 @@ Dispatch a subagent with this prompt:
 - **Auth failure:** If stderr contains "auth", "login", "unauthorized", or "API key": "Codex authentication failed. Run \`codex login\` to authenticate."
 - **Timeout:** "Codex timed out after 5 minutes."
 - **Empty response:** "Codex returned no response."
-- On any Codex error: proceed with Claude subagent output only, tagged \`[single-model]\`.
-- If Claude subagent also fails: "Outside voices unavailable — continuing with primary review."
+- On any Codex error: proceed with Codex subagent output only, tagged \`[single-model]\`.
+- If Codex subagent also fails: "Outside voices unavailable — continuing with primary review."
 
 Present Codex output under a \`CODEX SAYS (design ${isPlanDesignReview ? 'critique' : isDesignReview ? 'source audit' : 'direction'}):\` header.
-Present subagent output under a \`CLAUDE SUBAGENT (design ${isPlanDesignReview ? 'completeness' : isDesignReview ? 'consistency' : 'direction'}):\` header.
+Present subagent output under a \`CODEX SUBAGENT (design ${isPlanDesignReview ? 'completeness' : isDesignReview ? 'consistency' : 'direction'}):\` header.
 ${synthesisSection}
 
 **Log the result:**
 \`\`\`bash
-${ctx.paths.binDir}/gstack-review-log '{"skill":"design-outside-voices","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+${ctx.paths.binDir}/cgstack-review-log '{"skill":"design-outside-voices","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 \`\`\`
 Replace STATUS with "clean" or "issues_found", SOURCE with "codex+subagent", "codex-only", "subagent-only", or "unavailable".`;
 }
 
-// ─── Design Hard Rules (OpenAI framework + gstack slop blacklist) ───
+// ─── Design Hard Rules (OpenAI framework + cgstack slop blacklist) ───
 export function generateDesignHardRules(_ctx: TemplateContext): string {
   const slopItems = AI_SLOP_BLACKLIST.map((item, i) => `${i + 1}. ${item}`).join('\n');
   const rejectionItems = OPENAI_HARD_REJECTIONS.map((item, i) => `${i + 1}. ${item}`).join('\n');
@@ -742,7 +742,7 @@ export function generateDesignHardRules(_ctx: TemplateContext): string {
 **Hard rejection criteria** (instant-fail patterns — flag if ANY apply):
 ${rejectionItems}
 
-**Litmus checks** (answer YES/NO for each — used for cross-model consensus scoring):
+**Litmus checks** (answer YES/NO for each — used for independent Codex consensus scoring):
 ${litmusItems}
 
 **Landing page rules** (apply when classifier = MARKETING/LANDING):
@@ -782,7 +782,7 @@ ${litmusItems}
 **AI Slop blacklist** (the 10 patterns that scream "AI-generated"):
 ${slopItems}
 
-Source: [OpenAI "Designing Delightful Frontends with GPT-5.4"](https://developers.openai.com/blog/designing-delightful-frontends-with-gpt-5-4) (Mar 2026) + gstack design methodology.`;
+Source: [OpenAI "Designing Delightful Frontends with GPT-5.4"](https://developers.openai.com/blog/designing-delightful-frontends-with-gpt-5-4) (Mar 2026) + cgstack design methodology.`;
 }
 
 export function generateDesignSetup(ctx: TemplateContext): string {
@@ -825,7 +825,7 @@ Commands:
 - \`$D iterate --session /path/session.json --feedback "..." --output /path.png\` — iterate
 
 **CRITICAL PATH RULE:** All design artifacts (mockups, comparison boards, approved.json)
-MUST be saved to \`~/.gstack/projects/$SLUG/designs/\`, NEVER to \`.context/\`,
+MUST be saved to \`~/.cgstack/projects/$SLUG/designs/\`, NEVER to \`.context/\`,
 \`docs/designs/\`, \`/tmp/\`, or any project-local directory. Design artifacts are USER
 data, not project files. They persist across branches, conversations, and workspaces.`;
 }
@@ -851,8 +851,8 @@ Generating visual mockups of the proposed design... (say "skip" if you don't nee
 **Step 1: Set up the design directory**
 
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
-_DESIGN_DIR="$HOME/.gstack/projects/$SLUG/designs/mockup-$(date +%Y%m%d)"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
+_DESIGN_DIR="$HOME/.cgstack/projects/$SLUG/designs/mockup-$(date +%Y%m%d)"
 mkdir -p "$_DESIGN_DIR"
 echo "DESIGN_DIR: $_DESIGN_DIR"
 \`\`\`
@@ -1014,7 +1014,7 @@ export function generateTasteProfile(ctx: TemplateContext): string {
   return `Read the persistent taste profile if it exists:
 
 \`\`\`bash
-_TASTE_PROFILE=~/.gstack/projects/$SLUG/taste-profile.json
+_TASTE_PROFILE=~/.cgstack/projects/$SLUG/taste-profile.json
 if [ -f "$_TASTE_PROFILE" ]; then
   # Schema v1: { dimensions: { fonts, colors, layouts, aesthetics }, sessions: [] }
   # Each dimension has approved[] and rejected[] entries with
@@ -1048,7 +1048,7 @@ as a one-off?"
 happens at read time, not write time, so the file only grows on change.
 
 **Schema migration:** If the file has no \`version\` field or \`version: 0\`, it's
-the legacy approved.json aggregate — \`${ctx.paths.binDir}/gstack-taste-update\`
+the legacy approved.json aggregate — \`${ctx.paths.binDir}/cgstack-taste-update\`
 will migrate it to schema v1 on the next write.`;
 }
 

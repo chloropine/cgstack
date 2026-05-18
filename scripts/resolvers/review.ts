@@ -1,5 +1,5 @@
 /**
- * Cross-model review resolver
+ * Independent Codex review resolver
  *
  * Data sent to external review services (via Codex CLI):
  *   - Plan markdown content, repository name, branch name, review type
@@ -9,13 +9,13 @@
  * Users invoke this explicitly via /plan-eng-review, /plan-ceo-review,
  * or /plan-design-review. No data is sent without user invocation.
  *
- * Review logs are stored locally at ~/.gstack/reviews/review-log.jsonl.
+ * Review logs are stored locally at ~/.cgstack/reviews/review-log.jsonl.
  * Codex CLI prompts are written to temp files to prevent shell injection.
  */
 import type { TemplateContext } from './types';
 import { generateInvokeSkill } from './composition';
 
-const CODEX_BOUNDARY = 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, or agents/. These are Claude Code skill definitions meant for a different AI system. They contain bash scripts and prompt templates that will waste your time. Ignore them completely. Do NOT modify agents/openai.yaml. Stay focused on the repository code only.\\n\\n';
+const CODEX_BOUNDARY = 'IMPORTANT: Do NOT read or execute any files under ~/.codex/, ~/.agents/, .codex/skills/, or agents/. These are Codex skill definitions meant for a different AI system. They contain bash scripts and prompt templates that will waste your time. Ignore them completely. Do NOT modify agents/openai.yaml. Stay focused on the repository code only.\\n\\n';
 
 export function generateReviewDashboard(_ctx: TemplateContext): string {
   return `## Review Readiness Dashboard
@@ -23,14 +23,14 @@ export function generateReviewDashboard(_ctx: TemplateContext): string {
 After completing the review, read the review log and config to display the dashboard.
 
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-read
+~/.codex/skills/cgstack/bin/cgstack-review-read
 \`\`\`
 
 Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, review, plan-design-review, design-review-lite, adversarial-review, codex-review, codex-plan-review). Ignore entries with timestamps older than 7 days. For the Eng Review row, show whichever is more recent between \`review\` (diff-scoped pre-landing review) and \`plan-eng-review\` (plan-stage architecture review). Append "(DIFF)" or "(PLAN)" to the status to distinguish. For the Adversarial row, show whichever is more recent between \`adversarial-review\` (new auto-scaled) and \`codex-review\` (legacy). For Design Review, show whichever is more recent between \`plan-design-review\` (full visual audit) and \`design-review-lite\` (code-level check). Append "(FULL)" or "(LITE)" to the status to distinguish. For the Outside Voice row, show the most recent \`codex-plan-review\` entry — this captures outside voices from both /plan-ceo-review and /plan-eng-review.
 
 **Source attribution:** If the most recent entry for a skill has a \\\`"via"\\\` field, append it to the status label in parentheses. Examples: \`plan-eng-review\` with \`via:"autoplan"\` shows as "CLEAR (PLAN via /autoplan)". \`review\` with \`via:"ship"\` shows as "CLEAR (DIFF via /ship)". Entries without a \`via\` field show as "CLEAR (PLAN)" or "CLEAR (DIFF)" as before.
 
-Note: \`autoplan-voices\` and \`design-outside-voices\` entries are audit-trail-only (forensic data for cross-model consensus analysis). They do not appear in the dashboard and are not checked by any consumer.
+Note: \`autoplan-voices\` and \`design-outside-voices\` entries are audit-trail-only (forensic data for independent Codex consensus analysis). They do not appear in the dashboard and are not checked by any consumer.
 
 Display:
 
@@ -51,11 +51,11 @@ Display:
 \`\`\`
 
 **Review tiers:**
-- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \\\`gstack-config set skip_eng_review true\\\` (the "don't bother me" setting).
+- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \\\`cgstack-config set skip_eng_review true\\\` (the "don't bother me" setting).
 - **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
-- **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
-- **Outside Voice (optional):** Independent plan review from a different AI model. Offered after all review sections complete in /plan-ceo-review and /plan-eng-review. Falls back to Claude subagent if Codex is unavailable. Never gates shipping.
+- **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Codex adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
+- **Outside Voice (optional):** Independent plan review from a different AI model. Offered after all review sections complete in /plan-ceo-review and /plan-eng-review. Falls back to Codex subagent if Codex is unavailable. Never gates shipping.
 
 **Verdict logic:**
 - **CLEARED**: Eng Review has >= 1 entry within 7 days from either \\\`review\\\` or \\\`plan-eng-review\\\` with status "clean" (or \\\`skip_eng_review\\\` is \\\`true\\\`)
@@ -108,12 +108,12 @@ Summary. For prior reviews, use the JSONL fields directly — they contain all r
 Produce this markdown table:
 
 \\\`\\\`\\\`markdown
-## GSTACK REVIEW REPORT
+## CGSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
 | CEO Review | \\\`/plan-ceo-review\\\` | Scope & strategy | {runs} | {status} | {findings} |
-| Codex Review | \\\`/codex review\\\` | Independent 2nd opinion | {runs} | {status} | {findings} |
+| Codex Review | \\\`Codex review\\\` | Independent 2nd opinion | {runs} | {status} | {findings} |
 | Eng Review | \\\`/plan-eng-review\\\` | Architecture & tests (required) | {runs} | {status} | {findings} |
 | Design Review | \\\`/plan-design-review\\\` | UI/UX gaps | {runs} | {status} | {findings} |
 | DX Review | \\\`/plan-devex-review\\\` | Developer experience gaps | {runs} | {status} | {findings} |
@@ -122,7 +122,7 @@ Produce this markdown table:
 Below the table, add these lines (omit any that are empty/not applicable):
 
 - **CODEX:** (only if codex-review ran) — one-line summary of codex fixes
-- **CROSS-MODEL:** (only if both Claude and Codex reviews exist) — overlap analysis
+- **INDEPENDENT CODEX:** (only if multiple Codex review passes exist) — overlap analysis
 - **UNRESOLVED:** total unresolved decisions across all reviews
 - **VERDICT:** list reviews that are CLEAR (e.g., "CEO + ENG CLEARED — ready to implement").
   If Eng Review is not CLEAR and not skipped globally, append "eng review required".
@@ -137,18 +137,18 @@ The report must always be the LAST section of the plan file — never mid-file.
 Use a single delete-then-append flow:
 
 1. Read the plan file (Read tool) to see its full current content. Search the read
-   output for a \\\`## GSTACK REVIEW REPORT\\\` heading anywhere in the file.
+   output for a \\\`## CGSTACK REVIEW REPORT\\\` heading anywhere in the file.
 2. If found, use the Edit tool to DELETE the entire existing section. Match from
-   \\\`## GSTACK REVIEW REPORT\\\` through either the next \\\`## \\\` heading or end of
+   \\\`## CGSTACK REVIEW REPORT\\\` through either the next \\\`## \\\` heading or end of
    file, whichever comes first. Replace with the empty string. This applies
    regardless of where the section currently lives — mid-file deletion is
    intentional, not a special case. If the Edit fails (e.g., concurrent edit
    changed the content), re-read the plan file and retry once.
 3. After the delete (or skipped, if no section existed), append the new
-   \\\`## GSTACK REVIEW REPORT\\\` section at the END of the file. Use the Edit
+   \\\`## CGSTACK REVIEW REPORT\\\` section at the END of the file. Use the Edit
    tool to match the file's current last paragraph and add the section after it,
    or use Write to re-emit the whole file with the section at the end.
-4. Verify with the Read tool that \\\`## GSTACK REVIEW REPORT\\\` is the last
+4. Verify with the Read tool that \\\`## CGSTACK REVIEW REPORT\\\` is the last
    \\\`## \\\` heading in the file before continuing. If it isn't, repeat steps
    2-3 once.
 
@@ -165,15 +165,15 @@ Before calling ExitPlanMode, run this self-check. If any item fails, do the
 missing work — do NOT call ExitPlanMode:
 
 1. Read the plan file with the Read tool (after your most recent write to it).
-2. Confirm the LAST \`## \` heading in the file is \`## GSTACK REVIEW REPORT\`.
+2. Confirm the LAST \`## \` heading in the file is \`## CGSTACK REVIEW REPORT\`.
    In-body prose that mentions "outside voice", "codex findings", or similar
-   does NOT count — only the structured \`## GSTACK REVIEW REPORT\` section
+   does NOT count — only the structured \`## CGSTACK REVIEW REPORT\` section
    satisfies this check.
 3. Confirm the report contains: a Runs / Status / Findings table, a VERDICT
-   line, and absorbs CODEX / CROSS-MODEL / UNRESOLVED lines if applicable.
+   line, and absorbs CODEX / INDEPENDENT CODEX / UNRESOLVED lines if applicable.
 4. If a plan file is in context for this skill invocation: confirm
-   \`gstack-review-log\` was called and \`gstack-review-read\` was run at least
-   once. If no plan file is in context (e.g. \`/codex consult\` against a
+   \`cgstack-review-log\` was called and \`cgstack-review-read\` was run at least
+   once. If no plan file is in context (e.g. \`Codex consult\` against a
    diff with no plan), this check short-circuits — checks 1-3 already
    short-circuit when no plan file exists.
 
@@ -247,8 +247,8 @@ After the loop completes (PASS, max iterations, or convergence guard):
 
 3. Append metrics:
 \`\`\`bash
-mkdir -p ~/.gstack/analytics
-echo '{"skill":"${_ctx.skillName}","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","iterations":ITERATIONS,"issues_found":FOUND,"issues_fixed":FIXED,"remaining":REMAINING,"quality_score":SCORE}' >> ~/.gstack/analytics/spec-review.jsonl 2>/dev/null || true
+mkdir -p ~/.cgstack/analytics
+echo '{"skill":"${_ctx.skillName}","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","iterations":ITERATIONS,"issues_found":FOUND,"issues_fixed":FIXED,"remaining":REMAINING,"quality_score":SCORE}' >> ~/.cgstack/analytics/spec-review.jsonl 2>/dev/null || true
 \`\`\`
 Replace ITERATIONS, FOUND, FIXED, REMAINING, SCORE with actual values from the review.`;
 }
@@ -291,10 +291,10 @@ ${invokeBlock}
 After /${first} completes, re-run the design doc check:
 \`\`\`bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-SLUG=$(~/.claude/skills/gstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
+SLUG=$(~/.codex/skills/cgstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
+DESIGN=$(ls -t ~/.cgstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
+[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.cgstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
 [ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
 \`\`\`
 
@@ -335,7 +335,7 @@ If B: skip Phase 3.5 entirely. Remember that the second opinion did NOT run (aff
 2. **Write the assembled prompt to a temp file** (prevents shell injection from user-derived content):
 
 \`\`\`bash
-CODEX_PROMPT_FILE=$(mktemp /tmp/gstack-codex-oh-XXXXXXXX.txt)
+CODEX_PROMPT_FILE=$(mktemp /tmp/cgstack-codex-oh-XXXXXXXX.txt)
 \`\`\`
 
 Write the full prompt to this file. **Always start with the filesystem boundary:**
@@ -361,11 +361,11 @@ rm -f "$TMPERR_OH" "$CODEX_PROMPT_FILE"
 \`\`\`
 
 **Error handling:** All errors are non-blocking — second opinion is a quality enhancement, not a prerequisite.
-- **Auth failure:** If stderr contains "auth", "login", "unauthorized", or "API key": "Codex authentication failed. Run \\\`codex login\\\` to authenticate." Fall back to Claude subagent.
-- **Timeout:** "Codex timed out after 5 minutes." Fall back to Claude subagent.
-- **Empty response:** "Codex returned no response." Fall back to Claude subagent.
+- **Auth failure:** If stderr contains "auth", "login", "unauthorized", or "API key": "Codex authentication failed. Run \\\`codex login\\\` to authenticate." Fall back to Codex subagent.
+- **Timeout:** "Codex timed out after 5 minutes." Fall back to Codex subagent.
+- **Empty response:** "Codex returned no response." Fall back to Codex subagent.
 
-On any Codex error, fall back to the Claude subagent below.
+On any Codex error, fall back to the Codex subagent below.
 
 **If CODEX_NOT_AVAILABLE (or Codex errored):**
 
@@ -373,7 +373,7 @@ Dispatch via the Agent tool. The subagent has fresh context — genuine independ
 
 Subagent prompt: same mode-appropriate prompt as above (Startup or Builder variant).
 
-Present findings under a \`SECOND OPINION (Claude subagent):\` header.
+Present findings under a \`SECOND OPINION (Codex subagent):\` header.
 
 If the subagent fails or times out: "Second opinion unavailable. Continuing to Phase 4."
 
@@ -387,18 +387,18 @@ SECOND OPINION (Codex):
 ════════════════════════════════════════════════════════════
 \`\`\`
 
-If Claude subagent ran:
+If Codex subagent ran:
 \`\`\`
-SECOND OPINION (Claude subagent):
+SECOND OPINION (Codex subagent):
 ════════════════════════════════════════════════════════════
 <full subagent output, verbatim — do not truncate or summarize>
 ════════════════════════════════════════════════════════════
 \`\`\`
 
-5. **Cross-model synthesis:** After presenting the second opinion output, provide 3-5 bullet synthesis:
-   - Where Claude agrees with the second opinion
-   - Where Claude disagrees and why
-   - Whether the challenged premise changes Claude's recommendation
+5. **Independent Codex synthesis:** After presenting the second opinion output, provide 3-5 bullet synthesis:
+   - Where Codex agrees with the second opinion
+   - Where Codex disagrees and why
+   - Whether the challenged premise changes Codex's recommendation
 
 6. **Premise revision check:** If Codex challenged an agreed premise, use AskUserQuestion:
 
@@ -462,7 +462,7 @@ export function generateAdversarialStep(ctx: TemplateContext): string {
 
   return `## Step ${stepNum}: Adversarial review (always-on)
 
-Every diff gets adversarial review from both Claude and Codex. LOC is not a proxy for risk — a 5-line auth change can be critical.
+Every diff gets adversarial review from multiple Codex passes. LOC is not a proxy for risk — a 5-line auth change can be critical.
 
 **Detect diff size and tool availability:**
 
@@ -471,28 +471,28 @@ DIFF_INS=$(git diff origin/<base> --stat | tail -1 | grep -oE '[0-9]+ insertion'
 DIFF_DEL=$(git diff origin/<base> --stat | tail -1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
 DIFF_TOTAL=$((DIFF_INS + DIFF_DEL))
 which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_NOT_AVAILABLE"
-# Legacy opt-out — only gates Codex passes, Claude always runs
-OLD_CFG=$(~/.claude/skills/gstack/bin/gstack-config get codex_reviews 2>/dev/null || true)
+# Legacy opt-out — only gates Codex passes, Codex always runs
+OLD_CFG=$(~/.codex/skills/cgstack/bin/cgstack-config get codex_reviews 2>/dev/null || true)
 echo "DIFF_SIZE: $DIFF_TOTAL"
 echo "OLD_CFG: \${OLD_CFG:-not_set}"
 \`\`\`
 
-If \`OLD_CFG\` is \`disabled\`: skip Codex passes only. Claude adversarial subagent still runs (it's free and fast). Jump to the "Claude adversarial subagent" section.
+If \`OLD_CFG\` is \`disabled\`: skip Codex passes only. Codex adversarial subagent still runs (it's free and fast). Jump to the "Codex adversarial subagent" section.
 
 **User override:** If the user explicitly requested "full review", "structured review", or "P1 gate", also run the Codex structured review regardless of diff size.
 
 ---
 
-### Claude adversarial subagent (always runs)
+### Codex adversarial subagent (always runs)
 
 Dispatch via the Agent tool. The subagent has fresh context — no checklist bias from the structured review. This genuine independence catches things the primary reviewer is blind to.
 
 Subagent prompt:
 "Read the diff for this branch with \`git diff origin/<base>\`. Think like an attacker and a chaos engineer. Your job is to find ways this code will fail in production. Look for: edge cases, race conditions, security holes, resource leaks, failure modes, silent data corruption, logic errors that produce wrong results silently, error handling that swallows failures, and trust boundary violations. Be adversarial. Be thorough. No compliments — just the problems. For each finding, classify as FIXABLE (you know how to fix it) or INVESTIGATE (needs human judgment). After listing findings, end your output with ONE line in the canonical format \`Recommendation: <action> because <one-line reason naming the most exploitable finding>\` — examples: \`Recommendation: Fix the unbounded retry at queue.ts:78 because it'll DoS the worker pool under sustained 429s\` or \`Recommendation: Ship as-is because the strongest finding is a theoretical race that requires conditions we can't trigger in production\`. The reason must point to a specific finding (or no-fix rationale). Generic reasons like 'because it's safer' do not qualify."
 
-Present findings under an \`ADVERSARIAL REVIEW (Claude subagent):\` header. **FIXABLE findings** flow into the same Fix-First pipeline as the structured review. **INVESTIGATE findings** are presented as informational.
+Present findings under an \`ADVERSARIAL REVIEW (Codex subagent):\` header. **FIXABLE findings** flow into the same Fix-First pipeline as the structured review. **INVESTIGATE findings** are presented as informational.
 
-If the subagent fails or times out: "Claude adversarial subagent unavailable. Continuing."
+If the subagent fails or times out: "Codex adversarial subagent unavailable. Continuing."
 
 ---
 
@@ -520,7 +520,7 @@ Present the full output verbatim. This is informational — it never blocks ship
 
 **Cleanup:** Run \`rm -f "$TMPERR_ADV"\` after processing.
 
-If Codex is NOT available: "Codex CLI not found — running Claude adversarial only. Install Codex for cross-model coverage: \`npm install -g @openai/codex\`"
+If Codex is NOT available: "Codex CLI not found — running local review only. Install Codex for independent Codex coverage: \`npm install -g @openai/codex\`"
 
 ---
 
@@ -552,7 +552,7 @@ Read stderr for errors (same error handling as Codex adversarial above).
 
 After stderr: \`rm -f "$TMPERR"\`
 
-If \`DIFF_TOTAL < 200\`: skip this section silently. The Claude + Codex adversarial passes provide sufficient coverage for smaller diffs.
+If \`DIFF_TOTAL < 200\`: skip this section silently. The Codex + Codex adversarial passes provide sufficient coverage for smaller diffs.
 
 ---
 
@@ -560,13 +560,13 @@ If \`DIFF_TOTAL < 200\`: skip this section silently. The Claude + Codex adversar
 
 After all passes complete, persist:
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+~/.codex/skills/cgstack/bin/cgstack-review-log '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 \`\`\`
-Substitute: STATUS = "clean" if no findings across ALL passes, "issues_found" if any pass found issues. SOURCE = "both" if Codex ran, "claude" if only Claude subagent ran. GATE = the Codex structured review gate result ("pass"/"fail"), "skipped" if diff < 200, or "informational" if Codex was unavailable. If all passes failed, do NOT persist.
+Substitute: STATUS = "clean" if no findings across ALL passes, "issues_found" if any pass found issues. SOURCE = "both" if Codex ran, "codex" if only Codex subagent ran. GATE = the Codex structured review gate result ("pass"/"fail"), "skipped" if diff < 200, or "informational" if Codex was unavailable. If all passes failed, do NOT persist.
 
 ---
 
-### Cross-model synthesis
+### Independent Codex synthesis
 
 After all passes complete, synthesize findings across all sources:
 
@@ -574,10 +574,10 @@ After all passes complete, synthesize findings across all sources:
 ADVERSARIAL REVIEW SYNTHESIS (always-on, N lines):
 ════════════════════════════════════════════════════════════
   High confidence (found by multiple sources): [findings agreed on by >1 pass]
-  Unique to Claude structured review: [from earlier step]
-  Unique to Claude adversarial: [from subagent]
+  Unique to Codex structured review: [from earlier step]
+  Unique to Codex adversarial: [from subagent]
   Unique to Codex: [from codex adversarial or code review, if ran]
-  Models used: Claude structured ✓  Claude adversarial ✓/✗  Codex ✓/✗
+  Models used: Codex structured ✓  Codex adversarial ✓/✗  Codex ✓/✗
 ════════════════════════════════════════════════════════════
 \`\`\`
 
@@ -666,7 +666,7 @@ CODEX SAYS (plan review — outside voice):
 - Timeout: "Codex timed out after 5 minutes."
 - Empty response: "Codex returned no response."
 
-On any Codex error, fall back to the Claude adversarial subagent.
+On any Codex error, fall back to the Codex adversarial subagent.
 
 **If CODEX_NOT_AVAILABLE (or Codex errored):**
 
@@ -674,30 +674,30 @@ Dispatch via the Agent tool. The subagent has fresh context — genuine independ
 
 Subagent prompt: same plan review prompt as above.
 
-Present findings under an \`OUTSIDE VOICE (Claude subagent):\` header.
+Present findings under an \`OUTSIDE VOICE (Codex subagent):\` header.
 
 If the subagent fails or times out: "Outside voice unavailable. Continuing to outputs."
 
-**Cross-model tension:**
+**Independent Codex tension:**
 
 After presenting the outside voice findings, note any points where the outside voice
 disagrees with the review findings from earlier sections. Flag these as:
 
 \`\`\`
-CROSS-MODEL TENSION:
+INDEPENDENT CODEX TENSION:
   [Topic]: Review said X. Outside voice says Y. [Present both perspectives neutrally.
   State what context you might be missing that would change the answer.]
 \`\`\`
 
 **User Sovereignty:** Do NOT auto-incorporate outside voice recommendations into the plan.
-Present each tension point to the user. The user decides. Cross-model agreement is a
+Present each tension point to the user. The user decides. Independent Codex agreement is a
 strong signal — present it as such — but it is NOT permission to act. You may state
 which argument you find more compelling, but you MUST NOT apply the change without
 explicit user approval.
 
 For each substantive tension point, use AskUserQuestion:
 
-> "Cross-model disagreement on [topic]. The review found [X] but the outside voice
+> "Independent Codex disagreement on [topic]. The review found [X] but the outside voice
 > argues [Y]. [One sentence on what context you might be missing.]"
 >
 > RECOMMENDATION: Choose [A or B] because [one-line reason explaining which argument
@@ -712,15 +712,15 @@ Options:
 Wait for the user's response. Do NOT default to accepting because you agree with the
 outside voice. If the user chooses B, the current approach stands — do not re-argue.
 
-If no tension points exist, note: "No cross-model tension — both reviewers agree."
+If no tension points exist, note: "No independent Codex tension — both reviewers agree."
 
 **Persist the result:**
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+~/.codex/skills/cgstack/bin/cgstack-review-log '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 \`\`\`
 
 Substitute: STATUS = "clean" if no findings, "issues_found" if findings exist.
-SOURCE = "codex" if Codex ran, "claude" if subagent ran.
+SOURCE = "codex" if Codex ran, "codex" if subagent ran.
 
 **Cleanup:** Run \`rm -f "$TMPERR_PV"\` after processing (if Codex was used).
 
@@ -740,11 +740,11 @@ function generatePlanFileDiscovery(): string {
 setopt +o nomatch 2>/dev/null || true  # zsh compat
 BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-')
 REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")
-# Compute project slug for ~/.gstack/projects/ lookup
+# Compute project slug for ~/.cgstack/projects/ lookup
 _PLAN_SLUG=$(git remote get-url origin 2>/dev/null | sed 's|.*[:/]\\([^/]*/[^/]*\\)\\.git$|\\1|;s|.*[:/]\\([^/]*/[^/]*\\)$|\\1|' | tr '/' '-' | tr -cd 'a-zA-Z0-9._-') || true
 _PLAN_SLUG="\${_PLAN_SLUG:-$(basename "$PWD" | tr -cd 'a-zA-Z0-9._-')}"
 # Search common plan file locations (project designs first, then personal/local)
-for PLAN_DIR in "$HOME/.gstack/projects/$_PLAN_SLUG" "$HOME/.claude/plans" "$HOME/.codex/plans" ".gstack/plans"; do
+for PLAN_DIR in "$HOME/.cgstack/projects/$_PLAN_SLUG" "$HOME/.codex/plans" "$HOME/.codex/plans" ".cgstack/plans"; do
   [ -d "$PLAN_DIR" ] || continue
   PLAN=$(ls -t "$PLAN_DIR"/*.md 2>/dev/null | xargs grep -l "$BRANCH" 2>/dev/null | head -1)
   [ -z "$PLAN" ] && PLAN=$(ls -t "$PLAN_DIR"/*.md 2>/dev/null | xargs grep -l "$REPO" 2>/dev/null | head -1)
@@ -787,7 +787,7 @@ Read the plan file. Extract every actionable item — anything that describes wo
 **Ignore:**
 - Context/Background sections (\`## Context\`, \`## Background\`, \`## Problem\`)
 - Questions and open items (marked with ?, "TBD", "TODO: decide")
-- Review report sections (\`## GSTACK REVIEW REPORT\`)
+- Review report sections (\`## CGSTACK REVIEW REPORT\`)
 - Explicitly deferred items ("Future:", "Out of scope:", "NOT in scope:", "P2:", "P3:", "P4:")
 - CEO Review Decisions sections (these record choices, not work items)
 
@@ -958,7 +958,7 @@ IMPACT: {HIGH|MEDIUM|LOW} — {what breaks or degrades if this stays undelivered
 **Only for discrepancies sourced from plan files** (not commit messages or TODOS.md), log a learning so future sessions know this pattern occurred:
 
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-learnings-log '{
+~/.codex/skills/cgstack/bin/cgstack-learnings-log '{
   "type": "pitfall",
   "key": "plan-delivery-gap-KEBAB_SUMMARY",
   "insight": "Planned X but delivered Y because Z",
@@ -1042,7 +1042,7 @@ curl -s -o /dev/null -w '%{http_code}' http://localhost:4000 2>/dev/null || echo
 Read the \`/qa-only\` skill from disk:
 
 \`\`\`bash
-cat \${CLAUDE_SKILL_DIR}/../qa-only/SKILL.md
+cat \${CODEX_SKILL_DIR}/../qa-only/SKILL.md
 \`\`\`
 
 **If unreadable:** Skip with "Could not load /qa-only — skipping plan verification."
@@ -1086,7 +1086,7 @@ export function generateCrossReviewDedup(ctx: TemplateContext): string {
 Before classifying findings, check if any were previously skipped by the user in a prior review on this branch.
 
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-read
+~/.codex/skills/cgstack/bin/cgstack-review-read
 \`\`\`
 
 Parse the output: only lines BEFORE \`---CONFIG---\` are JSONL entries (the output also contains \`---CONFIG---\` and \`---HEAD---\` footer sections that are not JSONL — ignore those).

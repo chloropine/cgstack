@@ -73,13 +73,13 @@ async function waitForTunnelPort(stateFile: string, timeoutMs = 20_000): Promise
 
 async function spawnDaemonWithTunnel(): Promise<DaemonHandle> {
   // Isolate this test's analytics + denial log directory so we can assert on a
-  // fresh attempts.jsonl without colliding with the user's real ~/.gstack.
+  // fresh attempts.jsonl without colliding with the user's real ~/.cgstack.
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pair-agent-tunnel-eval-'));
   const stateFile = path.join(tempDir, 'browse.json');
   const fakeHome = path.join(tempDir, 'home');
   fs.mkdirSync(fakeHome, { recursive: true });
   const localPort = 30000 + Math.floor(Math.random() * 30000);
-  const attemptsLogPath = path.join(fakeHome, '.gstack', 'security', 'attempts.jsonl');
+  const attemptsLogPath = path.join(fakeHome, '.cgstack', 'security', 'attempts.jsonl');
 
   const proc = Bun.spawn(['bun', 'run', SERVER_ENTRY], {
     cwd: ROOT,

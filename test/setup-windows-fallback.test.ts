@@ -49,8 +49,8 @@ describe('setup: _link_or_copy invariant (D7)', () => {
     expect(SETUP_SRC).toContain('_print_windows_copy_note_once');
   });
 
-  test('link_claude_skill_dirs calls the Windows note printer', () => {
-    const fnStart = SETUP_SRC.indexOf('link_claude_skill_dirs() {');
+  test('link_codex_skill_dirs calls the Windows note printer', () => {
+    const fnStart = SETUP_SRC.indexOf('link_codex_skill_dirs() {');
     const fnEnd = SETUP_SRC.indexOf('\n}\n', fnStart);
     const fnBody = SETUP_SRC.slice(fnStart, fnEnd);
     expect(fnBody).toContain('_print_windows_copy_note_once');
@@ -70,7 +70,7 @@ describe.skipIf(process.platform === 'win32')('setup: _link_or_copy helper — b
     isWindows: '0' | '1',
     srcKind: 'file' | 'dir',
   ): { ok: boolean; targetIsSymlink: boolean; targetExists: boolean; stderr: string } {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-helper-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-helper-'));
     try {
       const src = path.join(tmp, 'source');
       const dst = path.join(tmp, 'dest');

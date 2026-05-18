@@ -26,7 +26,7 @@ describe('test-free-shards: enumeration', () => {
     expect(isFreeTestFile('test/skill-e2e-foo.test.ts')).toBe(false);
     expect(isFreeTestFile('test/skill-llm-eval.test.ts')).toBe(false);
     expect(isFreeTestFile('test/codex-e2e.test.ts')).toBe(false);
-    expect(isFreeTestFile('test/gemini-e2e.test.ts')).toBe(false);
+    expect(isFreeTestFile('test/codex-e2e-plan-format.test.ts')).toBe(false);
   });
 
   test('collectFreeTestFiles returns sorted, deduped, only-free list', () => {
@@ -64,7 +64,7 @@ describe('test-free-shards: Windows curation', () => {
   });
 
   test('detects spawn("sh", ...)', () => {
-    withTempFile(`spawnSync('sh', ['-c', 'command -v claude']);`, (f) => {
+    withTempFile(`spawnSync('sh', ['-c', 'command -v codex']);`, (f) => {
       expect(detectWindowsFragility(f)?.reason).toBe('spawn("sh", ...)');
     });
   });
@@ -75,14 +75,14 @@ describe('test-free-shards: Windows curation', () => {
     });
   });
 
-  test('detects which claude shell command', () => {
-    withTempFile(`execSync('which claude').trim();`, (f) => {
-      expect(detectWindowsFragility(f)?.reason).toBe('which claude (use Bun.which)');
+  test('detects which codex shell command', () => {
+    withTempFile(`execSync('which codex').trim();`, (f) => {
+      expect(detectWindowsFragility(f)?.reason).toBe('which codex (use Bun.which)');
     });
   });
 
   test('Windows-safe code passes the filter', () => {
-    withTempFile(`import { spawn } from 'child_process'; spawn(claude.command, args);`, (f) => {
+    withTempFile(`import { spawn } from 'child_process'; spawn(codex.command, args);`, (f) => {
       expect(detectWindowsFragility(f)).toBeNull();
     });
   });

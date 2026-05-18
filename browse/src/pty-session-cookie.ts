@@ -15,7 +15,7 @@
  * Design mirrors `sse-session-cookie.ts` deliberately. Same TTL, same
  * scoped-token-must-not-be-valid-as-root invariant, same opportunistic
  * pruning. Two registries instead of one because the cookie names are
- * different (`gstack_sse` vs `gstack_pty`) and the token spaces must not
+ * different (`cgstack_sse` vs `cgstack_pty`) and the token spaces must not
  * overlap — an SSE-read cookie must never grant PTY access, and vice versa.
  */
 import * as crypto from 'crypto';
@@ -29,7 +29,7 @@ const TTL_MS = 30 * 60 * 1000; // 30 minutes — matches SSE cookie
 const MAX_SESSIONS = 10_000;
 const sessions = new Map<string, Session>();
 
-export const PTY_COOKIE_NAME = 'gstack_pty';
+export const PTY_COOKIE_NAME = 'cgstack_pty';
 
 /** Mint a fresh PTY session token. */
 export function mintPtySessionToken(): { token: string; expiresAt: number } {

@@ -65,10 +65,10 @@ describe('pty-session-cookie: mint/validate/revoke', () => {
     expect(buildPtyClearCookie()).toContain('Max-Age=0');
   });
 
-  test('extractPtyCookie reads gstack_pty from a Cookie header', () => {
+  test('extractPtyCookie reads cgstack_pty from a Cookie header', () => {
     const { token } = mintPtySessionToken();
     const req = new Request('http://127.0.0.1/ws', {
-      headers: { 'cookie': `othercookie=foo; gstack_pty=${token}; baz=qux` },
+      headers: { 'cookie': `othercookie=foo; cgstack_pty=${token}; baz=qux` },
     });
     expect(extractPtyCookie(req)).toBe(token);
   });
@@ -102,7 +102,7 @@ describe('Source-level guard: /health does NOT surface ptyToken', () => {
     // The /health JSON.stringify body must not mention the cookie token.
     // It's allowed to include `terminalPort` (a port number, not auth).
     expect(slice).not.toContain('ptyToken');
-    expect(slice).not.toContain('gstack_pty');
+    expect(slice).not.toContain('cgstack_pty');
     expect(slice).toContain('terminalPort');
   });
 });
@@ -125,35 +125,35 @@ describe('Source-level guard: terminal-agent', () => {
   test('validates the session token against an in-memory token set', () => {
     const wsHandler = AGENT_SRC.slice(AGENT_SRC.indexOf("if (url.pathname === '/ws')"));
     // Two transports: Sec-WebSocket-Protocol (preferred for browsers) and
-    // Cookie gstack_pty (fallback). Both verify against validTokens.
+    // Cookie cgstack_pty (fallback). Both verify against validTokens.
     expect(wsHandler).toContain('sec-websocket-protocol');
-    expect(wsHandler).toContain('gstack_pty');
+    expect(wsHandler).toContain('cgstack_pty');
     expect(wsHandler).toContain('validTokens.has');
   });
 
-  test('Sec-WebSocket-Protocol auth: strips gstack-pty. prefix and echoes back', () => {
+  test('Sec-WebSocket-Protocol auth: strips cgstack-pty. prefix and echoes back', () => {
     const wsHandler = AGENT_SRC.slice(AGENT_SRC.indexOf("if (url.pathname === '/ws')"));
-    // Browsers send `Sec-WebSocket-Protocol: gstack-pty.<token>`. The agent
+    // Browsers send `Sec-WebSocket-Protocol: cgstack-pty.<token>`. The agent
     // must strip the prefix before checking validTokens, AND echo the
     // protocol back in the upgrade response — without the echo, the
     // browser closes the connection immediately.
-    expect(wsHandler).toContain("'gstack-pty.'");
+    expect(wsHandler).toContain("'cgstack-pty.'");
     expect(wsHandler).toContain('Sec-WebSocket-Protocol');
     expect(wsHandler).toContain('acceptedProtocol');
   });
 
-  test('lazy spawn: claude PTY is spawned in message handler, not on upgrade', () => {
+  test('lazy spawn: codex PTY is spawned in message handler, not on upgrade', () => {
     // The whole point of lazy-spawn (codex finding #8) is that the WS
-    // upgrade itself does NOT call spawnClaude. Spawn happens on first
+    // upgrade itself does NOT call spawnCodex. Spawn happens on first
     // message frame.
     const upgradeBlock = AGENT_SRC.slice(
       AGENT_SRC.indexOf("if (url.pathname === '/ws')"),
       AGENT_SRC.indexOf("websocket: {"),
     );
-    expect(upgradeBlock).not.toContain('spawnClaude(');
+    expect(upgradeBlock).not.toContain('spawnCodex(');
     // Spawn must be invoked from the message handler (lazy on first byte).
     const messageHandler = AGENT_SRC.slice(AGENT_SRC.indexOf('message(ws, raw)'));
-    expect(messageHandler).toContain('spawnClaude(');
+    expect(messageHandler).toContain('spawnCodex(');
     expect(messageHandler).toContain('!session.spawned');
   });
 
@@ -174,7 +174,7 @@ describe('Source-level guard: terminal-agent', () => {
     expect(AGENT_SRC).toContain("msg?.type === 'tabState'");
     expect(AGENT_SRC).toContain('function handleTabState');
     const fn = AGENT_SRC.slice(AGENT_SRC.indexOf('function handleTabState'));
-    // Atomic write via tmp + rename for both files (so claude never reads
+    // Atomic write via tmp + rename for both files (so codex never reads
     // a half-written JSON document).
     expect(fn).toContain("'tabs.json'");
     expect(fn).toContain("'active-tab.json'");
@@ -185,19 +185,19 @@ describe('Source-level guard: terminal-agent', () => {
     expect(fn).toContain("startsWith('chrome-extension://')");
   });
 
-  test('claude is spawned with --append-system-prompt tab-awareness hint', () => {
+  test('codex is spawned with --append-system-prompt tab-awareness hint', () => {
     expect(AGENT_SRC).toContain('function buildTabAwarenessHint');
     const hint = AGENT_SRC.slice(AGENT_SRC.indexOf('function buildTabAwarenessHint'));
     // The hint must mention the live state files and the fanout command —
-    // those are the two affordances that distinguish a gstack-PTY claude
-    // from a plain `claude` session.
+    // those are the two affordances that distinguish a cgstack-PTY codex
+    // from a plain `codex` session.
     expect(hint).toContain('tabs.json');
     expect(hint).toContain('active-tab.json');
     expect(hint).toContain('tab-each');
     // And it must be passed via --append-system-prompt at spawn time
     // (NOT written into the PTY as user input — that would pollute the
     // visible transcript).
-    const spawn = AGENT_SRC.slice(AGENT_SRC.indexOf('function spawnClaude'));
+    const spawn = AGENT_SRC.slice(AGENT_SRC.indexOf('function spawnCodex'));
     expect(spawn).toContain("'--append-system-prompt'");
     expect(spawn).toContain('tabHint');
   });

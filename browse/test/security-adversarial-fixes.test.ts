@@ -9,7 +9,7 @@
  * 4. snapshot command added to PAGE_CONTENT_COMMANDS.
  *
  * These tests pin the fixes so future refactors don't silently re-open
- * the bypasses both adversarial reviewers (Claude + Codex) flagged.
+ * the bypasses both adversarial reviewers (Codex + Codex) flagged.
  */
 import { describe, test, expect } from 'bun:test';
 import * as fs from 'fs';
@@ -92,7 +92,7 @@ describe('transcript classifier tool_output parameter', () => {
     );
     expect(src).toContain('tool_output?: string');
     expect(src).toContain('tool_output');
-    // Haiku prompt mentions tool_output
+    // Mini prompt mentions tool_output
     expect(src).toContain('tool_output');
   });
 
@@ -102,12 +102,12 @@ describe('transcript classifier tool_output parameter', () => {
   // no production caller (a separate v1.1+ cleanup TODO).
 });
 
-describe('GSTACK_SECURITY_OFF kill switch', () => {
+describe('CGSTACK_SECURITY_OFF kill switch', () => {
   test('loadTestsavant honors env var early', () => {
     const src = fs.readFileSync(
       path.join(REPO_ROOT, 'browse', 'src', 'security-classifier.ts'),
       'utf-8',
     );
-    expect(src).toContain("process.env.GSTACK_SECURITY_OFF === '1'");
+    expect(src).toContain("process.env.CGSTACK_SECURITY_OFF === '1'");
   });
 });

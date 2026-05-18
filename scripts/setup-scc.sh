@@ -2,7 +2,7 @@
 # setup-scc.sh — install scc (github.com/boyter/scc), used by
 # scripts/garry-output-comparison.ts for logical-line classification of added lines.
 #
-# Why standalone (not a package.json dependency): 95% of gstack users never run
+# Why standalone (not a package.json dependency): 95% of cgstack users never run
 # the throughput script. Making scc a required install step for every `bun install`
 # would bloat onboarding for no reason. This script is invoked only when you
 # actually want to run garry-output-comparison.ts.

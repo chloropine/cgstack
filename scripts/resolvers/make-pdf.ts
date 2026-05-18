@@ -25,12 +25,12 @@ if [ -x "$P" ]; then
   alias _p_="$P"   # shellcheck alias helper (not exported)
   export P   # available as $P in subsequent blocks within the same skill invocation
 else
-  echo "MAKE_PDF_NOT_AVAILABLE (run './setup' in the gstack repo to build it)"
+  echo "MAKE_PDF_NOT_AVAILABLE (run './setup' in the cgstack repo to build it)"
 fi
 \`\`\`
 
 If \`MAKE_PDF_NOT_AVAILABLE\` is printed: tell the user the binary is not
-built. Have them run \`./setup\` from the gstack repo, then retry.
+built. Have them run \`./setup\` from the cgstack repo, then retry.
 
 If \`MAKE_PDF_READY\` is printed: \`$P\` is the binary path for the rest of
 the skill. Use \`$P\` (not an explicit path) so the skill body stays portable.

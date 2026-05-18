@@ -6,9 +6,9 @@
  * with a copy of the SDK, fixtures/ for tests, and script.test.ts.
  *
  * Three tiers, walked in order project > global > bundled (first-wins):
- *   project:  <project>/.gstack/browser-skills/<name>/
- *   global:   ~/.gstack/browser-skills/<name>/
- *   bundled:  <gstack-install>/browser-skills/<name>/   (read-only, ships with gstack)
+ *   project:  <project>/.cgstack/browser-skills/<name>/
+ *   global:   ~/.cgstack/browser-skills/<name>/
+ *   bundled:  <cgstack-install>/browser-skills/<name>/   (read-only, ships with cgstack)
  *
  * No INDEX.json. `listBrowserSkills()` walks the three directories every call
  * (~5-10ms for 50 skills, invisible). Eliminates a whole class of "index
@@ -90,8 +90,8 @@ export function defaultTierPaths(opts: { projectRoot?: string; home?: string; bu
   const bundledRoot = opts.bundledRoot ?? detectBundledRoot();
 
   return {
-    project: projectRoot ? path.join(projectRoot, '.gstack', 'browser-skills') : null,
-    global: path.join(home, '.gstack', 'browser-skills'),
+    project: projectRoot ? path.join(projectRoot, '.cgstack', 'browser-skills') : null,
+    global: path.join(home, '.cgstack', 'browser-skills'),
     bundled: path.join(bundledRoot, 'browser-skills'),
   };
 }
@@ -108,8 +108,8 @@ function detectProjectRoot(): string | null {
 }
 
 function detectBundledRoot(): string {
-  // The browse binary lives at <gstack-install>/browse/dist/browse.
-  // The bundled browser-skills/ dir is a sibling of browse/ (i.e. <gstack-install>/browser-skills/).
+  // The browse binary lives at <cgstack-install>/browse/dist/browse.
+  // The bundled browser-skills/ dir is a sibling of browse/ (i.e. <cgstack-install>/browser-skills/).
   // For dev/source runs, process.execPath is bun itself — fall back to the source-tree
   // directory two levels up from this file.
   try {
@@ -119,7 +119,7 @@ function detectBundledRoot(): string {
     }
   } catch {}
   // Source/dev fallback: walk up from this file's dir to a directory that has both browse/ and browser-skills/.
-  // browse/src/browser-skills.ts → ../../  (the gstack root).
+  // browse/src/browser-skills.ts → ../../  (the cgstack root).
   return path.resolve(__dirname, '..', '..');
 }
 
@@ -397,9 +397,9 @@ export function readBrowserSkill(name: string, tiers?: TierPaths): BrowserSkill 
  * Move a user-tier skill (project or global) into the tier's .tombstones/
  * directory. Returns the new path.
  *
- * Cannot tombstone bundled skills — they ship with gstack and are read-only.
+ * Cannot tombstone bundled skills — they ship with cgstack and are read-only.
  * To remove a bundled skill, override it with a global/project entry, or
- * remove the file from the gstack source tree.
+ * remove the file from the cgstack source tree.
  */
 export function tombstoneBrowserSkill(name: string, tier: 'project' | 'global', tiers?: TierPaths): string {
   const t = tiers ?? defaultTierPaths();

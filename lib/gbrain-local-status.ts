@@ -1,14 +1,14 @@
 /**
  * gbrain-local-status — classify the local gbrain engine into 5 states.
  *
- * Shared between bin/gstack-gbrain-detect (preamble probe on every skill start)
- * and bin/gstack-gbrain-sync.ts (orchestrator SKIP-when-not-ok semantics).
+ * Shared between bin/cgstack-gbrain-detect (preamble probe on every skill start)
+ * and bin/cgstack-gbrain-sync.ts (orchestrator SKIP-when-not-ok semantics).
  * Single source of truth: same probe, same classification, same cache.
  *
  * Per the split-engine plan (D2 + D8):
  *   - Probe: `gbrain sources list --json`. Cheap (~80ms), actually hits the DB.
  *     Uses the same stderr patterns as lib/gbrain-sources.ts:66-67.
- *   - Cache: 60s TTL at ~/.gstack/.gbrain-local-status-cache.json, keyed on
+ *   - Cache: 60s TTL at ~/.cgstack/.gbrain-local-status-cache.json, keyed on
  *     {home, path_hash, gbrain_bin_path, gbrain_version, config_mtime}.
  *   - --no-cache bypass: /setup-gbrain and /sync-gbrain pass it after any
  *     state-mutating operation so the next read sees fresh status.
@@ -73,10 +73,10 @@ function userHome(): string {
   return process.env.HOME || homedir();
 }
 
-/** Cache path computed fresh on each call so tests can mutate GSTACK_HOME per case. */
+/** Cache path computed fresh on each call so tests can mutate CGSTACK_HOME per case. */
 export function cacheFilePath(): string {
   return join(
-    process.env.GSTACK_HOME || join(userHome(), ".gstack"),
+    process.env.CGSTACK_HOME || join(userHome(), ".cgstack"),
     ".gbrain-local-status-cache.json",
   );
 }

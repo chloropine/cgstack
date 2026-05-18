@@ -1,5 +1,5 @@
 /**
- * gstack-upgrade/migrations/v1.0.0.0.sh — writing style migration.
+ * cgstack-upgrade/migrations/v1.0.0.0.sh — writing style migration.
  *
  * Coverage:
  * - Fresh state: writes the pending-prompt flag
@@ -13,12 +13,12 @@ import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.0.0.0.sh');
+const MIGRATION = path.join(ROOT, 'cgstack-upgrade', 'migrations', 'v1.0.0.0.sh');
 
 let tmpHome: string;
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-mig-test-'));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-mig-test-'));
 });
 
 afterEach(() => {
@@ -28,7 +28,7 @@ afterEach(() => {
 function run(): { stdout: string; stderr: string; status: number } {
   const res = spawnSync('bash', [MIGRATION], {
     encoding: 'utf-8',
-    env: { ...process.env, GSTACK_HOME: tmpHome },
+    env: { ...process.env, CGSTACK_HOME: tmpHome },
   });
   return {
     stdout: (res.stdout ?? '').trim(),

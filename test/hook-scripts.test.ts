@@ -47,7 +47,7 @@ function freezeInput(filePath: string) {
 }
 
 function withFreezeDir(freezePath: string, fn: (stateDir: string) => void) {
-  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-freeze-test-'));
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-freeze-test-'));
   fs.writeFileSync(path.join(stateDir, 'freeze-dir.txt'), freezePath);
   try {
     fn(stateDir);
@@ -257,7 +257,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -269,7 +269,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src/components/Button.tsx'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -283,7 +283,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/other-project/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -297,7 +297,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/etc/hosts'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -313,7 +313,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src-old/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -324,12 +324,12 @@ describe('check-freeze.sh', () => {
 
   describe('no freeze file exists', () => {
     test('allows everything when no freeze file present', () => {
-      const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-freeze-test-'));
+      const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-freeze-test-'));
       try {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/anywhere/at/all.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -345,7 +345,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           { tool_input: {} },
-          { CLAUDE_PLUGIN_DATA: stateDir },
+          { CODEX_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();

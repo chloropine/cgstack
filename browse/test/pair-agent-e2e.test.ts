@@ -180,7 +180,7 @@ describe('pair-agent flow end-to-end (HTTP only, no ngrok)', () => {
     expect(resp.status).toBe(401);
   });
 
-  test('POST /sse-session with root Bearer returns a Set-Cookie for gstack_sse', async () => {
+  test('POST /sse-session with root Bearer returns a Set-Cookie for cgstack_sse', async () => {
     const resp = await fetch(`${daemon.baseUrl}/sse-session`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${daemon.token}` },
@@ -188,7 +188,7 @@ describe('pair-agent flow end-to-end (HTTP only, no ngrok)', () => {
     expect(resp.status).toBe(200);
     const setCookie = resp.headers.get('set-cookie');
     expect(setCookie).not.toBeNull();
-    expect(setCookie!).toContain('gstack_sse=');
+    expect(setCookie!).toContain('cgstack_sse=');
     expect(setCookie!).toContain('HttpOnly');
     expect(setCookie!).toContain('SameSite=Strict');
   });
@@ -217,7 +217,7 @@ describe('pair-agent flow end-to-end (HTTP only, no ngrok)', () => {
   // separate eventsource-based harness.
 
   test('/welcome regex gate: safe slug resolves; dangerous slug does not path-traverse', async () => {
-    // The regex gate lives in server.ts — we can't easily flip GSTACK_SLUG
+    // The regex gate lives in server.ts — we can't easily flip CGSTACK_SLUG
     // on a running daemon, but we CAN verify the endpoint serves something
     // reasonable for the default 'unknown' slug (no crash, no 500).
     const resp = await fetch(`${daemon.baseUrl}/welcome`);

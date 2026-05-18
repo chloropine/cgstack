@@ -13,7 +13,7 @@ import { describe, test, expect } from 'bun:test';
 import {
   runPlanSkillObservation,
   assertReportAtBottomIfPlanWritten,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;

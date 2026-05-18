@@ -2,27 +2,27 @@
 
 ## The Problem
 
-Claude Code's context window is ephemeral. Every session starts fresh. When
+Codex's context window is ephemeral. Every session starts fresh. When
 auto-compaction fires at ~167K tokens, it preserves a generic summary but
 destroys file reads, reasoning chains, and intermediate decisions.
 
-gstack already produces valuable artifacts that survive on disk: CEO plans,
+cgstack already produces valuable artifacts that survive on disk: CEO plans,
 eng reviews, design reviews, QA reports, learnings. These files contain
-decisions, constraints, and context that shaped the current work. But Claude
+decisions, constraints, and context that shaped the current work. But Codex
 doesn't know they exist. After compaction, the plans and reviews that
 informed every decision silently vanish from context.
 
-The ecosystem is working on this. claude-mem (9K+ stars) captures tool usage
-and injects context into future sessions. Claude HUD shows real-time agent
-status. Anthropic's own `claude-progress.txt` pattern uses a progress file
+The ecosystem is working on this. codex-mem (9K+ stars) captures tool usage
+and injects context into future sessions. Codex HUD shows real-time agent
+status. OpenAI's own `codex-progress.txt` pattern uses a progress file
 that agents read at the start of each session.
 
 Nobody is solving the specific problem of making **skill-produced artifacts**
-survive compaction. Because nobody else has gstack's artifact architecture.
+survive compaction. Because nobody else has cgstack's artifact architecture.
 
 ## The Insight
 
-gstack already writes structured artifacts to `~/.gstack/projects/$SLUG/`:
+cgstack already writes structured artifacts to `~/.cgstack/projects/$SLUG/`:
 - CEO plans: `ceo-plans/`
 - Design reviews: `design-reviews/`
 - Eng reviews: `eng-reviews/`
@@ -37,7 +37,7 @@ After compaction, re-read them."
 
 ```
                    ┌─────────────────────────────────────┐
-                   │        Claude Context Window         │
+                   │        Codex Context Window         │
                    │   (ephemeral, ~167K token limit)     │
                    │                                      │
                    │   Compaction fires ──► summary only   │
@@ -46,7 +46,7 @@ After compaction, re-read them."
                           reads on start / after compaction
                                   │
                    ┌──────────────▼──────────────────────┐
-                   │    ~/.gstack/projects/$SLUG/         │
+                   │    ~/.cgstack/projects/$SLUG/         │
                    │    (persistent, survives everything) │
                    │                                      │
                    │  ceo-plans/         ← /plan-ceo-review
@@ -71,7 +71,7 @@ After compaction, re-read them."
 
 ### Layer 1: Context Recovery (preamble, all skills)
 ~10 lines of prose in the preamble. After compaction or context degradation,
-the agent checks `~/.gstack/projects/$SLUG/` for recent plans, reviews, and
+the agent checks `~/.cgstack/projects/$SLUG/` for recent plans, reviews, and
 checkpoints. Lists the directory, reads the most recent file.
 
 Cost: near-zero. Benefit: every skill's plans/reviews survive compaction.
@@ -86,7 +86,7 @@ Makes the project's AI-assisted work history visible. "This week: 3 /review,
 ### Layer 3: Cross-Session Injection (preamble, all skills)
 When a new session starts on a branch with recent artifacts, the preamble
 prints a one-liner: "Last session: implemented JWT auth, 3/5 tasks done.
-Plan: ~/.gstack/projects/$SLUG/checkpoints/latest.md"
+Plan: ~/.cgstack/projects/$SLUG/checkpoints/latest.md"
 
 The agent knows where you left off before reading any files.
 
@@ -119,17 +119,17 @@ layer.
 
 ## What This Is Not
 
-- Not a replacement for Claude's built-in compaction (that handles session
-  state; we handle gstack artifacts)
-- Not a full memory system like claude-mem (that handles cross-session
+- Not a replacement for Codex's built-in compaction (that handles session
+  state; we handle cgstack artifacts)
+- Not a full memory system like codex-mem (that handles cross-session
   memory via SQLite; we handle structured skill artifacts)
 - Not a database or service (just markdown files on disk)
 
 ## Research Sources
 
-- [Anthropic: Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Anthropic: Effective context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [claude-mem](https://github.com/thedotmack/claude-mem)
-- [Claude HUD](https://github.com/jarrodwatts/claude-hud)
+- [OpenAI: Effective harnesses for long-running agents](https://www.openai.com/engineering/effective-harnesses-for-long-running-agents)
+- [OpenAI: Effective context engineering](https://www.openai.com/engineering/effective-context-engineering-for-ai-agents)
+- [codex-mem](https://github.com/thedotmackCodex CLI-mem)
+- [Codex HUD](https://github.com/jarrodwattsCodex CLI-hud)
 - [CodeScene: Agentic AI coding best practices](https://codescene.com/blog/agentic-ai-coding-best-practice-patterns-for-speed-with-quality)
 - [Post-compaction recovery via git-persisted state (Beads)](https://dev.to/jeremy_longshore/building-post-compaction-recovery-for-ai-agent-workflows-with-beads-207l)

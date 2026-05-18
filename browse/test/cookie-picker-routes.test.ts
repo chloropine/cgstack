@@ -49,7 +49,7 @@ async function getSessionCookie(bm: any, authToken: string): Promise<string> {
   const res = await handleCookiePickerRoute(url, req, bm, authToken);
   expect(res.status).toBe(302);
   const setCookie = res.headers.get('Set-Cookie') || '';
-  const match = setCookie.match(/gstack_picker=([^;]+)/);
+  const match = setCookie.match(/cgstack_picker=([^;]+)/);
   expect(match).not.toBeNull();
   return match![1];
 }
@@ -239,7 +239,7 @@ describe('cookie-picker-routes', () => {
       expect(res.status).toBe(302);
       expect(res.headers.get('Location')).toBe('/cookie-picker');
       const setCookie = res.headers.get('Set-Cookie') || '';
-      expect(setCookie).toContain('gstack_picker=');
+      expect(setCookie).toContain('cgstack_picker=');
       expect(setCookie).toContain('HttpOnly');
       expect(setCookie).toContain('SameSite=Strict');
       expect(setCookie).toContain('Path=/cookie-picker');
@@ -321,7 +321,7 @@ describe('cookie-picker-routes', () => {
           makeUrl('/cookie-picker'),
           new Request('http://127.0.0.1:9470', {
             method: 'GET',
-            headers: { 'Cookie': `gstack_picker=${session}` },
+            headers: { 'Cookie': `cgstack_picker=${session}` },
           }),
           bm,
           'test-token',
@@ -343,7 +343,7 @@ describe('cookie-picker-routes', () => {
       const url = makeUrl('/cookie-picker');
       const req = new Request('http://127.0.0.1:9470', {
         method: 'GET',
-        headers: { 'Cookie': `gstack_picker=${session}` },
+        headers: { 'Cookie': `cgstack_picker=${session}` },
       });
 
       const res = await handleCookiePickerRoute(url, req, bm, 'test-token');
@@ -360,7 +360,7 @@ describe('cookie-picker-routes', () => {
       const url = makeUrl('/cookie-picker');
       const req = new Request('http://127.0.0.1:9470', {
         method: 'GET',
-        headers: { 'Cookie': `gstack_picker=${session}` },
+        headers: { 'Cookie': `cgstack_picker=${session}` },
       });
 
       const res = await handleCookiePickerRoute(url, req, bm, authToken);
@@ -377,7 +377,7 @@ describe('cookie-picker-routes', () => {
       const url = makeUrl('/cookie-picker/browsers');
       const req = new Request('http://127.0.0.1:9470', {
         method: 'GET',
-        headers: { 'Cookie': `gstack_picker=${session}` },
+        headers: { 'Cookie': `cgstack_picker=${session}` },
       });
 
       const res = await handleCookiePickerRoute(url, req, bm, 'test-token');
@@ -393,7 +393,7 @@ describe('cookie-picker-routes', () => {
       const url = makeUrl('/cookie-picker');
       const req = new Request('http://127.0.0.1:9470', {
         method: 'GET',
-        headers: { 'Cookie': 'gstack_picker=fake-session' },
+        headers: { 'Cookie': 'cgstack_picker=fake-session' },
       });
 
       const res = await handleCookiePickerRoute(url, req, bm, 'test-token');

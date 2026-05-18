@@ -1,12 +1,12 @@
 # Browser — Complete Reference
 
-gstack's browser surface in one document. Headless Chromium daemon, ~70+
+cgstack's browser surface in one document. Headless Chromium daemon, ~70+
 commands, ref-based element selection, codifiable browser-skills, real-browser
-mode with a Chrome side panel, an in-sidebar Claude PTY, an ngrok pair-agent
+mode with a Chrome side panel, an in-sidebar Codex PTY, an ngrok pair-agent
 flow, and a layered prompt-injection defense — all behind a compiled CLI that
 prints plain text to stdout. ~100-200ms per call. Zero context-token overhead.
 
-If you've used gstack in the last release or two, the productivity loop is the
+If you've used cgstack in the last release or two, the productivity loop is the
 new headline: `/scrape <intent>` drives a page once, `/skillify` codifies the
 flow into a deterministic Playwright script, and the next `/scrape` on the
 same intent runs in ~200ms instead of ~30 seconds of agent re-exploration.
@@ -20,7 +20,7 @@ same intent runs in ~200ms instead of ~30 seconds of agent re-exploration.
 bun install && bun run build
 
 # Set $B once and forget about it
-B=./browse/dist/browse           # or ~/.claude/skills/gstack/browse/dist/browse
+B=./browse/dist/browse           # or ~/.codex/skills/cgstack/browse/dist/browse
 
 # Drive a page
 $B goto https://news.ycombinator.com
@@ -31,10 +31,10 @@ $B screenshot /tmp/hn.png
 
 # Codify a repeated flow
 /scrape latest hacker news stories
-/skillify                        # writes ~/.gstack/browser-skills/hn-front/...
+/skillify                        # writes ~/.cgstack/browser-skills/hn-front/...
 /scrape hacker news front page   # second call: 200ms via the codified skill
 
-# Watch Claude work in real time
+# Watch Codex work in real time
 $B connect                       # headed Chromium + Side Panel extension
 ```
 
@@ -80,7 +80,7 @@ prints the response to stdout. The daemon does the real work via
 
 Everything that was a Chrome MCP server in the early days now happens through
 plain stdout. No JSON-schema framing, no protocol negotiation, no persistent
-WebSocket — Claude's Bash tool already exists, so we use it.
+WebSocket — Codex's Bash tool already exists, so we use it.
 
 Three escalating modes:
 
@@ -88,10 +88,10 @@ Three escalating modes:
   cheapest, what skills like `/qa`, `/design-review`, `/benchmark` use by
   default.
 - **Headed via `$B connect`**. Same daemon, but Chromium is visible (rebranded
-  as "GStack Browser") with the Side Panel extension auto-loaded. You watch
+  as "CGStack Browser") with the Side Panel extension auto-loaded. You watch
   every command tick through in real time.
 - **Pair-agent over a tunnel**. Daemon binds a second listener that ngrok
-  forwards. A remote agent (Codex, OpenClaw, Hermes, anything that can speak
+  forwards. A remote agent (Codex, Codex, Codex, anything that can speak
   HTTP) drives your local browser through a 26-command allowlist with a
   scoped, single-use token.
 
@@ -99,8 +99,8 @@ Three escalating modes:
 
 ## The productivity loop
 
-The shipped headline of v1.19.0.0. Two gstack skills wrap the browser-skills
-runtime so the second time you ask Claude to scrape a page, it runs in ~200ms.
+The shipped headline of v1.19.0.0. Two cgstack skills wrap the browser-skills
+runtime so the second time you ask Codex to scrape a page, it runs in ~200ms.
 
 ### `/scrape <intent>`
 
@@ -127,7 +127,7 @@ browser-skill on disk. Eleven steps, three locked contracts:
 - **D2 — Synthesis input slice.** Extracts ONLY the final-attempt `$B` calls
   that produced the JSON the user accepted, plus the user's intent string.
   Drops failed selectors, drops chat, drops earlier-session content.
-- **D3 — Atomic write.** Stages everything to `~/.gstack/.tmp/skillify-<spawnId>/`,
+- **D3 — Atomic write.** Stages everything to `~/.cgstack/.tmp/skillify-<spawnId>/`,
   runs `$B skill test` against the temp dir, and only renames into the final
   tier path on test pass + user approval. Test fail or rejection: `rm -rf` the
   temp dir entirely. No half-written skill ever appears in `$B skill list`.
@@ -145,7 +145,7 @@ for the full design + decision trail.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Claude Code                                                    │
+│  Codex                                                    │
 │                                                                 │
 │  $B goto https://staging.myapp.com                              │
 │       │                                                         │
@@ -165,7 +165,7 @@ for the full design + decision trail.
 
 ### Daemon lifecycle
 
-1. **First call.** CLI checks `<project>/.gstack/browse.json` for a running
+1. **First call.** CLI checks `<project>/.cgstack/browse.json` for a running
    server. None found — it spawns `bun run browse/src/server.ts` in the
    background. Daemon launches headless Chromium via Playwright, picks a
    random port (10000–60000), generates a bearer token, writes the state
@@ -182,12 +182,12 @@ for the full design + decision trail.
 
 Each project root (detected via `git rev-parse --show-toplevel`) gets its
 own daemon, port, state file, cookies, and logs. No cross-workspace
-collisions. State at `<project>/.gstack/browse.json`.
+collisions. State at `<project>/.cgstack/browse.json`.
 
 | Workspace | State file | Port |
 |-----------|-----------|------|
-| `/code/project-a` | `/code/project-a/.gstack/browse.json` | random (10000–60000) |
-| `/code/project-b` | `/code/project-b/.gstack/browse.json` | random (10000–60000) |
+| `/code/project-a` | `/code/project-a/.cgstack/browse.json` | random (10000–60000) |
+| `/code/project-b` | `/code/project-b/.cgstack/browse.json` | random (10000–60000) |
 
 ---
 
@@ -313,7 +313,7 @@ from `snapshot`, or `@c` refs from `snapshot -C`. Full table:
 | `status` | Daemon health + mode (headless / headed / cdp) |
 | `stop` | Shut down daemon |
 | `restart` | Restart daemon |
-| `connect` | Launch headed GStack Browser with Side Panel extension |
+| `connect` | Launch headed CGStack Browser with Side Panel extension |
 | `disconnect` | Close headed Chrome, return to headless |
 | `focus [@ref]` | Bring headed Chrome to foreground (macOS); `@ref` also scrolls into view |
 | `state save\|load <name>` | Save or load browser state (cookies + URLs) |
@@ -426,9 +426,9 @@ tier is printed inline next to each skill name:
 
 | Tier | Path | When |
 |------|------|------|
-| **Project** | `<project>/.gstack/browser-skills/<name>/` | Project-specific skills (committed or gitignored) |
-| **Global** | `~/.gstack/browser-skills/<name>/` | Per-user skills, all projects |
-| **Bundled** | `<gstack-install>/browser-skills/<name>/` | Ships with gstack, read-only |
+| **Project** | `<project>/.cgstack/browser-skills/<name>/` | Project-specific skills (committed or gitignored) |
+| **Global** | `~/.cgstack/browser-skills/<name>/` | Per-user skills, all projects |
+| **Bundled** | `<cgstack-install>/browser-skills/<name>/` | Ships with cgstack, read-only |
 
 ### Trust model
 
@@ -438,9 +438,9 @@ configured.
 | Axis | Mechanism | Default |
 |------|-----------|---------|
 | **Daemon-side capability** | Per-spawn scoped token bound to read+write scope (browser-driving commands minus admin: `eval`, `js`, `cookies`, `storage`). Single-use clientId encodes skill name + spawn id. Revoked when spawn exits. | Always scoped — never the daemon root token |
-| **Process-side env** | `trusted: true` frontmatter passes `process.env` minus `GSTACK_TOKEN`. `trusted: false` (default) drops everything except a minimal allowlist (LANG, LC_ALL, TERM, TZ) and pattern-strips secrets (TOKEN/KEY/SECRET/PASSWORD, AWS_*, ANTHROPIC_*, OPENAI_*, GITHUB_*, etc.) | Untrusted (must opt in) |
+| **Process-side env** | `trusted: true` frontmatter passes `process.env` minus `CGSTACK_TOKEN`. `trusted: false` (default) drops everything except a minimal allowlist (LANG, LC_ALL, TERM, TZ) and pattern-strips secrets (TOKEN/KEY/SECRET/PASSWORD, AWS_*, OPENAI_*, GITHUB_*, etc.) | Untrusted (must opt in) |
 
-`GSTACK_PORT` and `GSTACK_SKILL_TOKEN` are injected last, so a parent process
+`CGSTACK_PORT` and `CGSTACK_SKILL_TOKEN` are injected last, so a parent process
 can't override them.
 
 ### Output protocol
@@ -461,7 +461,7 @@ impossible — the SDK is frozen at the version the skill was authored against.
 
 `browse/src/browser-skill-write.ts` provides three primitives:
 
-- `stageSkill(opts)` — writes files to `~/.gstack/.tmp/skillify-<spawnId>/<name>/`
+- `stageSkill(opts)` — writes files to `~/.cgstack/.tmp/skillify-<spawnId>/<name>/`
   with restrictive perms.
 - `commitSkill(opts)` — atomic `fs.renameSync` into the final tier path.
   Refuses to follow symlinked staging dirs (`lstat` check), refuses to
@@ -495,8 +495,8 @@ The classifier flag is set automatically by the L4 prompt-injection scan;
 agents do not set it manually.
 
 Storage:
-- Per-project: `<project>/.gstack/domain-skills/<host>.md`
-- Global: `~/.gstack/domain-skills/<host>.md`
+- Per-project: `<project>/.cgstack/domain-skills/<host>.md`
+- Global: `~/.cgstack/domain-skills/<host>.md`
 
 Source: `browse/src/domain-skills.ts`, `domain-skill-commands.ts`.
 
@@ -504,13 +504,13 @@ Source: `browse/src/domain-skills.ts`, `domain-skill-commands.ts`.
 
 ## Real-browser mode
 
-`$B connect` launches **GStack Browser** — a rebranded Chromium controlled by
+`$B connect` launches **CGStack Browser** — a rebranded Chromium controlled by
 Playwright with the Side Panel extension auto-loaded and anti-bot stealth
 patches applied. You watch every command tick through a visible window in
 real time.
 
 ```bash
-$B connect              # launches GStack Browser, headed
+$B connect              # launches CGStack Browser, headed
 $B goto https://app.com # navigates in the visible window
 $B snapshot -i          # refs from the real page
 $B click @e3            # clicks in the real window
@@ -520,21 +520,21 @@ $B disconnect           # back to headless mode
 ```
 
 The window has a subtle golden shimmer line at the top and a floating
-"gstack" pill in the bottom-right corner so you always know which Chrome
+"cgstack" pill in the bottom-right corner so you always know which Chrome
 window is being controlled.
 
-### What "GStack Browser" means
+### What "CGStack Browser" means
 
 Not your daily Chrome — a Playwright-managed Chromium with custom branding
 in the Dock and menu bar, anti-bot stealth (sites like Google and NYTimes
-work without captchas), a custom user agent, and the gstack extension
+work without captchas), a custom user agent, and the cgstack extension
 pre-loaded via `launchPersistentContext`. Your regular Chrome with your tabs
 and bookmarks stays untouched.
 
 ### When to use headed mode
 
-- **QA testing** where you want to watch Claude click through your app
-- **Design review** where you need to see exactly what Claude sees
+- **QA testing** where you want to watch Codex click through your app
+- **Design review** where you need to see exactly what Codex sees
 - **Debugging** where headless behavior differs from real Chrome
 - **Demos** where you're sharing your screen
 - **Pair-agent** sessions (the remote agent drives your local browser)
@@ -606,13 +606,13 @@ transport retries that could corrupt browser traffic.
 
 ## Side Panel + sidebar agent
 
-The Chrome extension that ships baked into GStack Browser shows a live
+The Chrome extension that ships baked into CGStack Browser shows a live
 activity feed of every browse command in a Side Panel, plus `@ref` overlays
-on the page, plus an interactive Claude PTY inside the sidebar.
+on the page, plus an interactive Codex PTY inside the sidebar.
 
 ### The Terminal pane (the headline)
 
-The Side Panel's primary surface is the **Terminal pane** — a live `claude -p`
+The Side Panel's primary surface is the **Terminal pane** — a live `codex -p`
 PTY you can type into directly from the sidebar. Activity / Refs / Inspector
 are debug overlays behind the footer's `debug` toggle. WebSocket auth uses
 `Sec-WebSocket-Protocol` (browsers can't set `Authorization` on a WebSocket
@@ -620,27 +620,27 @@ upgrade), and the PTY session token is a 30-minute HttpOnly cookie minted
 via `POST /pty-session`.
 
 The toolbar's Cleanup button and the Inspector's "Send to Code" action both
-pipe text into the live Claude PTY via `window.gstackInjectToTerminal(text)`,
+pipe text into the live Codex PTY via `window.cgstackInjectToTerminal(text)`,
 exposed by `sidepanel-terminal.js`. There's no separate `/sidebar-command`
 POST — the live REPL is the only execution surface.
 
 ### Activity feed
 
 A scrolling feed of every browse command — name, args, duration, status,
-errors. Shows up in real time as Claude works. Backed by SSE (`/activity/stream`)
-that accepts the Bearer token OR the HttpOnly `gstack_sse` session cookie
+errors. Shows up in real time as Codex works. Backed by SSE (`/activity/stream`)
+that accepts the Bearer token OR the HttpOnly `cgstack_sse` session cookie
 (30-minute stream-scope cookie minted via `POST /sse-session`).
 
 ### Refs tab
 
 After `$B snapshot`, shows the current `@ref` list (role + name) so you can
-see what Claude is targeting.
+see what Codex is targeting.
 
 ### CSS Inspector
 
 Powered by `$B inspect` (CDP-based). Click any element on the page to see the
 full CSS rule cascade, computed styles, box model, and modification history.
-The "Send to Code" button injects a description into the Claude PTY.
+The "Send to Code" button injects a description into the Codex PTY.
 
 ### Sidebar architecture
 
@@ -648,11 +648,11 @@ The "Send to Code" button injects a description into the Claude PTY.
 |-----------|----------------|-------|
 | Side Panel UI | `extension/sidepanel.js`, `sidepanel-terminal.js` | Chrome extension surface |
 | Background SW | `extension/background.js` | Manages tab events, port management |
-| Content script | `extension/content.js` | Page overlays, `gstack` pill |
+| Content script | `extension/content.js` | Page overlays, `cgstack` pill |
 | Terminal agent | `browse/src/terminal-agent.ts` | PTY spawn, lifecycle, auth |
 | Sidebar utilities | `browse/src/sidebar-utils.ts` | URL sanitization, helpers |
 
-Before modifying any of these, read the comment block in `CLAUDE.md` under
+Before modifying any of these, read the comment block in `AGENTS.md` under
 "Sidebar architecture" — silent failures here usually trace to not understanding
 the cross-component flow.
 
@@ -662,18 +662,18 @@ If you want the extension in your everyday Chrome (not the Playwright-controlled
 one):
 
 ```bash
-bin/gstack-extension    # opens chrome://extensions, copies path to clipboard
+bin/cgstack-extension    # opens chrome://extensions, copies path to clipboard
 ```
 
 Or do it manually: `chrome://extensions` → toggle Developer mode → Load
-unpacked → navigate to `~/.claude/skills/gstack/extension` → pin the
+unpacked → navigate to `~/.codex/skills/cgstack/extension` → pin the
 extension → enter the port from `$B status`.
 
 ---
 
 ## Pair-agent
 
-Remote AI agents (Codex, OpenClaw, Hermes, anything that speaks HTTP) can
+Remote AI agents (Codex, Codex, Codex, anything that speaks HTTP) can
 drive your local browser through an ngrok tunnel. The whole flow is gated
 by a 26-command allowlist, scoped tokens, and a denial log.
 
@@ -692,14 +692,14 @@ by a 26-command allowlist, scoped tokens, and a denial log.
 When `pair-agent` activates, the daemon binds **two HTTP listeners**:
 
 - **Local listener** (`127.0.0.1:LOCAL_PORT`). Full command surface. Never
-  forwarded by ngrok. Used by your Claude Code, the Side Panel, anything
+  forwarded by ngrok. Used by your Codex, the Side Panel, anything
   on your machine.
 - **Tunnel listener** (`127.0.0.1:TUNNEL_PORT`). Locked allowlist —
   `/connect`, `/command` (scoped tokens + 26-command browser-driving
   allowlist), `/sidebar-chat`. ngrok forwards only this port.
 
 Root tokens sent over the tunnel return 403. SSE endpoints use a 30-minute
-HttpOnly `gstack_sse` cookie (never valid against `/command`).
+HttpOnly `cgstack_sse` cookie (never valid against `/command`).
 
 ### The 26-command tunnel allowlist
 
@@ -718,9 +718,9 @@ remote agent that tries them gets a 403 plus a fresh entry in the denial log.
 
 ### Tunnel denial log
 
-`~/.gstack/security/attempts.jsonl` — append-only, salted SHA-256 of source
+`~/.cgstack/security/attempts.jsonl` — append-only, salted SHA-256 of source
 + domain only (no raw IP, no full request body), rotates at 10MB with 5
-generations. Per-device salt at `~/.gstack/security/device-salt` (mode 0600).
+generations. Per-device salt at `~/.cgstack/security/device-salt` (mode 0600).
 
 See [`docs/REMOTE_BROWSER_ACCESS.md`](docs/REMOTE_BROWSER_ACCESS.md) for the
 full operator guide.
@@ -745,22 +745,22 @@ Three token types, three lifetimes, three scopes.
 | **Setup key** | `POST /pair` | 5 minutes, one-time use | Single redemption: present at `/connect`, get a scoped token |
 | **Scoped token** | `POST /connect` (with setup key) | 24 hours | Per-client, allowlist-bound, optionally tab-scoped |
 
-The root token is written to `<project>/.gstack/browse.json` with chmod 600.
+The root token is written to `<project>/.cgstack/browse.json` with chmod 600.
 Every command that mutates browser state must include
 `Authorization: Bearer <token>`.
 
 ### SSE session cookie (v1.6.0.0+)
 
 SSE endpoints (`/activity/stream`, `/inspector/events`) accept the Bearer
-token OR a 30-minute HttpOnly `gstack_sse` cookie minted via
+token OR a 30-minute HttpOnly `cgstack_sse` cookie minted via
 `POST /sse-session`. The `?token=<ROOT>` query-param auth is no longer
 supported. This is what lets the Chrome extension subscribe to the activity
 feed without putting the root token in extension storage.
 
 ### PTY session cookie
 
-The Terminal pane uses a separate session cookie, `gstack_pty`, minted via
-`POST /pty-session`. Different scope — can spawn / drive the live `claude`
+The Terminal pane uses a separate session cookie, `cgstack_pty`, minted via
+`POST /pty-session`. Different scope — can spawn / drive the live `codex`
 PTY, can't dispatch arbitrary `/command` calls. `/health` endpoint MUST NOT
 surface this token.
 
@@ -785,7 +785,7 @@ every user message and every tool output that could carry untrusted content
 | **L2** Hidden-element strip | `content-security.ts` | both |
 | **L3** ARIA + URL blocklist + envelope wrapping | `content-security.ts` | both |
 | **L4** TestSavantAI ML classifier (22MB ONNX) | `security-classifier.ts` | sidebar-agent only* |
-| **L4b** Claude Haiku transcript check | `security-classifier.ts` | sidebar-agent only |
+| **L4b** Codex Mini transcript check | `security-classifier.ts` | sidebar-agent only |
 | **L5** Canary token (session-exfil detection) | `security.ts` | both — inject in compiled, check in agent |
 | **L6** `combineVerdict` ensemble | `security.ts` | both |
 
@@ -798,7 +798,7 @@ runs L1–L3, L5, L6 only.
 
 - `BLOCK: 0.85` — single-layer score that would cause BLOCK if cross-confirmed
 - `WARN: 0.75` — cross-confirm threshold. When L4 AND L4b both >= 0.75 → BLOCK
-- `LOG_ONLY: 0.40` — gates transcript classifier (skip Haiku when all layers < 0.40)
+- `LOG_ONLY: 0.40` — gates transcript classifier (skip Mini when all layers < 0.40)
 - `SOLO_CONTENT_BLOCK: 0.92` — single-layer threshold for label-less content classifiers
 
 ### Ensemble rule
@@ -810,19 +810,19 @@ BLOCKs (deterministic).**
 
 ### Env knobs
 
-- `GSTACK_SECURITY_OFF=1` — emergency kill switch. Classifier stays off
+- `CGSTACK_SECURITY_OFF=1` — emergency kill switch. Classifier stays off
   even if warmed. Canary is still injected; just the ML scan is skipped.
-- `GSTACK_SECURITY_ENSEMBLE=deberta` — opt-in DeBERTa-v3 ensemble. Adds
+- `CGSTACK_SECURITY_ENSEMBLE=deberta` — opt-in DeBERTa-v3 ensemble. Adds
   ProtectAI DeBERTa-v3-base-injection-onnx as L4c classifier. 721MB
   first-run download. With ensemble enabled, BLOCK requires 2-of-3 ML
   classifiers agreeing at >= WARN.
-- Classifier model cache: `~/.gstack/models/testsavant-small/` (112MB, first
-  run only) plus `~/.gstack/models/deberta-v3-injection/` (721MB, only when
+- Classifier model cache: `~/.cgstack/models/testsavant-small/` (112MB, first
+  run only) plus `~/.cgstack/models/deberta-v3-injection/` (721MB, only when
   ensemble enabled).
-- Attack log: `~/.gstack/security/attempts.jsonl` (salted SHA-256 + domain
+- Attack log: `~/.cgstack/security/attempts.jsonl` (salted SHA-256 + domain
   only, rotates at 10MB, 5 generations).
-- Per-device salt: `~/.gstack/security/device-salt` (0600).
-- Session state: `~/.gstack/security/session-state.json` (cross-process,
+- Per-device salt: `~/.cgstack/security/device-salt` (0600).
+- Session state: `~/.cgstack/security/session-state.json` (cross-process,
   atomic).
 
 A shield icon in the sidebar header shows the live status. See
@@ -914,7 +914,7 @@ routes work).
 
 `load-html` has an extension allowlist (`.html`, `.htm`, `.xhtml`, `.svg`) and
 a magic-byte sniff to reject binary files mis-renamed as HTML. 50MB size cap
-(override via `GSTACK_BROWSE_MAX_HTML_BYTES`).
+(override via `CGSTACK_BROWSE_MAX_HTML_BYTES`).
 
 `load-html` content survives later `viewport --scale` calls via in-memory
 replay (TabSession tracks the loaded HTML + waitUntil). The replay is
@@ -960,9 +960,9 @@ batch), then `POST /batch` with 20 `text` commands → 20 page contents in
 Console, network, and dialog events flow into O(1) circular buffers (50,000
 capacity each), flushed to disk asynchronously via `Bun.write()`:
 
-- Console: `.gstack/browse-console.log`
-- Network: `.gstack/browse-network.log`
-- Dialog: `.gstack/browse-dialog.log`
+- Console: `.cgstack/browse-console.log`
+- Network: `.cgstack/browse-network.log`
+- Dialog: `.cgstack/browse-dialog.log`
 
 The `console`, `network`, and `dialog` commands read from the in-memory
 buffers (not disk) so capture is real-time even when disk is slow.
@@ -1026,7 +1026,7 @@ Refs are cleared on switch (the iframe has its own AX tree).
 ### State save/load
 
 ```bash
-$B state save my-session         # save cookies + URLs to .gstack/browse-state-my-session.json
+$B state save my-session         # save cookies + URLs to .cgstack/browse-state-my-session.json
 $B state load my-session         # restore
 ```
 
@@ -1040,7 +1040,7 @@ $B watch                         # passive observation: snapshot every 5s while 
 $B watch stop                    # return summary of what changed
 ```
 
-Useful when you're driving the browser manually and want Claude to see what
+Useful when you're driving the browser manually and want Codex to see what
 you did at the end without spamming `snapshot` calls.
 
 ### Inbox
@@ -1051,8 +1051,8 @@ $B inbox --clear                 # clear after reading
 ```
 
 The sidebar scout (a background process the Chrome extension can spawn) drops
-notes for Claude when the user surfaces something they want noticed. Stored
-in `.gstack/browser-scout.jsonl`.
+notes for Codex when the user surfaces something they want noticed. Stored
+in `.cgstack/browser-scout.jsonl`.
 
 ---
 
@@ -1106,11 +1106,11 @@ for cheap coverage maps.
 |------|-----------|------------------|---------------------------|
 | Chrome MCP | ~5s | ~2-5s | ~2000 tokens (schema + protocol) |
 | Playwright MCP | ~3s | ~1-3s | ~1500 tokens (schema + protocol) |
-| **gstack browse** | **~3s** | **~100-200ms** | **0 tokens** (plain text stdout) |
-| **gstack browse + codified skill** | **~3s** | **~200ms** | **0 tokens** (single skill invocation) |
+| **cgstack browse** | **~3s** | **~100-200ms** | **0 tokens** (plain text stdout) |
+| **cgstack browse + codified skill** | **~3s** | **~200ms** | **0 tokens** (single skill invocation) |
 
 In a 20-command browser session, MCP tools burn 30,000–40,000 tokens on
-protocol framing alone. gstack burns zero. The codified-skill path takes a
+protocol framing alone. cgstack burns zero. The codified-skill path takes a
 20-command session down to a single `$B skill run` call.
 
 ### Why CLI over MCP
@@ -1122,10 +1122,10 @@ pure overhead:
   "get the page text" costs 10x more context tokens than it should.
 - **Connection fragility** — persistent WebSocket/stdio connections drop
   and fail to reconnect.
-- **Unnecessary abstraction** — Claude already has a Bash tool. A CLI that
+- **Unnecessary abstraction** — Codex already has a Bash tool. A CLI that
   prints to stdout is the simplest possible interface.
 
-gstack skips all of this. Compiled binary. Plain text in, plain text out.
+cgstack skips all of this. Compiled binary. Plain text in, plain text out.
 No protocol. No schema. No connection management.
 
 ---
@@ -1138,12 +1138,12 @@ collisions.
 
 | Workspace | State file | Port |
 |-----------|-----------|------|
-| `/code/project-a` | `/code/project-a/.gstack/browse.json` | random (10000–60000) |
-| `/code/project-b` | `/code/project-b/.gstack/browse.json` | random (10000–60000) |
+| `/code/project-a` | `/code/project-a/.cgstack/browse.json` | random (10000–60000) |
+| `/code/project-b` | `/code/project-b/.cgstack/browse.json` | random (10000–60000) |
 
 Browser-skills three-tier lookup walks project → global → bundled, so a
-project-tier skill at `/code/project-a/.gstack/browser-skills/foo/` shadows
-the global `~/.gstack/browser-skills/foo/` only inside project-a.
+project-tier skill at `/code/project-a/.cgstack/browser-skills/foo/` shadows
+the global `~/.cgstack/browser-skills/foo/` only inside project-a.
 
 ---
 
@@ -1153,16 +1153,16 @@ the global `~/.gstack/browser-skills/foo/` only inside project-a.
 |----------|---------|-------------|
 | `BROWSE_PORT` | 0 (random 10000–60000) | Fixed port for the HTTP server (debug override) |
 | `BROWSE_IDLE_TIMEOUT` | 1800000 (30 min) | Idle shutdown timeout in ms |
-| `BROWSE_STATE_FILE` | `.gstack/browse.json` | Path to state file |
+| `BROWSE_STATE_FILE` | `.cgstack/browse.json` | Path to state file |
 | `BROWSE_SERVER_SCRIPT` | auto-detected | Path to `server.ts` |
 | `BROWSE_CDP_URL` | (none) | Set to `channel:chrome` for real-browser mode |
 | `BROWSE_CDP_PORT` | 0 | CDP port (used internally) |
 | `BROWSE_HEADLESS_SKIP` | 0 | Skip Chromium launch entirely (test harness only) |
 | `BROWSE_TUNNEL` | 0 | Activate the dual-listener tunnel architecture (requires `NGROK_AUTHTOKEN`) |
 | `BROWSE_TUNNEL_LOCAL_ONLY` | 0 | Test-only — bind both listeners locally without ngrok |
-| `GSTACK_BROWSE_MAX_HTML_BYTES` | 52428800 (50MB) | `load-html` size cap |
-| `GSTACK_SECURITY_OFF` | unset | Emergency kill switch — disable ML classifier |
-| `GSTACK_SECURITY_ENSEMBLE` | unset | Set to `deberta` for 3-classifier ensemble (721MB download) |
+| `CGSTACK_BROWSE_MAX_HTML_BYTES` | 52428800 (50MB) | `load-html` size cap |
+| `CGSTACK_SECURITY_OFF` | unset | Emergency kill switch — disable ML classifier |
+| `CGSTACK_SECURITY_ENSEMBLE` | unset | Set to `deberta` for 3-classifier ensemble (721MB download) |
 
 ---
 
@@ -1199,14 +1199,14 @@ browse/
 │   ├── tab-session.ts           # Per-tab session state (load-html replay, ref map scope)
 │   ├── token-registry.ts        # Mint/validate/revoke for root + setup keys + scoped tokens
 │   ├── sse-session-cookie.ts    # 30-min HttpOnly cookie for /activity/stream + /inspector/events
-│   ├── pty-session-cookie.ts    # Separate scope: live Claude PTY auth
-│   ├── tunnel-denial-log.ts     # ~/.gstack/security/attempts.jsonl writer (salted)
+│   ├── pty-session-cookie.ts    # Separate scope: live Codex PTY auth
+│   ├── tunnel-denial-log.ts     # ~/.cgstack/security/attempts.jsonl writer (salted)
 │   ├── path-security.ts         # validateOutputPath / validateReadPath / validateTempPath
 │   ├── url-validation.ts        # URL safety checks for goto
 │   ├── content-security.ts      # L1-L3: datamarking, hidden strip, ARIA, URL blocklist, envelopes
 │   ├── security.ts              # L5 canary + L6 verdict combiner + thresholds
 │   ├── security-classifier.ts   # L4 ML classifier (TestSavant + optional DeBERTa ensemble)
-│   ├── terminal-agent.ts        # Side Panel Claude PTY manager (auth + lifecycle)
+│   ├── terminal-agent.ts        # Side Panel Codex PTY manager (auth + lifecycle)
 │   ├── sidebar-utils.ts         # Sidebar URL sanitization + helpers
 │   ├── cookie-import-browser.ts # Decrypt + import cookies from real Chromium browsers
 │   ├── cookie-picker-routes.ts  # HTTP routes for /cookie-picker/*
@@ -1231,8 +1231,8 @@ browser-skills/
     ├── fixtures/hn-2026-04-26.html
     └── script.test.ts
 
-scrape/SKILL.md.tmpl             # /scrape gstack skill — match-or-prototype entry point
-skillify/SKILL.md.tmpl           # /skillify gstack skill — codify last /scrape into permanent skill
+scrape/SKILL.md.tmpl             # /scrape cgstack skill — match-or-prototype entry point
+skillify/SKILL.md.tmpl           # /skillify cgstack skill — codify last /scrape into permanent skill
 ```
 
 ---
@@ -1308,14 +1308,14 @@ SKILL.md contract (sibling SDK byte-identity, frontmatter schema).
 
 For an agent-written skill: drive the page once with `/scrape <intent>`,
 say `/skillify`, accept the proposed name in the approval gate. The skill
-lands at `~/.gstack/browser-skills/<name>/` after the test passes.
+lands at `~/.cgstack/browser-skills/<name>/` after the test passes.
 
 ### Deploying to the active skill
 
-The active skill lives at `~/.claude/skills/gstack/`. After making changes:
+The active skill lives at `~/.codex/skills/cgstack/`. After making changes:
 
 ```bash
-cd ~/.claude/skills/gstack
+cd ~/.codex/skills/cgstack
 git fetch origin && git reset --hard origin/main
 bun run build
 ```
@@ -1323,7 +1323,7 @@ bun run build
 Or copy the binary directly:
 
 ```bash
-cp browse/dist/browse ~/.claude/skills/gstack/browse/dist/browse
+cp browse/dist/browse ~/.codex/skills/cgstack/browse/dist/browse
 ```
 
 ---
@@ -1331,7 +1331,7 @@ cp browse/dist/browse ~/.claude/skills/gstack/browse/dist/browse
 ## Cross-references
 
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — system-level architecture, dual-listener tunnel design, prompt-injection defense threat model
-- [`CLAUDE.md`](CLAUDE.md) — project-level instructions, sidebar architecture notes, security-stack constraints
+- [`AGENTS.md`](AGENTS.md) — project-level instructions, sidebar architecture notes, security-stack constraints
 - [`docs/REMOTE_BROWSER_ACCESS.md`](docs/REMOTE_BROWSER_ACCESS.md) — operator guide for `/pair-agent` (setup keys, scoped tokens, denial log)
 - [`docs/designs/BROWSER_SKILLS_V1.md`](docs/designs/BROWSER_SKILLS_V1.md) — design doc for browser-skills runtime (Phase 1 + 2a + roadmap)
 - [`scrape/SKILL.md`](scrape/SKILL.md) — `/scrape` skill: match-or-prototype data extraction

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GStack Browser</title>
+<title>CGStack Browser</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&display=swap" rel="stylesheet">
 <style>
@@ -67,8 +67,8 @@
     animation: nudge 1.5s ease-in-out infinite;
   }
   @keyframes nudge {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(6px); }
+    0%, 100% { transform: transformX(0); }
+    50% { transform: transformX(6px); }
   }
   .sidebar-prompt.hidden { opacity: 0; pointer-events: none; }
 
@@ -167,7 +167,7 @@
 <body>
 
 <div class="sidebar-prompt" id="sidebar-prompt">
-  <div class="bubble">Open the sidebar to get started. Click the puzzle piece icon in the toolbar, then pin gstack browse.</div>
+  <div class="bubble">Open the sidebar to get started. Click the puzzle piece icon in the toolbar, then pin cgstack browse.</div>
   <span class="arrow-right">&#x2192;</span>
 </div>
 
@@ -175,19 +175,19 @@
   <header class="hero">
     <div class="logo-row">
       <div class="logo-dot"></div>
-      <span class="logo-text">GStack Browser</span>
+      <span class="logo-text">CGStack Browser</span>
     </div>
-    <p class="tagline">This browser is connected to your Claude Code session. The sidebar is your co-pilot: it can control this window, read pages, edit CSS, and pass everything back to your terminal.</p>
+    <p class="tagline">This browser is connected to your Codex session. The sidebar is your co-pilot: it can control this window, read pages, edit CSS, and pass everything back to your terminal.</p>
   </header>
 
   <div class="features">
     <div class="feat">
       <div class="feat-title">Talk to the sidebar</div>
-      <p>The sidebar chat is a Claude instance that <span class="hl">controls this browser</span>. Say "go to my app and check if login works" and watch it navigate, click, fill forms, and report back.</p>
+      <p>The sidebar chat is a Codex instance that <span class="hl">controls this browser</span>. Say "go to my app and check if login works" and watch it navigate, click, fill forms, and report back.</p>
     </div>
     <div class="feat">
       <div class="feat-title">Or use your main agent</div>
-      <p>Your Claude Code terminal <span class="hl">also controls this browser</span>. Run <code>/qa</code>, <code>/design-review</code>, or any skill and watch every action happen here. Two agents, one browser.</p>
+      <p>Your Codex terminal <span class="hl">also controls this browser</span>. Run <code>/qa</code>, <code>/design-review</code>, or any skill and watch every action happen here. Two agents, one browser.</p>
     </div>
     <div class="feat">
       <div class="feat-title">Import your cookies</div>
@@ -199,7 +199,7 @@
     </div>
     <div class="feat">
       <div class="feat-title">Smart screenshots</div>
-      <p>The <span class="hl">Screenshot</span> button captures a cleaned screenshot and sends it to your Claude Code session as context. "What's wrong with this page?" now has a visual answer.</p>
+      <p>The <span class="hl">Screenshot</span> button captures a cleaned screenshot and sends it to your Codex session as context. "What's wrong with this page?" now has a visual answer.</p>
     </div>
     <div class="feat">
       <div class="feat-title">Modify any page</div>
@@ -212,23 +212,23 @@
     <div class="try-items">
       <div class="try-item">Open the sidebar and type: <span class="hl">"Go to news.ycombinator.com, open the top story, clean up the article, and summarize the key points back to my terminal"</span></div>
       <div class="try-item">On any article page, click <span class="hl">Cleanup</span> to strip away the noise</div>
-      <div class="try-item">Click <span class="hl">Screenshot</span> to capture the page and send it to your Claude Code session</div>
+      <div class="try-item">Click <span class="hl">Screenshot</span> to capture the page and send it to your Codex session</div>
       <div class="try-item">Ask the sidebar: <span class="hl">"Inspect the CSS on this page and send the color palette to my terminal"</span></div>
-      <div class="try-item">From your Claude Code terminal: <span class="hl">"Navigate to my app, extract the full CSS design system, and write it to DESIGN.md"</span></div>
+      <div class="try-item">From your Codex terminal: <span class="hl">"Navigate to my app, extract the full CSS design system, and write it to DESIGN.md"</span></div>
     </div>
   </div>
 
   <footer class="footer">
-    <p><a href="https://github.com/garrytan/gstack">gstack</a> is open source. Built by <a href="https://x.com/garrytan">Garry Tan</a>.</p>
+    <p><a href="https://github.com/chloropine/cgstack">cgstack</a> is open source. Built by <a href="https://x.com/garrytan">Garry Tan</a>.</p>
   </footer>
 </div>
 
 <script>
 // Hide sidebar prompt ONLY when the sidebar is actually opened.
-// The content script dispatches 'gstack-extension-ready' when it receives
+// The content script dispatches 'cgstack-extension-ready' when it receives
 // a 'sidebarOpened' message from the side panel (via background.js).
 // This means the arrow stays visible until the user actually opens the sidebar.
-document.addEventListener('gstack-extension-ready', () => {
+document.addEventListener('cgstack-extension-ready', () => {
   const prompt = document.getElementById('sidebar-prompt');
   if (prompt) prompt.classList.add('hidden');
 });

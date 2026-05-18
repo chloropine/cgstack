@@ -1,8 +1,8 @@
 /**
  * gbrain-sources — TypeScript helper for idempotent gbrain federated source registration.
  *
- * Mirrors the bash logic in bin/gstack-gbrain-source-wireup:204-310 but in a form
- * importable by other TS callers (currently bin/gstack-gbrain-sync.ts; future
+ * Mirrors the bash logic in bin/cgstack-gbrain-source-wireup:204-310 but in a form
+ * importable by other TS callers (currently bin/cgstack-gbrain-sync.ts; future
  * callers welcome). gbrain has no `sources update` — drift recovery is
  * `sources remove` followed by `sources add`.
  *
@@ -10,7 +10,7 @@
  */
 
 import { execFileSync, spawnSync } from "child_process";
-import { withErrorContext } from "./gstack-memory-helpers";
+import { withErrorContext } from "./cgstack-memory-helpers";
 
 export interface SourceState {
   /** "absent" — id not registered. "match" — id at expected path. "drift" — id at different path. */
@@ -95,7 +95,7 @@ export function probeSource(id: string, env?: NodeJS.ProcessEnv): SourceState {
  *     (Skip when reregister_on_drift=false; returns changed=false.)
  *
  * Caller is responsible for catching errors. The function uses withErrorContext for
- * forensic logging to ~/.gstack/.gbrain-errors.jsonl.
+ * forensic logging to ~/.cgstack/.gbrain-errors.jsonl.
  */
 export async function ensureSourceRegistered(
   id: string,

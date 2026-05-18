@@ -5,10 +5,10 @@
  *
  * Two-string pattern (resolves the pipeline-eats-itself bug Codex caught in V1
  * planning, Pass 2 finding #10):
- *   - GSTACK-THROUGHPUT-PLACEHOLDER — stable anchor, lives in README permanently.
+ *   - CGSTACK-THROUGHPUT-PLACEHOLDER — stable anchor, lives in README permanently.
  *     Script finds this anchor and writes the number right before it, keeping
  *     the anchor itself for the next run.
- *   - GSTACK-THROUGHPUT-PENDING — explicit missing-build marker. If the JSON
+ *   - CGSTACK-THROUGHPUT-PENDING — explicit missing-build marker. If the JSON
  *     isn't present, the script writes this marker at the anchor location.
  *     CI rejects commits containing this string, so contributors get a clear
  *     signal to run the throughput script before committing.
@@ -20,8 +20,8 @@ const ROOT = process.cwd();
 const README = path.join(ROOT, 'README.md');
 const JSON_PATH = path.join(ROOT, 'docs', 'throughput-2013-vs-2026.json');
 
-const ANCHOR = '<!-- GSTACK-THROUGHPUT-PLACEHOLDER -->';
-const PENDING = 'GSTACK-THROUGHPUT-PENDING';
+const ANCHOR = '<!-- CGSTACK-THROUGHPUT-PLACEHOLDER -->';
+const PENDING = 'CGSTACK-THROUGHPUT-PENDING';
 
 function main() {
   if (!fs.existsSync(README)) {

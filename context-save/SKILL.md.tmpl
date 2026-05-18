@@ -7,9 +7,9 @@ description: |
   so any future session can pick up without losing a beat.
   Use when asked to "save progress", "save state", "context save", or
   "save my work". Pair with /context-restore to resume later.
-  Formerly /checkpoint — renamed because Claude Code treats /checkpoint as a
+  Formerly /checkpoint — renamed because Codex treats /checkpoint as a
   native rewind alias in current environments, which was shadowing this skill.
-  (gstack)
+  (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -118,8 +118,8 @@ allowlist: only `a-z 0-9 - .` survive.
 
 ```bash
 {{SLUG_SETUP}}
-eval "$(~/.claude/skills/gstack/bin/gstack-paths)"
-CHECKPOINT_DIR="$GSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-paths)"
+CHECKPOINT_DIR="$CGSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
 mkdir -p "$CHECKPOINT_DIR"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 # Bash-side title sanitize. Pass the raw title as $1 when running this block.
@@ -205,8 +205,8 @@ Restore later with /context-restore.
 
 ```bash
 {{SLUG_SETUP}}
-eval "$(~/.claude/skills/gstack/bin/gstack-paths)"
-CHECKPOINT_DIR="$GSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-paths)"
+CHECKPOINT_DIR="$CGSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
 if [ -d "$CHECKPOINT_DIR" ]; then
   echo "CHECKPOINT_DIR=$CHECKPOINT_DIR"
   # Use find + sort instead of ls -1t: filename YYYYMMDD-HHMMSS prefix is the
@@ -268,6 +268,6 @@ If there are no saved contexts, tell the user: "No saved contexts yet. Run
   save creates a new file.
 - **Infer, don't interrogate.** Use git state and conversation context to fill in
   the file. Only use AskUserQuestion if the title genuinely cannot be inferred.
-- **This is a gstack skill, not a Claude Code built-in.** When the user types
+- **This is a cgstack skill, not a Codex built-in.** When the user types
   `/context-save`, invoke this skill via the Skill tool. The old `/checkpoint`
-  name collided with Claude Code's native `/rewind` alias — the rename fixed that.
+  name collided with Codex's native `/rewind` alias — the rename fixed that.

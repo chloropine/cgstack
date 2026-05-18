@@ -1,27 +1,27 @@
 /**
  * BrowseSafe-Bench ensemble LIVE bench (v1.5.2.0+).
  *
- * Runs the 200-case smoke through the full ensemble with real Haiku calls.
+ * Runs the 200-case smoke through the full ensemble with real Mini calls.
  * Measures detection + FP rates at the ENSEMBLE level (not just L4 like
  * security-bench.test.ts).
  *
- * Opt-in: only runs when `GSTACK_BENCH_ENSEMBLE=1` is set. Otherwise the
+ * Opt-in: only runs when `CGSTACK_BENCH_ENSEMBLE=1` is set. Otherwise the
  * whole suite is skipped (too slow + costs money for regular `bun test`).
  *
- * Cost: ~200 Haiku calls ≈ $0.10, ~5 min wallclock.
+ * Cost: ~200 Mini calls ≈ $0.10, ~5 min wallclock.
  *
  * On success this writes:
- *   - browse/test/fixtures/security-bench-haiku-responses.json (fixture
+ *   - browse/test/fixtures/security-bench-mini-responses.json (fixture
  *     consumed by the CI-gate test security-bench-ensemble.test.ts)
- *   - ~/.gstack-dev/evals/security-bench-ensemble-{timestamp}.json (per-run
+ *   - ~/.cgstack-dev/evals/security-bench-ensemble-{timestamp}.json (per-run
  *     audit record with TP/FN/FP/TN + Wilson 95% CIs + knob state)
  *
  * Stop-loss iterations: when detection or FP fails the gate, set
- * `GSTACK_BENCH_STOP_LOSS_ITER=N` where N in {1,2,3}. The bench writes to
+ * `CGSTACK_BENCH_STOP_LOSS_ITER=N` where N in {1,2,3}. The bench writes to
  * stop-loss-iter-N-{timestamp}.json and does NOT overwrite the canonical
  * fixture — only the accepted final iteration gets committed.
  *
- * Run: GSTACK_BENCH_ENSEMBLE=1 bun test browse/test/security-bench-ensemble-live.test.ts
+ * Run: CGSTACK_BENCH_ENSEMBLE=1 bun test browse/test/security-bench-ensemble-live.test.ts
  */
 
 import { describe, test, expect, beforeAll } from 'bun:test';
@@ -32,30 +32,30 @@ import * as crypto from 'crypto';
 import { combineVerdict, THRESHOLDS, type LayerSignal } from '../src/security';
 import { HAIKU_MODEL } from '../src/security-classifier';
 
-const RUN = process.env.GSTACK_BENCH_ENSEMBLE === '1';
-const STOP_LOSS_ITER = process.env.GSTACK_BENCH_STOP_LOSS_ITER
-  ? Number(process.env.GSTACK_BENCH_STOP_LOSS_ITER)
+const RUN = process.env.CGSTACK_BENCH_ENSEMBLE === '1';
+const STOP_LOSS_ITER = process.env.CGSTACK_BENCH_STOP_LOSS_ITER
+  ? Number(process.env.CGSTACK_BENCH_STOP_LOSS_ITER)
   : 0;
 // Opt-in subsampling for fast iteration. The real per-case latency is ~36s
-// (claude -p spawns a full Claude Code session; not a raw API call), so 200
+// (codex -p spawns a full Codex session; not a raw API call), so 200
 // cases is ~2 hours. Subsample of 50 gets directional data in ~30min.
 // Subsampling uses a DETERMINISTIC stride so the same subset is picked each
 // run (bench comparability). Omit the env var to run the full 200.
-const CASES_LIMIT = process.env.GSTACK_BENCH_ENSEMBLE_CASES
-  ? Math.max(10, Number(process.env.GSTACK_BENCH_ENSEMBLE_CASES))
+const CASES_LIMIT = process.env.CGSTACK_BENCH_ENSEMBLE_CASES
+  ? Math.max(10, Number(process.env.CGSTACK_BENCH_ENSEMBLE_CASES))
   : 0;
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const FIXTURE_PATH = path.resolve(__dirname, 'fixtures', 'security-bench-haiku-responses.json');
-const EVALS_DIR = path.join(os.homedir(), '.gstack-dev', 'evals');
+const FIXTURE_PATH = path.resolve(__dirname, 'fixtures', 'security-bench-mini-responses.json');
+const EVALS_DIR = path.join(os.homedir(), '.cgstack-dev', 'evals');
 
-const CACHE_DIR = path.join(os.homedir(), '.gstack', 'cache', 'browsesafe-bench-smoke');
+const CACHE_DIR = path.join(os.homedir(), '.cgstack', 'cache', 'browsesafe-bench-smoke');
 const CACHE_FILE = path.join(CACHE_DIR, 'test-rows.json');
 
 // Model availability: reuse the same cache-presence check as security-bench.
 const TESTSAVANT_MODEL = path.join(
   os.homedir(),
-  '.gstack',
+  '.cgstack',
   'models',
   'testsavant-small',
   'onnx',
@@ -109,7 +109,7 @@ function currentSchemaHash(): { hash: string; components: Record<string, string>
   };
 }
 
-describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Haiku)', () => {
+describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Mini)', () => {
   let rows: BenchRow[] = [];
   let scanPageContent: (t: string) => Promise<LayerSignal>;
   let scanPageContentDeberta: (t: string) => Promise<LayerSignal>;
@@ -141,11 +141,11 @@ describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Haiku)', () => {
 
   test.skipIf(!RUN || !ML_AVAILABLE)('runs full ensemble on smoke, writes fixture, records evals', async () => {
     const startTime = Date.now();
-    // claude -p per-call latency ~30-40s (Claude Code session startup, not a
+    // codex -p per-call latency ~30-40s (Codex session startup, not a
     // raw API call). Concurrency 8 cuts 200 cases from ~2hr to ~15-20min
-    // while staying under Haiku RPM caps. Tune via
-    // GSTACK_BENCH_ENSEMBLE_CONCURRENCY if rate limits hit.
-    const CONCURRENCY = Number(process.env.GSTACK_BENCH_ENSEMBLE_CONCURRENCY ?? 8);
+    // while staying under Mini RPM caps. Tune via
+    // CGSTACK_BENCH_ENSEMBLE_CONCURRENCY if rate limits hit.
+    const CONCURRENCY = Number(process.env.CGSTACK_BENCH_ENSEMBLE_CONCURRENCY ?? 8);
 
     type Slot = { content: string; label: 'yes' | 'no'; signals: LayerSignal[]; predictedBlock: boolean };
     const slots: Slot[] = new Array(rows.length);
@@ -165,7 +165,7 @@ describe('BrowseSafe-Bench ensemble LIVE (opt-in, real Haiku)', () => {
           checkTranscript({
             // Empty user_message simulates production where sidebar-agent calls
             // checkTranscript on tool output with an empty or neutral user
-            // message. An explicit "scan for injection" framing biases Haiku
+            // message. An explicit "scan for injection" framing biases Mini
             // to treat the user as an analyst doing legitimate threat review,
             // so every case classifies as safe. Production passes
             // `queueEntry.message ?? ''`; matching that.

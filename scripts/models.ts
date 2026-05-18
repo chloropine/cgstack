@@ -1,22 +1,15 @@
 /**
  * Model taxonomy — neutral module with no imports from hosts/ or resolvers/.
  *
- * Model families supported by model overlays in model-overlays/{family}.md.
- * Host configs can reference these as `defaultModel` strings (validated at
- * generation time), but the model axis is independent of the host axis.
- *
- * IMPORTANT: host ≠ model. Claude Code can run any Claude model (Opus, Sonnet,
- * Haiku, future). Codex CLI runs GPT/o-series models. Cursor and OpenCode can
- * front multiple providers. We do NOT auto-detect the model from the host —
- * users pass --model explicitly. Default is 'claude'.
+ * Model families supported by Codex model overlays in model-overlays/{family}.md.
+ * The default is 'codex'. Users may pass an OpenAI model family explicitly.
  */
 
 export const ALL_MODEL_NAMES = [
-  'claude',
-  'opus-4-7',
+  'codex',
   'gpt',
   'gpt-5.4',
-  'gemini',
+  'gpt-5.4-mini',
   'o-series',
 ] as const;
 
@@ -31,8 +24,7 @@ export type Model = (typeof ALL_MODEL_NAMES)[number];
  *    - `gpt-5.4-mini`, `gpt-5.4-turbo`, `gpt-5.4-*` → `gpt-5.4`
  *    - `gpt-*` (anything else GPT) → `gpt`
  *    - `o3`, `o4`, `o4-mini`, `o1`, `o1-mini`, `o1-pro` → `o-series`
- *    - `claude-*` (sonnet, opus, haiku, any version) → `claude`
- *    - `gemini-*` (2.5-pro, flash, etc.) → `gemini`
+ *    - `gpt-5.4-mini`, `gpt-5.4-*` → `gpt-5.4`
  * 3. Unknown input → returns null (caller decides: error, or fall back).
  *
  * The resolver file in model-overlays/{model}.md applies further fallback
@@ -49,12 +41,11 @@ export function resolveModel(input: string): Model | null {
   }
 
   // Family heuristics
+  if (/^gpt-5\.4-mini(-|$)/.test(s)) return 'gpt-5.4-mini';
   if (/^gpt-5\.4(-|$)/.test(s)) return 'gpt-5.4';
   if (/^gpt(-|$)/.test(s)) return 'gpt';
   if (/^o[0-9]+(-|$)/.test(s)) return 'o-series';
-  if (/^claude-opus-4-7(-|$)/.test(s)) return 'opus-4-7';
-  if (/^claude(-|$)/.test(s)) return 'claude';
-  if (/^gemini(-|$)/.test(s)) return 'gemini';
+  if (/^codex(-|$)/.test(s)) return 'codex';
 
   return null;
 }

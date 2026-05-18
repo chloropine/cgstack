@@ -12,7 +12,7 @@
  *
  * Tier: periodic. Each run drives Step 0 + 11 review sections end-to-end
  * (~25 min, ~$5/run). Sequential by default per plan §D15. See
- * test/helpers/claude-pty-runner.ts for runPlanSkillCounting internals.
+ * test/helpers/codex-pty-runner.ts for runPlanSkillCounting internals.
  */
 
 import { describe, test } from 'bun:test';
@@ -22,7 +22,7 @@ import {
   ceoStep0Boundary,
   assertReviewReportAtBottom,
   type AskUserQuestionFingerprint,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 /**
  * /plan-ceo-review's first AUQ asks "what scope?" with options like
@@ -33,7 +33,7 @@ import {
  *   7. Skip interview and plan immediately
  *
  * The default pick (1) routes to "branch diff vs main" — the wrong target
- * for our seeded fixture (the agent would review the gstack PR itself,
+ * for our seeded fixture (the agent would review the cgstack PR itself,
  * recursively). Picking "Skip interview and plan immediately" bypasses
  * Step 0 and routes the agent to review the chat context (where our
  * follow-up plan was pasted).
@@ -63,7 +63,7 @@ const FLOOR_PAIRED = 2;
 const CEILING_PAIRED = 4;
 
 const PLAN_CEO_5_FINDINGS = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-ceo.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-ceo.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Payment Processing Integration',
   '',
@@ -89,7 +89,7 @@ const PLAN_CEO_5_FINDINGS = [
 ].join('\n');
 
 const PLAN_CEO_2_PAIRED_FINDINGS = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-ceo-paired.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-ceo-paired.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Payment Processing — Test Coverage',
   '',
@@ -102,8 +102,8 @@ const PLAN_CEO_2_PAIRED_FINDINGS = [
   'the success path is correctness, the failure path is graceful degradation.',
 ].join('\n');
 
-const PLAN_CEO_PATH = '/tmp/gstack-test-plan-ceo.md';
-const PLAN_CEO_PAIRED_PATH = '/tmp/gstack-test-plan-ceo-paired.md';
+const PLAN_CEO_PATH = '/tmp/cgstack-test-plan-ceo.md';
+const PLAN_CEO_PAIRED_PATH = '/tmp/cgstack-test-plan-ceo-paired.md';
 
 describeE2E('/plan-ceo-review per-finding AskUserQuestion count (periodic)', () => {
   test(

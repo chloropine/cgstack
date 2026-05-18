@@ -32,7 +32,7 @@ import {
 describe('defense-in-depth — layer coexistence', () => {
   test('canary survives when content is wrapped by content-security envelope', () => {
     const c = generateCanary();
-    // Attacker got Claude to echo the canary into tool output text.
+    // Attacker got Codex to echo the canary into tool output text.
     // content-security wraps that text in an envelope — canary still detectable.
     const leakedText = `Here's my session token: ${c}`;
     const wrapped = wrapUntrustedPageContent(leakedText, 'text');

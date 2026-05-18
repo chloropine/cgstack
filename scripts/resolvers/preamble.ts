@@ -5,14 +5,14 @@
  * wires them together via generatePreamble(). Keep composition declarative —
  * no inline logic beyond tier gating.
  *
- * Each skill runs independently via `claude -p` (or the host's equivalent).
+ * Each skill runs independently via `codex -p` (or the host's equivalent).
  * There is no shared loader. The preamble provides: update checks, session
  * tracking, user preferences, repo mode detection, model overlays, and
  * telemetry.
  *
  * Telemetry data flow:
- *   1. Always: local JSONL append to ~/.gstack/analytics/ (inline, inspectable)
- *   2. If _TEL != "off" AND binary exists: gstack-telemetry-log for remote reporting
+ *   1. Always: local JSONL append to ~/.cgstack/analytics/ (inline, inspectable)
+ *   2. If _TEL != "off" AND binary exists: cgstack-telemetry-log for remote reporting
  */
 
 
@@ -100,7 +100,7 @@ export function generatePreamble(ctx: TemplateContext): string {
     generateBrainHealthInstruction(ctx),
     // AskUserQuestion Format renders BEFORE the model overlay so the pacing rule
     // is the ambient default; the overlay's behavioral nudges land as subordinate
-    // patches. Opus 4.7 reads top-to-bottom and absorbs the first pacing directive
+    // patches. GPT 4.7 reads top-to-bottom and absorbs the first pacing directive
     // it hits; reversing this order regresses plan-review cadence (v1.6.4.0 bug).
     ...(tier >= 2 ? [generateAskUserFormat(ctx)] : []),
     generateBrainSyncBlock(ctx),

@@ -1,12 +1,12 @@
 /**
- * gstack-gbrain-supabase-verify + gstack-gbrain-lib.sh — Slice 3 of /setup-gbrain.
+ * cgstack-gbrain-supabase-verify + cgstack-gbrain-lib.sh — Slice 3 of /setup-gbrain.
  *
  * verify: structural URL check (scheme, userinfo, host, port). No network
  * call; pure regex. Rejects direct-connection URLs with a distinct exit
  * code + UX because that's the most common paste mistake.
  *
  * lib.sh: shared secret-read helper (read_secret_to_env) sourced by the
- * skill template and by gstack-gbrain-supabase-provision. Validates var
+ * skill template and by cgstack-gbrain-supabase-provision. Validates var
  * name, handles stdin=TTY and stdin=pipe (CI) paths, supports optional
  * redacted-preview echo.
  *
@@ -21,8 +21,8 @@ import * as path from 'path';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const VERIFY = path.join(ROOT, 'bin', 'gstack-gbrain-supabase-verify');
-const LIB = path.join(ROOT, 'bin', 'gstack-gbrain-lib.sh');
+const VERIFY = path.join(ROOT, 'bin', 'cgstack-gbrain-supabase-verify');
+const LIB = path.join(ROOT, 'bin', 'cgstack-gbrain-lib.sh');
 
 function runVerify(arg: string, stdin?: string) {
   const res = spawnSync(VERIFY, arg === '' ? [] : [arg], {
@@ -51,7 +51,7 @@ function runLibSnippet(snippet: string, stdin: string = '') {
   };
 }
 
-describe('gstack-gbrain-supabase-verify', () => {
+describe('cgstack-gbrain-supabase-verify', () => {
   const VALID =
     'postgresql://postgres.abcdefghijklmnopqrst:secretpass@aws-0-us-east-1.pooler.supabase.com:6543/postgres';
 
@@ -153,7 +153,7 @@ describe('gstack-gbrain-supabase-verify', () => {
   });
 });
 
-describe('gstack-gbrain-lib.sh read_secret_to_env', () => {
+describe('cgstack-gbrain-lib.sh read_secret_to_env', () => {
   test('reads secret from piped stdin into the named env var', () => {
     const r = runLibSnippet(
       `

@@ -3,7 +3,7 @@
  *
  * Asserts that the AskUserQuestion Format section renders BEFORE the
  * Model-Specific Behavioral Patch section in tier-≥2 preamble output.
- * This order is load-bearing: Opus 4.7 reads top-to-bottom and absorbs
+ * This order is load-bearing: GPT 4.7 reads top-to-bottom and absorbs
  * the first pacing directive it hits. v1.6.4.0 regressed plan-review
  * cadence because the overlay rendered first with "Batch your questions"
  * as the ambient default.
@@ -18,7 +18,7 @@ import { HOST_PATHS } from '../scripts/resolvers/types';
 import { generatePreamble } from '../scripts/resolvers/preamble';
 
 function makeCtx(
-  host: 'claude' | 'codex',
+  host: 'codex' | 'codex',
   tier: 1 | 2 | 3 | 4,
   model?: string,
 ): TemplateContext {
@@ -33,8 +33,8 @@ function makeCtx(
 }
 
 describe('Preamble composition order', () => {
-  test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (tier 2, claude)', () => {
-    const out = generatePreamble(makeCtx('claude', 2, 'claude'));
+  test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (tier 2, codex)', () => {
+    const out = generatePreamble(makeCtx('codex', 2, 'codex'));
     const formatIdx = out.indexOf('## AskUserQuestion Format');
     const overlayIdx = out.indexOf('## Model-Specific Behavioral Patch');
     expect(formatIdx).toBeGreaterThan(-1);
@@ -42,8 +42,8 @@ describe('Preamble composition order', () => {
     expect(formatIdx).toBeLessThan(overlayIdx);
   });
 
-  test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (tier 2, opus-4-7)', () => {
-    const out = generatePreamble(makeCtx('claude', 2, 'opus-4-7'));
+  test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (tier 2, gpt-5.4)', () => {
+    const out = generatePreamble(makeCtx('codex', 2, 'gpt-5.4'));
     const formatIdx = out.indexOf('## AskUserQuestion Format');
     const overlayIdx = out.indexOf('## Model-Specific Behavioral Patch');
     expect(formatIdx).toBeGreaterThan(-1);
@@ -52,21 +52,21 @@ describe('Preamble composition order', () => {
   });
 
   test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (tier 3)', () => {
-    const out = generatePreamble(makeCtx('claude', 3, 'opus-4-7'));
+    const out = generatePreamble(makeCtx('codex', 3, 'gpt-5.4'));
     const formatIdx = out.indexOf('## AskUserQuestion Format');
     const overlayIdx = out.indexOf('## Model-Specific Behavioral Patch');
     expect(formatIdx).toBeLessThan(overlayIdx);
   });
 
   test('AskUserQuestion Format renders before Model-Specific Behavioral Patch (codex host)', () => {
-    const out = generatePreamble(makeCtx('codex', 2, 'opus-4-7'));
+    const out = generatePreamble(makeCtx('codex', 2, 'gpt-5.4'));
     const formatIdx = out.indexOf('## AskUserQuestion Format');
     const overlayIdx = out.indexOf('## Model-Specific Behavioral Patch');
     expect(formatIdx).toBeLessThan(overlayIdx);
   });
 
   test('tier 1 preamble does NOT include AskUserQuestion Format (but MAY include overlay)', () => {
-    const out = generatePreamble(makeCtx('claude', 1));
+    const out = generatePreamble(makeCtx('codex', 1));
     expect(out).not.toContain('## AskUserQuestion Format');
   });
 });

@@ -124,8 +124,8 @@ describeIfSelected('Ship workflow E2E', ['ship-local-workflow'], () => {
   let shipRemoteDir: string;
 
   beforeAll(() => {
-    shipRemoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-ship-remote-'));
-    shipWorkDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-ship-work-'));
+    shipRemoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-ship-remote-'));
+    shipWorkDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-ship-work-'));
 
     // Create bare remote
     spawnSync('git', ['init', '--bare'], { cwd: shipRemoteDir, stdio: 'pipe' });
@@ -200,15 +200,15 @@ describeIfSelected('Ship workflow E2E', ['ship-local-workflow'], () => {
 // detection, error handling, path traversal). The E2E just tested LLM instruction-
 // following ("write a file saying no browsers") on a CI box with no browsers.
 
-// --- gstack-upgrade E2E ---
+// --- cgstack-upgrade E2E ---
 
-describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
+describeIfSelected('cgstack-upgrade E2E', ['cgstack-upgrade-happy-path'], () => {
   let upgradeDir: string;
   let remoteDir: string;
 
   beforeAll(() => {
     upgradeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-e2e-upgrade-'));
-    remoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-remote-'));
+    remoteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-remote-'));
 
     const run = (cmd: string, args: string[], cwd: string) =>
       spawnSync(cmd, args, { cwd, stdio: 'pipe', timeout: 5000 });
@@ -218,8 +218,8 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     run('git', ['config', 'user.email', 'test@test.com'], upgradeDir);
     run('git', ['config', 'user.name', 'Test'], upgradeDir);
 
-    // Create mock gstack install directory (local-git type)
-    const mockGstack = path.join(upgradeDir, '.claude', 'skills', 'gstack');
+    // Create mock cgstack install directory (local-git type)
+    const mockGstack = path.join(upgradeDir, '.codex', 'skills', 'cgstack');
     fs.mkdirSync(mockGstack, { recursive: true });
 
     // Init as a git repo
@@ -254,11 +254,11 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     // Reset working copy back to old version
     run('git', ['reset', '--hard', 'HEAD~1'], mockGstack);
 
-    // Copy gstack-upgrade skill
-    fs.mkdirSync(path.join(upgradeDir, 'gstack-upgrade'), { recursive: true });
+    // Copy cgstack-upgrade skill
+    fs.mkdirSync(path.join(upgradeDir, 'cgstack-upgrade'), { recursive: true });
     fs.copyFileSync(
-      path.join(ROOT, 'gstack-upgrade', 'SKILL.md'),
-      path.join(upgradeDir, 'gstack-upgrade', 'SKILL.md'),
+      path.join(ROOT, 'cgstack-upgrade', 'SKILL.md'),
+      path.join(upgradeDir, 'cgstack-upgrade', 'SKILL.md'),
     );
 
     // Commit so git repo is clean
@@ -271,12 +271,12 @@ describeIfSelected('gstack-upgrade E2E', ['gstack-upgrade-happy-path'], () => {
     try { fs.rmSync(remoteDir, { recursive: true, force: true }); } catch {}
   });
 
-  testConcurrentIfSelected('gstack-upgrade-happy-path', async () => {
-    const mockGstack = path.join(upgradeDir, '.claude', 'skills', 'gstack');
+  testConcurrentIfSelected('cgstack-upgrade-happy-path', async () => {
+    const mockGstack = path.join(upgradeDir, '.codex', 'skills', 'cgstack');
     const result = await runSkillTest({
-      prompt: `Read gstack-upgrade/SKILL.md for the upgrade workflow.
+      prompt: `Read cgstack-upgrade/SKILL.md for the upgrade workflow.
 
-You are running /gstack-upgrade standalone. The gstack installation is at ./.claude/skills/gstack (local-git type — it has a .git directory with an origin remote).
+You are running /cgstack-upgrade standalone. The cgstack installation is at ./.agents/skills/cgstack (local-git type — it has a .git directory with an origin remote).
 
 Current version: 0.5.0. A new version 0.6.0 is available on origin/main.
 
@@ -288,15 +288,15 @@ Follow the standalone upgrade flow:
 
 Skip any AskUserQuestion calls — auto-approve the upgrade. Write a summary of what you did to stdout.
 
-IMPORTANT: The install directory is at ./.claude/skills/gstack — use that exact path.`,
+IMPORTANT: The install directory is at ./.agents/skills/cgstack — use that exact path.`,
       workingDirectory: upgradeDir,
       maxTurns: 20,
       timeout: 180_000,
-      testName: 'gstack-upgrade-happy-path',
+      testName: 'cgstack-upgrade-happy-path',
       runId,
     });
 
-    logCost('/gstack-upgrade happy path', result);
+    logCost('/cgstack-upgrade happy path', result);
 
     // Check that the version was updated
     const versionAfter = fs.readFileSync(path.join(mockGstack, 'VERSION'), 'utf-8').trim();
@@ -305,7 +305,7 @@ IMPORTANT: The install directory is at ./.claude/skills/gstack — use that exac
       output.toLowerCase().includes('upgrade') ||
       output.toLowerCase().includes('updated');
 
-    recordE2E(evalCollector, '/gstack-upgrade happy path', 'gstack-upgrade E2E', result, {
+    recordE2E(evalCollector, '/cgstack-upgrade happy path', 'cgstack-upgrade E2E', result, {
       passed: versionAfter === '0.6.0' && ['success', 'error_max_turns'].includes(result.exitReason),
     });
 
@@ -467,18 +467,15 @@ describeIfSelected('Codex skill E2E', ['codex-review'], () => {
     run('git', ['add', 'user_controller.rb']);
     run('git', ['commit', '-m', 'add vulnerable controller']);
 
-    // Extract only the review-relevant section from codex SKILL.md (~120 lines vs 1075).
-    // Full SKILL.md is 55KB / ~14K tokens — takes 8 Read calls to consume, exhausting turns.
-    const full = fs.readFileSync(path.join(ROOT, 'codex', 'SKILL.md'), 'utf-8');
-    const startMarker = '# /codex — Multi-AI Second Opinion';
-    const endMarker = '## Plan File Review Report';
-    const start = full.indexOf(startMarker);
-    const end = full.indexOf(endMarker, start);
-    const reviewSection = full.slice(
-      start >= 0 ? start : 0,
-      end > start ? end : undefined,
-    );
-    fs.writeFileSync(path.join(codexDir, 'codex-SKILL.md'), reviewSection);
+    fs.writeFileSync(path.join(codexDir, 'codex-review.md'), [
+      '# Independent Codex Review',
+      '',
+      'Use the Codex CLI to review the current diff against main.',
+      'Focus on concrete bugs, security issues, and regressions.',
+      'Write findings first, then a short GATE verdict.',
+      'If the Codex CLI is unavailable, say that explicitly and perform the review yourself.',
+      '',
+    ].join('\n'));
   });
 
   afterAll(() => {
@@ -489,25 +486,25 @@ describeIfSelected('Codex skill E2E', ['codex-review'], () => {
     // Check codex is available — skip if not installed
     const codexCheck = spawnSync('which', ['codex'], { stdio: 'pipe', timeout: 3000 });
     if (codexCheck.status !== 0) {
-      console.warn('codex CLI not installed — skipping E2E test');
+      console.warn('codex not installed — skipping E2E test');
       return;
     }
 
     const result = await runSkillTest({
       prompt: `You are in a git repo on branch feature/add-vuln with changes against main.
-Read codex-SKILL.md for the /codex review instructions (it's short — ~120 lines).
-Follow those instructions to run codex review against the diff on this branch.
+Read codex-review.md for the Codex review instructions.
+Follow those instructions to run an independent Codex review against the diff on this branch.
 Write the full output (including the GATE verdict) to ${codexDir}/codex-output.md`,
       workingDirectory: codexDir,
       maxTurns: 25,
       timeout: 300_000,
       testName: 'codex-review',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
-    logCost('/codex review', result);
-    recordE2E(evalCollector, '/codex review', 'Codex skill E2E', result);
+    logCost('Codex review', result);
+    recordE2E(evalCollector, 'Codex review', 'Codex skill E2E', result);
     expect(result.exitReason).toBe('success');
 
     // Check that output file was created with review content

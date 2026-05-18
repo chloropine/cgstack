@@ -24,8 +24,8 @@ function makeCtx(): TemplateContext {
   return {
     skillName: 'test-skill',
     tmplPath: 'test.tmpl',
-    host: 'claude',
-    paths: HOST_PATHS.claude,
+    host: 'codex',
+    paths: HOST_PATHS.codex,
     preambleTier: 2,
   };
 }

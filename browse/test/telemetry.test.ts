@@ -3,13 +3,13 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const TMP_HOME = path.join(os.tmpdir(), `gstack-telemetry-test-${process.pid}-${Date.now()}`);
+const TMP_HOME = path.join(os.tmpdir(), `cgstack-telemetry-test-${process.pid}-${Date.now()}`);
 const TELEMETRY_FILE = path.join(TMP_HOME, 'analytics', 'browse-telemetry.jsonl');
 
-// Use GSTACK_HOME env to redirect telemetry writes (read each call,
+// Use CGSTACK_HOME env to redirect telemetry writes (read each call,
 // not cached at module-load).
-process.env.GSTACK_HOME = TMP_HOME;
-process.env.GSTACK_TELEMETRY_OFF = '0';
+process.env.CGSTACK_HOME = TMP_HOME;
+process.env.CGSTACK_TELEMETRY_OFF = '0';
 
 beforeEach(async () => {
   await fs.rm(TMP_HOME, { recursive: true, force: true });
@@ -30,7 +30,7 @@ async function readEvents(): Promise<any[]> {
   }
 }
 
-describe('telemetry: signals fire to ~/.gstack/analytics/browse-telemetry.jsonl', () => {
+describe('telemetry: signals fire to ~/.cgstack/analytics/browse-telemetry.jsonl', () => {
   it('logTelemetry writes a JSONL line with ts injected', async () => {
     const { logTelemetry, _resetTelemetryCache } = await import('../src/telemetry');
     _resetTelemetryCache();
@@ -43,14 +43,14 @@ describe('telemetry: signals fire to ~/.gstack/analytics/browse-telemetry.jsonl'
     expect(events[0].ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it('GSTACK_TELEMETRY_OFF=1 silences all events', async () => {
-    process.env.GSTACK_TELEMETRY_OFF = '1';
+  it('CGSTACK_TELEMETRY_OFF=1 silences all events', async () => {
+    process.env.CGSTACK_TELEMETRY_OFF = '1';
     const { logTelemetry, _resetTelemetryCache } = await import('../src/telemetry');
     _resetTelemetryCache();
     logTelemetry({ event: 'cdp_method_called', domain: 'X', method: 'y' });
     const events = await readEvents();
     expect(events).toHaveLength(0);
-    process.env.GSTACK_TELEMETRY_OFF = '0';
+    process.env.CGSTACK_TELEMETRY_OFF = '0';
   });
 
   it('telemetry never throws even if disk fails', async () => {

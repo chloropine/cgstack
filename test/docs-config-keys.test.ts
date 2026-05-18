@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const CONFIG_BIN = path.join(ROOT, 'bin', 'gstack-config');
+const CONFIG_BIN = path.join(ROOT, 'bin', 'cgstack-config');
 
-// gstack-config accepts arbitrary keys (free-form YAML store), so we can't
+// cgstack-config accepts arbitrary keys (free-form YAML store), so we can't
 // build an authoritative set of "valid keys" from the script. Instead, defend
 // the specific invariant this wave introduces: deprecated keys must not
 // reappear in user-facing docs. Extend the denylist as future renames happen.
@@ -36,8 +36,8 @@ function scanDocsForConfigKeys(): { docPath: string; key: string; line: number }
       const text = fs.readFileSync(full, 'utf-8');
       const lines = text.split('\n');
       lines.forEach((line, idx) => {
-        // Match `gstack-config set <key>` or `gstack-config get <key>`.
-        for (const m of line.matchAll(/gstack-config\s+(?:set|get)\s+([a-z][a-z0-9_]*)/g)) {
+        // Match `cgstack-config set <key>` or `cgstack-config get <key>`.
+        for (const m of line.matchAll(/cgstack-config\s+(?:set|get)\s+([a-z][a-z0-9_]*)/g)) {
           hits.push({ docPath: full, key: m[1], line: idx + 1 });
         }
       });
@@ -46,7 +46,7 @@ function scanDocsForConfigKeys(): { docPath: string; key: string; line: number }
   return hits;
 }
 
-describe('docs ↔ gstack-config key drift guard', () => {
+describe('docs ↔ cgstack-config key drift guard', () => {
   test('docs/ references at least one config key (smoke)', () => {
     const hits = scanDocsForConfigKeys();
     expect(hits.length).toBeGreaterThan(0);
@@ -61,17 +61,17 @@ describe('docs ↔ gstack-config key drift guard', () => {
     expect(stale).toEqual([]);
   });
 
-  // gstack-config is a bash script; Windows can't exec it via spawnSync
+  // cgstack-config is a bash script; Windows can't exec it via spawnSync
   // without a Git Bash interpreter shim. Skip on Windows — the deprecated-key
   // denylist test above already pins the v1.27.0.0 rename behavior at the
   // doc layer, which is the actual invariant this wave defends.
-  test.skipIf(process.platform === 'win32')('`gstack-config get artifacts_sync_mode` returns a value (the rename landed)', () => {
+  test.skipIf(process.platform === 'win32')('`cgstack-config get artifacts_sync_mode` returns a value (the rename landed)', () => {
     // Run from a clean HOME so the user's local config doesn't pollute.
-    const tmpHome = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gstack-cfg-'));
+    const tmpHome = fs.mkdtempSync(path.join(require('os').tmpdir(), 'cgstack-cfg-'));
     try {
       const result = spawnSync(CONFIG_BIN, ['get', 'artifacts_sync_mode'], {
         encoding: 'utf-8',
-        env: { ...process.env, HOME: tmpHome, GSTACK_HOME: tmpHome },
+        env: { ...process.env, HOME: tmpHome, CGSTACK_HOME: tmpHome },
         timeout: 5000,
       });
       expect(result.status).toBe(0);

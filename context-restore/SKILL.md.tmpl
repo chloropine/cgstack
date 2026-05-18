@@ -8,8 +8,8 @@ description: |
   left off — even across Conductor workspace handoffs.
   Use when asked to "resume", "restore context", "where was I", or
   "pick up where I left off". Pair with /context-save.
-  Formerly /checkpoint resume — renamed because Claude Code treats /checkpoint
-  as a native rewind alias in current environments. (gstack)
+  Formerly /checkpoint resume — renamed because Codex treats /checkpoint
+  as a native rewind alias in current environments. (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -62,8 +62,8 @@ Parse the user's input:
 
 ```bash
 {{SLUG_SETUP}}
-eval "$(~/.claude/skills/gstack/bin/gstack-paths)"
-CHECKPOINT_DIR="$GSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-paths)"
+CHECKPOINT_DIR="$CGSTACK_STATE_ROOT/projects/$SLUG/checkpoints"
 if [ ! -d "$CHECKPOINT_DIR" ]; then
   echo "NO_CHECKPOINTS"
 else
@@ -150,5 +150,5 @@ state, then `/context-restore` will find it."
 - **"Most recent" means the filename `YYYYMMDD-HHMMSS` prefix**, not
   `ls -1t` (filesystem mtime). Filenames are stable across file-system
   operations; mtime is not.
-- **This is a gstack skill, not a Claude Code built-in.** When the user types
+- **This is a cgstack skill, not a Codex built-in.** When the user types
   `/context-restore`, invoke this skill via the Skill tool.

@@ -33,7 +33,7 @@ const TTL_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_SESSIONS = 10_000; // Upper bound on registry size
 const sessions = new Map<string, Session>();
 
-export const SSE_COOKIE_NAME = 'gstack_sse';
+export const SSE_COOKIE_NAME = 'cgstack_sse';
 
 /** Mint a fresh view-only SSE session token. */
 export function mintSseSessionToken(): { token: string; expiresAt: number } {
@@ -89,7 +89,7 @@ export function extractSseCookie(req: Request): string | null {
  *
  * Secure is intentionally omitted: the daemon binds to 127.0.0.1 over
  * plain HTTP, and setting Secure would prevent the browser from ever
- * sending the cookie back. If gstack ever ships over HTTPS, add Secure.
+ * sending the cookie back. If cgstack ever ships over HTTPS, add Secure.
  */
 export function buildSseSetCookie(token: string): string {
   const maxAge = Math.floor(TTL_MS / 1000);

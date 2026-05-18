@@ -1,7 +1,7 @@
 // Lone Unicode surrogate sanitization.
 //
 // Lone surrogates (\uD800-\uDFFF without a matching pair) are valid UTF-16
-// but invalid UTF-8, so JSON.stringify produces output the Claude API rejects
+// but invalid UTF-8, so JSON.stringify produces output the Codex API rejects
 // with HTTP 400 "no low surrogate in string". Page captures from real-world
 // HTML hit this when content contains broken emoji bytes or mid-emoji splits.
 //

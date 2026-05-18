@@ -1,20 +1,20 @@
 /**
  * Collision Sentinel — insurance policy against upstream slash-command collisions.
  *
- * History: in April 2026 Claude Code shipped /checkpoint as a native alias
- * for /rewind, silently shadowing the gstack /checkpoint skill. Users
+ * History: in April 2026 Codex shipped /checkpoint as a native alias
+ * for /rewind, silently shadowing the cgstack /checkpoint skill. Users
  * typed /checkpoint expecting to save state; agents routed to the built-in
  * or confabulated "this is a built-in you need to type directly" and nothing
  * was saved. We found out from users, not from tests.
  *
- * This file is the "never again" test. It enumerates every gstack skill name
+ * This file is the "never again" test. It enumerates every cgstack skill name
  * from every SKILL.md.tmpl file in the repo and cross-checks against a
- * per-host list of known built-in slash commands. If any gstack skill name
+ * per-host list of known built-in slash commands. If any cgstack skill name
  * collides with a host built-in, this test fails and names the collision.
  *
- * Maintenance: when Claude Code (or any other host we support) ships a new
+ * Maintenance: when Codex ships a new
  * built-in slash command, add the name to the host's KNOWN_BUILTINS list
- * below. If a gstack skill needs to coexist with a built-in anyway (e.g.,
+ * below. If a cgstack skill needs to coexist with a built-in anyway (e.g.,
  * we decide the semantic overlap is acceptable), add it to
  * KNOWN_COLLISIONS_TOLERATED with a written justification.
  *
@@ -36,13 +36,12 @@ const ROOT = path.resolve(import.meta.dir, '..');
 // is on the list.
 
 const KNOWN_BUILTINS: Record<string, string[]> = {
-  'claude-code': [
-    // Slash commands observed in 'claude --help' or cited in docs as of 2026-04.
+  'codex': [
+    // Slash commands observed in 'codex --help' or cited in docs as of 2026-04.
     // Sources:
-    //   https://code.claude.com/docs/en/checkpointing
-    //   https://claudelog.com/mechanics/rewind/
-    //   claude --help output
-    //   Claude Code skill list dumps from live sessions
+    //   Codex CLI help output
+    //   codex --help output
+    //   Codex skill list dumps from live sessions
     'agents',         // Agent config
     'bare',           // Minimal mode
     'checkpoint',     // Alias of /rewind (the collision that started this file)
@@ -54,7 +53,7 @@ const KNOWN_BUILTINS: Record<string, string[]> = {
     'cost',           // Cost display
     'exit',           // Exit shell
     'help',           // Help
-    'init',           // Initialize a new CLAUDE.md file
+    'init',           // Initialize a new AGENTS.md file
     'mcp',            // MCP server config
     'model',          // Model selection
     'permissions',    // Permission config
@@ -66,13 +65,7 @@ const KNOWN_BUILTINS: Record<string, string[]> = {
     'stats',          // Session stats
     'usage',          // API usage stats
   ],
-  // Add codex/kiro/opencode/slate/cursor/openclaw/hermes/factory/gbrain
-  // built-in lists when we encounter collisions. Claude Code is the primary
-  // shadow risk because it's the biggest audience and ships the most
-  // frequently; other hosts collide less often.
-  // TODO: codex CLI built-ins (login, logout, exec, review, etc. — but we
-  // invoke codex from gstack, we don't install skills INTO codex the same
-  // way, so this is lower priority).
+  // Add new Codex built-ins here when we encounter collisions.
 };
 
 // Collisions we know about and have consciously decided to tolerate. The
@@ -81,7 +74,7 @@ const KNOWN_BUILTINS: Record<string, string[]> = {
 // review.
 const KNOWN_COLLISIONS_TOLERATED: Record<string, string> = {
   // skill name → one-line justification + action plan
-  'review': 'gstack /review (pre-landing diff analysis) pre-dates the Claude Code built-in /review (Review a pull request). The gstack skill is much richer (SQL safety, LLM trust boundary, specialist dispatch). Watch for user confusion reports and consider renaming to /diff-review or /pre-land if the collision bites. TODO: track user-reported incidents in TODOS.md.',
+  'review': 'cgstack /review (pre-landing diff analysis) pre-dates the Codex built-in /review (Review a pull request). The cgstack skill is much richer (SQL safety, LLM trust boundary, specialist dispatch). Watch for user confusion reports and consider renaming to /diff-review or /pre-land if the collision bites. TODO: track user-reported incidents in TODOS.md.',
 };
 
 // Generic-verb watchlist: skill names that are single common verbs, which
@@ -136,7 +129,7 @@ describe('skill-collision-sentinel', () => {
     expect(skills.length).toBeGreaterThan(10);
   });
 
-  test('no duplicate skill names within gstack', () => {
+  test('no duplicate skill names within cgstack', () => {
     const seen = new Map<string, string>();
     const dupes: string[] = [];
     for (const { name, templatePath } of skills) {
@@ -151,7 +144,7 @@ describe('skill-collision-sentinel', () => {
     }
   });
 
-  // Hard check: no gstack skill name collides with a known host built-in
+  // Hard check: no cgstack skill name collides with a known host built-in
   // unless the collision is explicitly tolerated. This is the test that
   // would have caught the /checkpoint bug in April 2026.
   for (const [host, builtins] of Object.entries(KNOWN_BUILTINS)) {
@@ -166,7 +159,7 @@ describe('skill-collision-sentinel', () => {
       if (collisions.length > 0) {
         const msg = collisions.map(c =>
           `  /${c.skill} collides with ${host} built-in /${c.builtin}.\n` +
-          `    Fix: rename the gstack skill (precedent: /checkpoint → /context-save+/context-restore),\n` +
+          `    Fix: rename the cgstack skill (precedent: /checkpoint → /context-save+/context-restore),\n` +
           `    OR add an entry to KNOWN_COLLISIONS_TOLERATED with a written justification.`
         ).join('\n\n');
         throw new Error(`Found ${collisions.length} unresolved collision(s) with ${host} built-ins:\n\n${msg}`);
@@ -186,7 +179,7 @@ describe('skill-collision-sentinel', () => {
     const stale: string[] = [];
     for (const name of Object.keys(KNOWN_COLLISIONS_TOLERATED)) {
       if (!skillNames.has(name)) {
-        stale.push(`  "${name}" is in KNOWN_COLLISIONS_TOLERATED but no gstack skill has that name — remove the exception`);
+        stale.push(`  "${name}" is in KNOWN_COLLISIONS_TOLERATED but no cgstack skill has that name — remove the exception`);
       } else if (!allBuiltins.has(name)) {
         stale.push(`  "${name}" is in KNOWN_COLLISIONS_TOLERATED but no host's KNOWN_BUILTINS lists it — remove the exception`);
       }

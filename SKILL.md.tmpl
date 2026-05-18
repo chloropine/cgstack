@@ -1,12 +1,12 @@
 ---
-name: gstack
+name: cgstack
 preamble-tier: 1
 version: 1.1.0
 description: |
   Fast headless browser for QA testing and site dogfooding. Navigate pages, interact with
   elements, verify state, diff before/after, take annotated screenshots, test responsive
   layouts, forms, uploads, dialogs, and capture bug evidence. Use when asked to open or
-  test a site, verify a deployment, dogfood a user flow, or file a bug with screenshots. (gstack)
+  test a site, verify a deployment, dogfood a user flow, or file a bug with screenshots. (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -21,9 +21,9 @@ triggers:
 
 {{PREAMBLE}}
 
-If `PROACTIVE` is `false`: do NOT proactively invoke or suggest other gstack skills during
+If `PROACTIVE` is `false`: do NOT proactively invoke or suggest other cgstack skills during
 this session. Only run skills the user explicitly invokes. This preference persists across
-sessions via `gstack-config`.
+sessions via `cgstack-config`.
 
 If `PROACTIVE` is `true` (default): **invoke the Skill tool** when the user's request
 matches a skill's purpose. Do NOT answer directly when a skill exists for the task.
@@ -51,18 +51,18 @@ quality gates that produce better results than answering inline.
 - User asks to update docs after shipping → invoke `/document-release`
 - User asks to write docs from scratch, generate documentation, "document this feature/module" → invoke `/document-generate`
 - User asks for a weekly retro, what did we ship, "how'd we do" → invoke `/retro`
-- User asks for a second opinion, codex review → invoke `/codex`
+- User asks for a second opinion, codex review → use Codex CLI review
 - User asks for safety mode, careful mode → invoke `/careful` or `/guard`
 - User asks to restrict edits to a directory → invoke `/freeze` or `/unfreeze`
-- User asks to upgrade gstack → invoke `/gstack-upgrade`
+- User asks to upgrade cgstack → invoke `/cgstack-upgrade`
 - User asks to save progress, checkpoint, "save my work" → invoke `/context-save`
 - User asks to resume, restore, "where was I" → invoke `/context-restore`
 - User asks about security, OWASP, vulnerabilities, "is this secure" → invoke `/cso`
 - User asks to make a PDF, document, publication → invoke `/make-pdf`
-- User asks to launch a real browser for QA, "open the browser" → invoke `/open-gstack-browser`
+- User asks to launch a real browser for QA, "open the browser" → invoke `/open-cgstack-browser`
 - User asks to import cookies for authenticated testing → invoke `/setup-browser-cookies`
 - User asks about page speed, performance regression, benchmarks → invoke `/benchmark`
-- User asks what gstack has learned, "show learnings" → invoke `/learn`
+- User asks what cgstack has learned, "show learnings" → invoke `/learn`
 - User asks to tune question sensitivity, "stop asking me that" → invoke `/plan-tune`
 - User asks for code quality dashboard, "health check" → invoke `/health`
 
@@ -72,10 +72,10 @@ exists). The skill provides multi-step workflows, checklists, and quality gates 
 always produce better results than an ad-hoc answer. If no skill matches, answer
 directly as usual.
 
-If the user opts out of suggestions, run `gstack-config set proactive false`.
-If they opt back in, run `gstack-config set proactive true`.
+If the user opts out of suggestions, run `cgstack-config set proactive false`.
+If they opt back in, run `cgstack-config set proactive true`.
 
-# gstack browse: QA Testing & Dogfooding
+# cgstack browse: QA Testing & Dogfooding
 
 Persistent headless Chromium. First call auto-starts (~3s), then ~100-200ms per command.
 Auto-shuts down after 30 min idle. State persists between calls (cookies, tabs, sessions).
@@ -85,7 +85,7 @@ Auto-shuts down after 30 min idle. State persists between calls (cookies, tabs, 
 ## IMPORTANT
 
 - Use the compiled binary via Bash: `$B <command>`
-- NEVER use `mcp__claude-in-chrome__*` tools. They are slow and unreliable.
+- NEVER use `mcp__codex-in-chrome__*` tools. They are slow and unreliable.
 - Browser persists between calls — cookies, login sessions, and tabs carry over.
 - Dialogs (alert/confirm/prompt) are auto-accepted by default — no browser lockup.
 - **Show screenshots:** After `$B screenshot`, `$B snapshot -a -o`, or `$B responsive`, always use the Read tool on the output PNG(s) so the user can see them. Without this, screenshots are invisible.

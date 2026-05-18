@@ -2,8 +2,7 @@ import { ALL_HOST_CONFIGS } from '../../hosts/index';
 
 /**
  * Host type — derived from host configs in hosts/*.ts.
- * Adding a new host: create hosts/myhost.ts + add to hosts/index.ts.
- * Do NOT hardcode host names here.
+ * cgstack intentionally ships one host: Codex.
  */
 export type Host = (typeof ALL_HOST_CONFIGS)[number]['name'];
 
@@ -19,19 +18,19 @@ export interface HostPaths {
 /**
  * HOST_PATHS — derived from host configs.
  * Each config's globalRoot/localSkillRoot determines the path structure.
- * Non-Claude hosts use $GSTACK_ROOT env vars (set by preamble).
+ * Codex uses $CGSTACK_ROOT env vars (set by preamble).
  */
 function buildHostPaths(): Record<string, HostPaths> {
   const paths: Record<string, HostPaths> = {};
   for (const config of ALL_HOST_CONFIGS) {
     if (config.usesEnvVars) {
       paths[config.name] = {
-        skillRoot: '$GSTACK_ROOT',
+        skillRoot: '$CGSTACK_ROOT',
         localSkillRoot: config.localSkillRoot,
-        binDir: '$GSTACK_BIN',
-        browseDir: '$GSTACK_BROWSE',
-        designDir: '$GSTACK_DESIGN',
-        makePdfDir: '$GSTACK_MAKE_PDF',
+        binDir: '$CGSTACK_BIN',
+        browseDir: '$CGSTACK_BROWSE',
+        designDir: '$CGSTACK_DESIGN',
+        makePdfDir: '$CGSTACK_MAKE_PDF',
       };
     } else {
       const root = `~/${config.globalRoot}`;

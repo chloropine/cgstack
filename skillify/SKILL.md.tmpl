@@ -8,7 +8,7 @@ description: |
   back through the conversation, synthesizes script.ts + script.test.ts
   + fixture, runs the test in a temp dir, and asks before committing.
   Use when asked to "skillify", "codify", "save this scrape", or
-  "make this permanent". (gstack)
+  "make this permanent". (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -96,8 +96,8 @@ didn't want them to).
 Recommendation: A — <proposed-name> at global tier — most scrape skills
 generalize across projects.
 Note: options differ in kind, not coverage — no completeness score.
-A) Keep "<proposed-name>" at global tier — ~/.gstack/browser-skills/<proposed-name>/  (recommended)
-B) Keep "<proposed-name>" but at project tier — <project>/.gstack/browser-skills/<proposed-name>/
+A) Keep "<proposed-name>" at global tier — ~/.cgstack/browser-skills/<proposed-name>/  (recommended)
+B) Keep "<proposed-name>" but at project tier — <project>/.cgstack/browser-skills/<proposed-name>/
 C) Rename it (free-form — say the new name)
 ```
 
@@ -202,16 +202,16 @@ describe('<name> parser', () => {
 
 ## Step 6 — Resolve the canonical SDK path + read it
 
-The canonical SDK lives at `<gstack-install>/browse/src/browse-client.ts`.
+The canonical SDK lives at `<cgstack-install>/browse/src/browse-client.ts`.
 The bundled-skill loader walks the install tree to find it; mirror that.
 
-Resolve the gstack install dir. Two reliable signals (in order):
+Resolve the cgstack install dir. Two reliable signals (in order):
 
 1. The bundled `hackernews-frontpage` skill — look at its tier path from
    `$B skill list` (the `bundled` row). The skill dir is
-   `<gstack-install>/browser-skills/hackernews-frontpage/`, so the install
+   `<cgstack-install>/browser-skills/hackernews-frontpage/`, so the install
    dir is two `dirname` calls above its `_lib/browse-client.ts`.
-2. The active gstack skills install at `~/.claude/skills/gstack/`. Read
+2. The active cgstack skills install at `~/.codex/skills/cgstack/`. Read
    the symlink target if it's a symlink, otherwise use the path directly.
 
 Example (run as Bun, not bash, to avoid shell-redirect parsing issues):
@@ -223,7 +223,7 @@ import * as path from 'path';
 
 function resolveSdkPath(): string {
   const candidates = [
-    path.join(os.homedir(), '.claude', 'skills', 'gstack', 'browse', 'src', 'browse-client.ts'),
+    path.join(os.homedir(), '.codex', 'skills', 'cgstack', 'browse', 'src', 'browse-client.ts'),
     // Add other install-dir candidates if your environment differs.
   ];
   for (const c of candidates) {
@@ -248,7 +248,7 @@ Use the helper at `browse/src/browser-skill-write.ts`. Construct an inline
 TypeScript snippet (or shell out to a small Bun one-liner) that calls:
 
 ```ts
-import { stageSkill } from '<gstack-install>/browse/src/browser-skill-write';
+import { stageSkill } from '<cgstack-install>/browse/src/browser-skill-write';
 
 const stagedDir = stageSkill({
   name: '<name>',
@@ -321,7 +321,7 @@ If the test fails:
    environmental issue (SDK import, daemon connection):
 
    ```ts
-   import { discardStaged } from '<gstack-install>/browse/src/browser-skill-write';
+   import { discardStaged } from '<cgstack-install>/browse/src/browser-skill-write';
    discardStaged('<stagedDir>');
    ```
 
@@ -336,7 +336,7 @@ Tests passed. Now ask the user before committing:
 D<N> — Commit skill "<name>" at <resolved-tier-path>?
 Project/branch/task: codified /scrape "<intent>" — tests pass against fixture.
 ELI10: The script ran clean against the snapshot we captured. Saying yes
-moves the staged folder into ~/.gstack/browser-skills/ where /scrape
+moves the staged folder into ~/.cgstack/browser-skills/ where /scrape
 will find it next time. Saying no removes the staged folder and nothing
 lands on disk.
 Stakes if we pick wrong: yes commits an artifact you have to manually rm
@@ -359,7 +359,7 @@ this time — they already saw it).
 If the user approved:
 
 ```ts
-import { commitSkill } from '<gstack-install>/browse/src/browser-skill-write';
+import { commitSkill } from '<cgstack-install>/browse/src/browser-skill-write';
 const dest = commitSkill({
   name: '<name>',
   tier: '<global|project>',  // from step 2 answer
@@ -378,7 +378,7 @@ user dismissed in step 2), report and ask whether to:
 If the user rejected in step 9:
 
 ```ts
-import { discardStaged } from '<gstack-install>/browse/src/browser-skill-write';
+import { discardStaged } from '<cgstack-install>/browse/src/browser-skill-write';
 discardStaged('<stagedDir>');
 ```
 
@@ -408,7 +408,7 @@ End the skill with one line: "Skill '<name>' committed at <tier>. Future
 - **Bun runtime required.** The codified skill runs as a Bun process
   (`bun run script.ts`). Phase 1 design carry-over (Codex finding #7).
   Real fix lands in Phase 4 (self-contained binary or Node fallback).
-  For now: the skill works on any machine that has gstack installed,
+  For now: the skill works on any machine that has cgstack installed,
   which means it has Bun.
 - **Fixture-replay tests are point-in-time.** When the target site
   rotates HTML, the fixture goes stale and the test passes against an

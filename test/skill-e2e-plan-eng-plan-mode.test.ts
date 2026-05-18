@@ -10,14 +10,14 @@ import {
   runPlanSkillObservation,
   planFileHasDecisionsSection,
   assertReportAtBottomIfPlanWritten,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
 
 // SEED_PLAN_FORCING_FINDINGS: 8+ files + custom-vs-builtin smell forces the
 // Step 0 complexity check to trigger. Passed via runPlanSkillObservation's
-// initialPlanContent (D3-B) so the spawned `claude` actually sees it.
+// initialPlanContent (D3-B) so the spawned `codex` actually sees it.
 const SEED_PLAN_FORCING_FINDINGS = `
 # Parallelize unit tests
 

@@ -1,5 +1,5 @@
 /**
- * gstack-gbrain-repo-policy — per-remote trust-tier policy store.
+ * cgstack-gbrain-repo-policy — per-remote trust-tier policy store.
  *
  * Covers the setup-gbrain D3/D2-eng decisions end-to-end:
  *   - D3 triad semantics (read-write / read-only / deny / unset)
@@ -10,7 +10,7 @@
  *   - Corrupt-file quarantine (file renamed to .corrupt-<ts>, fresh file created)
  *   - 0600 permissions on the policy file
  *
- * Each test uses a temp GSTACK_HOME so nothing leaks into the user's real ~/.gstack.
+ * Each test uses a temp CGSTACK_HOME so nothing leaks into the user's real ~/.cgstack.
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
@@ -20,13 +20,13 @@ import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const BIN = path.join(ROOT, 'bin', 'gstack-gbrain-repo-policy');
+const BIN = path.join(ROOT, 'bin', 'cgstack-gbrain-repo-policy');
 
 let tmpHome: string;
 
 function run(args: string[], opts: { env?: Record<string, string> } = {}) {
   const res = spawnSync(BIN, args, {
-    env: { ...process.env, GSTACK_HOME: tmpHome, ...(opts.env || {}) },
+    env: { ...process.env, CGSTACK_HOME: tmpHome, ...(opts.env || {}) },
     encoding: 'utf-8',
   });
   return {
@@ -259,7 +259,7 @@ describe('get without arg (auto-detect from current dir)', () => {
     const cwdTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'no-git-'));
     try {
       const res = spawnSync(BIN, ['get'], {
-        env: { ...process.env, GSTACK_HOME: tmpHome },
+        env: { ...process.env, CGSTACK_HOME: tmpHome },
         cwd: cwdTmp,
         encoding: 'utf-8',
       });

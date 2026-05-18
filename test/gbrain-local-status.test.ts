@@ -42,13 +42,13 @@ interface FakeEnv {
   tmp: string;
   bindir: string;
   home: string;
-  gstackHome: string;
+  cgstackHome: string;
   configPath: string;
   cleanup: () => void;
 }
 
 /**
- * Build a tmp HOME + GSTACK_HOME + optional fake `gbrain` on PATH.
+ * Build a tmp HOME + CGSTACK_HOME + optional fake `gbrain` on PATH.
  *
  * The classifier reads HOME via os.homedir() which reads process.env.HOME, so
  * we mutate process.env ambiently in each test (restored in afterEach).
@@ -61,13 +61,13 @@ function makeEnv(opts: {
   const tmp = mkdtempSync(join(tmpdir(), "gbrain-local-status-test-"));
   const bindir = join(tmp, "bin");
   const home = join(tmp, "home");
-  const gstackHome = join(home, ".gstack");
+  const cgstackHome = join(home, ".cgstack");
   const configDir = join(home, ".gbrain");
   const configPath = join(configDir, "config.json");
 
   mkdirSync(bindir, { recursive: true });
   mkdirSync(home, { recursive: true });
-  mkdirSync(gstackHome, { recursive: true });
+  mkdirSync(cgstackHome, { recursive: true });
   mkdirSync(configDir, { recursive: true });
 
   if (opts.withConfig) {
@@ -89,7 +89,7 @@ function makeEnv(opts: {
     tmp,
     bindir,
     home,
-    gstackHome,
+    cgstackHome,
     configPath,
     cleanup: () => rmSync(tmp, { recursive: true, force: true }),
   };
@@ -135,18 +135,18 @@ function applyEnv(env: FakeEnv): () => void {
   const prev = {
     HOME: process.env.HOME,
     PATH: process.env.PATH,
-    GSTACK_HOME: process.env.GSTACK_HOME,
+    CGSTACK_HOME: process.env.CGSTACK_HOME,
   };
   process.env.HOME = env.home;
   process.env.PATH = `${env.bindir}:/usr/bin:/bin`;
-  process.env.GSTACK_HOME = env.gstackHome;
+  process.env.CGSTACK_HOME = env.cgstackHome;
   return () => {
     if (prev.HOME === undefined) delete process.env.HOME;
     else process.env.HOME = prev.HOME;
     if (prev.PATH === undefined) delete process.env.PATH;
     else process.env.PATH = prev.PATH;
-    if (prev.GSTACK_HOME === undefined) delete process.env.GSTACK_HOME;
-    else process.env.GSTACK_HOME = prev.GSTACK_HOME;
+    if (prev.CGSTACK_HOME === undefined) delete process.env.CGSTACK_HOME;
+    else process.env.CGSTACK_HOME = prev.CGSTACK_HOME;
   };
 }
 
@@ -177,7 +177,7 @@ describe("lib/gbrain-local-status — five status cases", () => {
     expect(localEngineStatus({ noCache: true })).toBe("no-cli");
   });
 
-  it("returns 'missing-config' when CLI is present but ~/.gbrain/config.json absent", () => {
+  it("returns 'missing-config' when gbrain is present but ~/.gbrain/config.json absent", () => {
     env = makeEnv({ withGbrain: true, gbrainBehavior: "ok", withConfig: false });
     restoreEnv = applyEnv(env);
     expect(localEngineStatus({ noCache: true })).toBe("missing-config");
@@ -280,7 +280,7 @@ describe("lib/gbrain-local-status — cache behavior", () => {
     restoreEnv = applyEnv(env);
     expect(localEngineStatus({ noCache: false })).toBe("ok");
 
-    // Switch to a new HOME (different user). Same gstack home (shared cache file).
+    // Switch to a new HOME (different user). Same cgstack home (shared cache file).
     const env2 = makeEnv({
       withGbrain: true,
       gbrainBehavior: "broken-db",
@@ -288,7 +288,7 @@ describe("lib/gbrain-local-status — cache behavior", () => {
     });
     process.env.HOME = env2.home;
     process.env.PATH = `${env2.bindir}:/usr/bin:/bin`;
-    // GSTACK_HOME stays pointing at env.gstackHome (the original cache file).
+    // CGSTACK_HOME stays pointing at env.cgstackHome (the original cache file).
 
     try {
       expect(localEngineStatus({ noCache: false })).toBe("broken-db");

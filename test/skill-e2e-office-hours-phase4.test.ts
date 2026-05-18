@@ -11,7 +11,7 @@
  * skill-e2e-plan-format.test.ts). Pre-seed builder mode + "skip Phase 1/2/3,
  * I have already accepted all premises" so the agent reaches Phase 4 directly.
  * captureInstruction tells the agent to dump the verbatim Phase 4 AskUserQuestion
- * to a file. We then assert on the captured text (regex + Haiku judge) rather
+ * to a file. We then assert on the captured text (regex + Mini judge) rather
  * than on tool-call observability — the captured file IS the Phase 4 question.
  *
  * Why periodic (not gate): Phase 4 requires the agent to invent 2-3 distinct
@@ -63,15 +63,15 @@ function setupOfficeHoursDir(): string {
 
 We're building a retrieval surface for gbrain so cross-skill memory works
 end-to-end. There are three architectural shapes worth considering: server-side
-(gbrain ships the smarts), client-side (gstack ships the smarts), and a hybrid
+(gbrain ships the smarts), client-side (cgstack ships the smarts), and a hybrid
 that ships V1 client-side and promotes to gbrain in V1.5.
 `);
   run('git', ['add', '.']);
   run('git', ['commit', '-m', 'seed']);
 
   // Extract only the AskUserQuestion Format spec + Phase 4 section from
-  // office-hours/SKILL.md per CLAUDE.md "extract, don't copy" rule. Copying
-  // the full ~2000-line SKILL.md burns Opus tokens on irrelevant phases and
+  // office-hours/SKILL.md per AGENTS.md "extract, don't copy" rule. Copying
+  // the full ~2000-line SKILL.md burns GPT tokens on irrelevant phases and
   // risks turn-limit timeouts. The format spec teaches the agent the
   // Recommendation/because/options shape; Phase 4 is what we're testing.
   fs.mkdirSync(path.join(dir, 'office-hours'), { recursive: true });
@@ -123,8 +123,8 @@ Context: this is BUILDER MODE (Path B). The project is gbrain-retrieval — see 
 
 Proceed directly to Phase 4 (Alternatives Generation). Generate 2-3 distinct architectural approaches that differ in KIND (not in coverage). Realistic shapes for this project:
   A) Server-side: gbrain ships the retrieval smarts as new MCP tools (e.g. get_recent_salience, find_anomalies).
-  B) Client-side: gstack ships a helper (bin/gstack-brain-context-load) that composes salience client-side from existing MCP tools.
-  C) Hybrid: V1 client-side in gstack; V1.5 promotes to gbrain server-side once the salience signal is validated.
+  B) Client-side: cgstack ships a helper (bin/cgstack-brain-context-load) that composes salience client-side from existing MCP tools.
+  C) Hybrid: V1 client-side in cgstack; V1.5 promotes to gbrain server-side once the salience signal is validated.
 
 Do not skip Phase 4 — the test depends on you reaching it.
 
@@ -136,7 +136,7 @@ After writing the file with that ONE Phase 4 question, stop. Do not continue to 
       timeout: 300_000,
       testName: 'office-hours-phase4-fork',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/office-hours Phase 4 fork', result);

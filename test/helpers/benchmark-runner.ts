@@ -1,32 +1,28 @@
 /**
- * Multi-provider benchmark runner.
+ * Codex benchmark runner.
  *
- * Orchestrates running the same prompt across multiple provider adapters and
- * aggregates RunResult outputs + judge scores into a single report. Adapters
- * run in parallel (Promise.allSettled) so a slow provider doesn't block a fast
- * one. Per-provider auth/timeout/rate-limit errors don't abort the batch.
+ * Runs the same prompt through Codex and aggregates RunResult outputs + judge
+ * scores into a single report.
  */
 
 import type { ProviderAdapter, RunOpts, RunResult } from './providers/types';
-import { ClaudeAdapter } from './providers/claude';
-import { GptAdapter } from './providers/gpt';
-import { GeminiAdapter } from './providers/gemini';
+import { CodexAdapter } from './providers/codex';
 
 export interface BenchmarkInput {
   prompt: string;
   workdir: string;
   timeoutMs?: number;
-  /** Adapter names to run (e.g., ['claude', 'gpt', 'gemini']). */
-  providers: Array<'claude' | 'gpt' | 'gemini'>;
-  /** Optional per-provider model overrides. */
-  models?: Partial<Record<'claude' | 'gpt' | 'gemini', string>>;
-  /** If true, skip providers whose available() returns !ok. If false, include them with error. */
+  /** Adapter names to run. cgstack supports Codex only. */
+  providers: Array<'codex'>;
+  /** Optional Codex model override. */
+  models?: Partial<Record<'codex', string>>;
+  /** If true, skip unavailable Codex runs. If false, include them with error. */
   skipUnavailable?: boolean;
 }
 
 export interface BenchmarkEntry {
   provider: string;
-  family: 'claude' | 'gpt' | 'gemini';
+  family: 'codex';
   available: boolean;
   unavailable_reason?: string;
   result?: RunResult;
@@ -44,10 +40,8 @@ export interface BenchmarkReport {
   entries: BenchmarkEntry[];
 }
 
-const ADAPTERS: Record<'claude' | 'gpt' | 'gemini', () => ProviderAdapter> = {
-  claude: () => new ClaudeAdapter(),
-  gpt: () => new GptAdapter(),
-  gemini: () => new GeminiAdapter(),
+const ADAPTERS: Record<'codex', () => ProviderAdapter> = {
+  codex: () => new CodexAdapter(),
 };
 
 export async function runBenchmark(input: BenchmarkInput): Promise<BenchmarkReport> {
@@ -59,12 +53,12 @@ export async function runBenchmark(input: BenchmarkInput): Promise<BenchmarkRepo
   const runPromises: Array<Promise<void>> = [];
 
   for (const name of input.providers) {
-    const factory = ADAPTERS[name];
-    if (!factory) {
-      entries.push({ provider: name, family: 'claude', available: false, unavailable_reason: `unknown provider: ${name}` });
+    const codex = ADAPTERS[name];
+    if (!codex) {
+      entries.push({ provider: name, family: 'codex', available: false, unavailable_reason: `unknown provider: ${name}` });
       continue;
     }
-    const adapter = factory();
+    const adapter = codex();
     const entry: BenchmarkEntry = { provider: adapter.name, family: adapter.family, available: true };
     entries.push(entry);
 

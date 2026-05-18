@@ -5,7 +5,7 @@
  * Precedence:
  *   1. Exact match: ctx.model === 'gpt-5.4' → reads model-overlays/gpt-5.4.md
  *   2. INHERIT directive: if the file's first non-whitespace line is
- *      `{{INHERIT:claude}}`, the resolver reads model-overlays/claude.md first
+ *      `{{INHERIT:codex}}`, the resolver reads model-overlays/gpt.md first
  *      and concatenates it ahead of the rest of this file's content.
  *      This lets `gpt-5.4.md` build on top of `gpt.md` without duplication.
  *   3. Missing file: returns empty string (graceful degradation, no error).

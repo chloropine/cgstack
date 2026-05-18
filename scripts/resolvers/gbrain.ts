@@ -1,7 +1,7 @@
 /**
  * GBrain resolver — brain-first lookup and save-to-brain for thinking skills.
  *
- * GBrain is a "mod" for gstack. When installed, coding skills become brain-aware:
+ * GBrain is a "mod" for cgstack. When installed, coding skills become brain-aware:
  * they search the brain for context before starting and save results after finishing.
  *
  * These resolvers are suppressed on hosts that don't support brain features

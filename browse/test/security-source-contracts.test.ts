@@ -44,7 +44,7 @@ describe('detectCanaryLeak — channel coverage (source)', () => {
     expect(AGENT_SRC).toContain("event.delta?.type === 'input_json_delta'");
   });
 
-  test('covers result channel (final claude event)', () => {
+  test('covers result channel (final codex event)', () => {
     expect(AGENT_SRC).toContain("event.type === 'result'");
     expect(AGENT_SRC).toContain('event.result.includes(canary)');
   });
@@ -84,7 +84,7 @@ describe('processAgentEvent — security_event relay (server.ts)', () => {
   });
 });
 
-describe('spawnClaude — canary lifecycle (server.ts)', () => {
+describe('spawnCodex — canary lifecycle (server.ts)', () => {
   test('generates a fresh canary per message', () => {
     expect(SERVER_SRC).toMatch(/const canary = generateCanary\(\);/);
   });
@@ -102,8 +102,8 @@ describe('spawnClaude — canary lifecycle (server.ts)', () => {
   });
 });
 
-describe('askClaude — pre-spawn + tool-result defense wiring', () => {
-  test('preSpawnSecurityCheck runs BEFORE claude subprocess spawn', () => {
+describe('askCodex — pre-spawn + tool-result defense wiring', () => {
+  test('preSpawnSecurityCheck runs BEFORE codex subprocess spawn', () => {
     // The pre-spawn check must be `await`ed and short-circuit spawning when
     // it returns true.
     expect(AGENT_SRC).toMatch(/await preSpawnSecurityCheck\(queueEntry\)/);
@@ -117,9 +117,9 @@ describe('askClaude — pre-spawn + tool-result defense wiring', () => {
   });
 
   test('tool-result scan runs all three classifiers in parallel (no L4 gate)', () => {
-    // Regression guard for the Haiku-always change. Previously the scan
+    // Regression guard for the Mini-always change. Previously the scan
     // short-circuited when L4/L4c both returned below WARN, which meant
-    // Haiku (our best signal per BrowseSafe-Bench) rarely ran. Now we run
+    // Mini (our best signal per BrowseSafe-Bench) rarely ran. Now we run
     // all three in parallel and let combineVerdict decide.
     expect(AGENT_SRC).toMatch(/scanPageContent\(text\),[\s\S]*scanPageContentDeberta\(text\),[\s\S]*checkTranscript\(/);
     // The old short-circuit must be gone.

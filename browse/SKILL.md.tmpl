@@ -8,7 +8,7 @@ description: |
   responsive layouts, test forms and uploads, handle dialogs, and assert element states.
   ~100ms per command. Use when you need to test a feature, verify a deployment, dogfood a
   user flow, or file a bug with evidence. Use when asked to "open in browser", "test the
-  site", "take a screenshot", or "dogfood this". (gstack)
+  site", "take a screenshot", or "dogfood this". (cgstack)
 triggers:
   - browse a page
   - headless browser
@@ -133,7 +133,7 @@ $B load-html /tmp/tweet.html        # or: $B goto file://./tweet.html
 $B screenshot /tmp/out.png --selector .tweet-card
 # → /tmp/out.png is 2x the pixel dimensions of the element
 ```
-Scale must be 1-3 (gstack policy cap). Changing `--scale` recreates the browser context; refs from `snapshot` are invalidated (rerun `snapshot`), but `load-html` content is replayed automatically. Not supported in headed mode.
+Scale must be 1-3 (cgstack policy cap). Changing `--scale` recreates the browser context; refs from `snapshot` are invalidated (rerun `snapshot`), but `load-html` content is replayed automatically. Not supported in headed mode.
 
 ## Puppeteer → browse cheatsheet
 

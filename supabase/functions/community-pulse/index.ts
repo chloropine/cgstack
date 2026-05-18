@@ -1,4 +1,4 @@
-// gstack community-pulse edge function
+// cgstack community-pulse edge function
 // Returns aggregated community stats for the dashboard:
 // weekly active count, top skills, crash clusters, version distribution.
 // Uses server-side cache (community_pulse_cache table) to prevent DoS.
@@ -80,21 +80,21 @@ Deno.serve(async () => {
     // Crash clusters (top 5)
     const { data: crashes } = await supabase
       .from("crash_clusters")
-      .select("error_class, gstack_version, total_occurrences, identified_users")
+      .select("error_class, cgstack_version, total_occurrences, identified_users")
       .limit(5);
 
     // Version distribution (last 7 days)
     const versionCounts: Record<string, number> = {};
     const { data: versionRows } = await supabase
       .from("telemetry_events")
-      .select("gstack_version")
+      .select("cgstack_version")
       .eq("event_type", "skill_run")
       .gte("event_timestamp", weekAgo)
       .limit(1000);
 
     for (const row of versionRows ?? []) {
-      if (row.gstack_version) {
-        versionCounts[row.gstack_version] = (versionCounts[row.gstack_version] ?? 0) + 1;
+      if (row.cgstack_version) {
+        versionCounts[row.cgstack_version] = (versionCounts[row.cgstack_version] ?? 0) + 1;
       }
     }
     const topVersions = Object.entries(versionCounts)
@@ -103,7 +103,7 @@ Deno.serve(async () => {
       .map(([version, count]) => ({ version, count }));
 
     // Security events — aggregate attack_attempt events from the last 7 days.
-    // Fields emitted by gstack-telemetry-log --event-type attack_attempt:
+    // Fields emitted by cgstack-telemetry-log --event-type attack_attempt:
     //   security_url_domain, security_payload_hash, security_confidence,
     //   security_layer, security_verdict.
     const { data: attackRows } = await supabase
@@ -116,7 +116,7 @@ Deno.serve(async () => {
     // k-anonymity threshold. A domain (or layer) must be reported by at least
     // K_ANON distinct installations to appear in the aggregate. Without this,
     // a single user's attack log leaks their targeted domains to every other
-    // gstack user who polls /community-pulse. With it, the dashboard shows
+    // cgstack user who polls /community-pulse. With it, the dashboard shows
     // only community-wide patterns.
     const K_ANON = 5;
 

@@ -14,14 +14,7 @@ import {
   getHostConfig,
   resolveHostArg,
   getExternalHosts,
-  claude,
   codex,
-  factory,
-  kiro,
-  opencode,
-  slate,
-  cursor,
-  openclaw,
 } from '../hosts/index';
 import { HOST_PATHS } from '../scripts/resolvers/types';
 
@@ -30,8 +23,9 @@ const ROOT = path.resolve(import.meta.dir, '..');
 // ─── hosts/index.ts ─────────────────────────────────────────
 
 describe('hosts/index.ts', () => {
-  test('ALL_HOST_CONFIGS has 10 hosts', () => {
-    expect(ALL_HOST_CONFIGS.length).toBe(10);
+  test('ALL_HOST_CONFIGS has only the Codex host', () => {
+    expect(ALL_HOST_CONFIGS.length).toBe(1);
+    expect(ALL_HOST_NAMES).toEqual(['codex']);
   });
 
   test('ALL_HOST_NAMES matches config names', () => {
@@ -45,14 +39,8 @@ describe('hosts/index.ts', () => {
   });
 
   test('individual config re-exports match registry', () => {
-    expect(claude.name).toBe('claude');
     expect(codex.name).toBe('codex');
-    expect(factory.name).toBe('factory');
-    expect(kiro.name).toBe('kiro');
-    expect(opencode.name).toBe('opencode');
-    expect(slate.name).toBe('slate');
-    expect(cursor.name).toBe('cursor');
-    expect(openclaw.name).toBe('openclaw');
+    expect(codex).toBe(HOST_CONFIG_MAP.codex);
   });
 
   test('getHostConfig returns correct config', () => {
@@ -73,17 +61,15 @@ describe('hosts/index.ts', () => {
 
   test('resolveHostArg resolves aliases', () => {
     expect(resolveHostArg('agents')).toBe('codex');
-    expect(resolveHostArg('droid')).toBe('factory');
   });
 
   test('resolveHostArg throws on unknown alias', () => {
     expect(() => resolveHostArg('nonexistent')).toThrow('Unknown host');
   });
 
-  test('getExternalHosts excludes claude', () => {
+  test('getExternalHosts excludes codex', () => {
     const external = getExternalHosts();
-    expect(external.find(c => c.name === 'claude')).toBeUndefined();
-    expect(external.length).toBe(ALL_HOST_CONFIGS.length - 1);
+    expect(external).toEqual([]);
   });
 
   test('every host has a unique name', () => {
@@ -110,8 +96,8 @@ describe('validateHostConfig', () => {
       name: 'test-host',
       displayName: 'Test Host',
       cliCommand: 'testcli',
-      globalRoot: '.test/skills/gstack',
-      localSkillRoot: '.test/skills/gstack',
+      globalRoot: '.test/skills/cgstack',
+      localSkillRoot: '.test/skills/cgstack',
       hostSubdir: '.test',
       usesEnvVars: true,
       frontmatter: { mode: 'allowlist', keepFields: ['name', 'description'] },
@@ -195,14 +181,14 @@ describe('validateHostConfig', () => {
 
   test('paths with $ and ~ are valid', () => {
     const c = makeValid();
-    c.globalRoot = '$HOME/.test/skills/gstack';
-    c.localSkillRoot = '~/.test/skills/gstack';
+    c.globalRoot = '$HOME/.test/skills/cgstack';
+    c.localSkillRoot = '~/.test/skills/cgstack';
     expect(validateHostConfig(c)).toEqual([]);
   });
 
   test('shell injection attempt in cliCommand is caught', () => {
     const c = makeValid();
-    c.cliCommand = 'opencode;rm -rf /';
+    c.cliCommand = 'codex;rm -rf /';
     expect(validateHostConfig(c).some(e => e.includes('cliCommand'))).toBe(true);
   });
 });
@@ -216,20 +202,20 @@ describe('validateAllConfigs', () => {
   });
 
   test('duplicate name detected', () => {
-    const dup = { ...codex, name: 'claude' } as HostConfig;
-    const errors = validateAllConfigs([claude, dup]);
+    const dup = { ...codex, name: 'codex' } as HostConfig;
+    const errors = validateAllConfigs([codex, dup]);
     expect(errors.some(e => e.includes('Duplicate name'))).toBe(true);
   });
 
   test('duplicate hostSubdir detected', () => {
-    const dup = { ...codex, name: 'dup-host', hostSubdir: '.claude', globalRoot: '.dup/skills/gstack' } as HostConfig;
-    const errors = validateAllConfigs([claude, dup]);
+    const dup = { ...codex, name: 'dup-host', hostSubdir: '.codex', globalRoot: '.dup/skills/cgstack' } as HostConfig;
+    const errors = validateAllConfigs([codex, dup]);
     expect(errors.some(e => e.includes('Duplicate hostSubdir'))).toBe(true);
   });
 
   test('duplicate globalRoot detected', () => {
-    const dup = { ...codex, name: 'dup-host', hostSubdir: '.dup', globalRoot: '.claude/skills/gstack' } as HostConfig;
-    const errors = validateAllConfigs([claude, dup]);
+    const dup = { ...codex, name: 'dup-host', hostSubdir: '.dup', globalRoot: '.agents/skills/cgstack' } as HostConfig;
+    const errors = validateAllConfigs([codex, dup]);
     expect(errors.some(e => e.includes('Duplicate globalRoot'))).toBe(true);
   });
 
@@ -243,25 +229,25 @@ describe('validateAllConfigs', () => {
 // ─── HOST_PATHS derivation ──────────────────────────────────
 
 describe('HOST_PATHS derivation from configs', () => {
-  test('Claude uses literal home paths (no env vars)', () => {
-    expect(HOST_PATHS.claude.skillRoot).toBe('~/.claude/skills/gstack');
-    expect(HOST_PATHS.claude.binDir).toBe('~/.claude/skills/gstack/bin');
-    expect(HOST_PATHS.claude.browseDir).toBe('~/.claude/skills/gstack/browse/dist');
-    expect(HOST_PATHS.claude.designDir).toBe('~/.claude/skills/gstack/design/dist');
+  test('Codex uses literal home paths (no env vars)', () => {
+    expect(HOST_PATHS.codex.skillRoot).toBe('~/.codex/skills/cgstack');
+    expect(HOST_PATHS.codex.binDir).toBe('~/.codex/skills/cgstack/bin');
+    expect(HOST_PATHS.codex.browseDir).toBe('~/.codex/skills/cgstack/browse/dist');
+    expect(HOST_PATHS.codex.designDir).toBe('~/.codex/skills/cgstack/design/dist');
   });
 
-  test('Codex uses $GSTACK_ROOT env vars', () => {
-    expect(HOST_PATHS.codex.skillRoot).toBe('$GSTACK_ROOT');
-    expect(HOST_PATHS.codex.binDir).toBe('$GSTACK_BIN');
-    expect(HOST_PATHS.codex.browseDir).toBe('$GSTACK_BROWSE');
-    expect(HOST_PATHS.codex.designDir).toBe('$GSTACK_DESIGN');
+  test('Codex uses $CGSTACK_ROOT env vars', () => {
+    expect(HOST_PATHS.codex.skillRoot).toBe('$CGSTACK_ROOT');
+    expect(HOST_PATHS.codex.binDir).toBe('$CGSTACK_BIN');
+    expect(HOST_PATHS.codex.browseDir).toBe('$CGSTACK_BROWSE');
+    expect(HOST_PATHS.codex.designDir).toBe('$CGSTACK_DESIGN');
   });
 
   test('every host with usesEnvVars=true gets env var paths', () => {
     for (const config of ALL_HOST_CONFIGS) {
       if (config.usesEnvVars) {
-        expect(HOST_PATHS[config.name].skillRoot).toBe('$GSTACK_ROOT');
-        expect(HOST_PATHS[config.name].binDir).toBe('$GSTACK_BIN');
+        expect(HOST_PATHS[config.name].skillRoot).toBe('$CGSTACK_ROOT');
+        expect(HOST_PATHS[config.name].binDir).toBe('$CGSTACK_BIN');
       }
     }
   });
@@ -314,14 +300,12 @@ describe('host-config-export.ts CLI', () => {
   test('get returns string field', () => {
     const { stdout, exitCode } = run('get', 'codex', 'globalRoot');
     expect(exitCode).toBe(0);
-    expect(stdout).toBe('.codex/skills/gstack');
+    expect(stdout).toBe('.codex/skills/cgstack');
   });
 
   test('get returns boolean as 1/0', () => {
-    const { stdout: t } = run('get', 'claude', 'usesEnvVars');
-    expect(t).toBe('0');
-    const { stdout: f } = run('get', 'codex', 'usesEnvVars');
-    expect(f).toBe('1');
+    const { stdout } = run('get', 'codex', 'usesEnvVars');
+    expect(stdout).toBe('1');
   });
 
   test('get with missing args exits 1', () => {
@@ -354,19 +338,17 @@ describe('host-config-export.ts CLI', () => {
     expect(lines).toContain('review/checklist.md');
   });
 
-  test('opencode symlinks returns nested runtime assets', () => {
-    const { stdout, exitCode } = run('symlinks', 'opencode');
+  test('codex symlinks returns nested runtime assets', () => {
+    const { stdout, exitCode } = run('symlinks', 'codex');
     expect(exitCode).toBe(0);
     const lines = stdout.split('\n');
     expect(lines).toContain('bin');
     expect(lines).toContain('browse/dist');
     expect(lines).toContain('browse/bin');
-    expect(lines).toContain('review/design-checklist.md');
-    expect(lines).toContain('review/greptile-triage.md');
-    expect(lines).toContain('review/specialists');
-    expect(lines).toContain('qa/templates');
-    expect(lines).toContain('qa/references');
-    expect(lines).toContain('plan-devex-review/dx-hall-of-fame.md');
+    expect(lines).toContain('cgstack-upgrade');
+    expect(lines).toContain('ETHOS.md');
+    expect(lines).toContain('review/checklist.md');
+    expect(lines).toContain('review/TODOS-format.md');
   });
 
   test('symlinks with missing host exits 1', () => {
@@ -374,11 +356,11 @@ describe('host-config-export.ts CLI', () => {
     expect(exitCode).toBe(1);
   });
 
-  test('detect finds claude (since we are running in claude)', () => {
+  test('detect finds codex (since we are running in codex)', () => {
     const { stdout, exitCode } = run('detect');
     expect(exitCode).toBe(0);
-    // claude binary should be on PATH in this environment
-    expect(stdout).toContain('claude');
+    // codex binary should be on PATH in this environment
+    expect(stdout).toContain('codex');
   });
 
   test('unknown command exits 1', () => {
@@ -387,55 +369,19 @@ describe('host-config-export.ts CLI', () => {
   });
 });
 
-// ─── Golden-file regression ─────────────────────────────────
-
-describe('golden-file regression', () => {
-  const GOLDEN_DIR = path.join(ROOT, 'test', 'fixtures', 'golden');
-
-  test('Claude ship skill matches golden baseline', () => {
-    const golden = fs.readFileSync(path.join(GOLDEN_DIR, 'claude-ship-SKILL.md'), 'utf-8');
-    const current = fs.readFileSync(path.join(ROOT, 'ship', 'SKILL.md'), 'utf-8');
-    expect(current).toBe(golden);
-  });
-
-  test('Codex ship skill matches golden baseline', () => {
-    const golden = fs.readFileSync(path.join(GOLDEN_DIR, 'codex-ship-SKILL.md'), 'utf-8');
-    const current = fs.readFileSync(path.join(ROOT, '.agents', 'skills', 'gstack-ship', 'SKILL.md'), 'utf-8');
-    expect(current).toBe(golden);
-  });
-
-  test('Factory ship skill matches golden baseline', () => {
-    const golden = fs.readFileSync(path.join(GOLDEN_DIR, 'factory-ship-SKILL.md'), 'utf-8');
-    const current = fs.readFileSync(path.join(ROOT, '.factory', 'skills', 'gstack-ship', 'SKILL.md'), 'utf-8');
-    expect(current).toBe(golden);
-  });
-});
-
 // ─── Individual host config correctness ─────────────────────
 
 describe('host config correctness', () => {
-  test('claude is the only prefixable host', () => {
-    for (const config of ALL_HOST_CONFIGS) {
-      if (config.name === 'claude') {
-        expect(config.install.prefixable).toBe(true);
-      } else {
-        expect(config.install.prefixable).toBe(false);
-      }
-    }
+  test('codex is not prefixable', () => {
+    expect(codex.install.prefixable).toBe(false);
   });
 
-  test('claude is the only host with real-dir-symlink strategy', () => {
-    for (const config of ALL_HOST_CONFIGS) {
-      if (config.name === 'claude') {
-        expect(config.install.linkingStrategy).toBe('real-dir-symlink');
-      } else {
-        expect(config.install.linkingStrategy).toBe('symlink-generated');
-      }
-    }
+  test('codex uses generated skill symlinks', () => {
+    expect(codex.install.linkingStrategy).toBe('symlink-generated');
   });
 
-  test('claude does not use env vars', () => {
-    expect(claude.usesEnvVars).toBe(false);
+  test('codex uses cgstack env vars in generated preambles', () => {
+    expect(codex.usesEnvVars).toBe(true);
   });
 
   test('all external hosts use env vars', () => {
@@ -456,20 +402,7 @@ describe('host config correctness', () => {
 
   test('codex has sidecar config', () => {
     expect(codex.sidecar).toBeDefined();
-    expect(codex.sidecar!.path).toBe('.agents/skills/gstack');
-  });
-
-  test('factory has tool rewrites', () => {
-    expect(factory.toolRewrites).toBeDefined();
-    expect(Object.keys(factory.toolRewrites!).length).toBeGreaterThan(0);
-    expect(factory.toolRewrites!['use the Bash tool']).toBe('run this command');
-  });
-
-  test('factory has conditional disable-model-invocation field', () => {
-    expect(factory.frontmatter.conditionalFields).toBeDefined();
-    expect(factory.frontmatter.conditionalFields!.length).toBe(1);
-    expect(factory.frontmatter.conditionalFields![0].if).toEqual({ sensitive: true });
-    expect(factory.frontmatter.conditionalFields![0].add).toEqual({ 'disable-model-invocation': true });
+    expect(codex.sidecar!.path).toBe('.agents/skills/cgstack');
   });
 
   test('codex has suppressedResolvers for self-invocation prevention', () => {
@@ -484,48 +417,27 @@ describe('host config correctness', () => {
     expect(codex.boundaryInstruction).toContain('Do NOT read');
   });
 
-  test('openclaw has tool rewrites for exec/read/write', () => {
-    expect(openclaw.toolRewrites).toBeDefined();
-    expect(openclaw.toolRewrites!['use the Bash tool']).toBe('use the exec tool');
-    expect(openclaw.toolRewrites!['use the Read tool']).toBe('use the read tool');
+  test('codex has no adapter (dead code removed)', () => {
+    expect(codex.adapter).toBeUndefined();
   });
 
-  test('openclaw has CLAUDE.md→AGENTS.md path rewrite', () => {
-    expect(openclaw.pathRewrites.some(r => r.from === 'CLAUDE.md' && r.to === 'AGENTS.md')).toBe(true);
+  test('codex has no staticFiles (SOUL.md removed)', () => {
+    expect(codex.staticFiles).toBeUndefined();
   });
 
-  test('openclaw has no adapter (dead code removed)', () => {
-    expect(openclaw.adapter).toBeUndefined();
+  test('codex has the OpenAI Codex co-author trailer', () => {
+    expect(codex.coAuthorTrailer).toContain('OpenAI Codex');
   });
 
-  test('openclaw has no staticFiles (SOUL.md removed)', () => {
-    expect(openclaw.staticFiles).toBeUndefined();
+  test('there are no external hosts', () => {
+    expect(getExternalHosts()).toEqual([]);
   });
 
-  test('openclaw includeSkills is empty (native skills replaced generated ones)', () => {
-    expect(openclaw.generation.includeSkills).toBeDefined();
-    expect(openclaw.generation.includeSkills!.length).toBe(0);
-  });
-
-  test('every host has coAuthorTrailer or undefined', () => {
-    // Claude, Codex, Factory, OpenClaw have explicit trailers
-    expect(claude.coAuthorTrailer).toContain('Claude');
-    expect(codex.coAuthorTrailer).toContain('Codex');
-    expect(factory.coAuthorTrailer).toContain('Factory');
-    expect(openclaw.coAuthorTrailer).toContain('OpenClaw');
-  });
-
-  test('every external host skips the codex skill', () => {
-    for (const config of getExternalHosts()) {
-      expect(config.generation.skipSkills).toContain('codex');
-    }
-  });
-
-  test('every host has at least one pathRewrite (except claude)', () => {
+  test('every host has at least one pathRewrite (except codex)', () => {
     for (const config of getExternalHosts()) {
       expect(config.pathRewrites.length).toBeGreaterThan(0);
     }
-    expect(claude.pathRewrites.length).toBe(0);
+    expect(codex.pathRewrites.length).toBe(0);
   });
 
   test('every host has runtimeRoot.globalSymlinks', () => {

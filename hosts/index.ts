@@ -1,24 +1,15 @@
 /**
  * Host config registry.
  *
- * Import all host configs and derive the Host union type.
- * Adding a new host: create hosts/myhost.ts, import here, add to ALL_HOST_CONFIGS.
+ * cgstack is Codex-only. Keep this registry intentionally narrow so install,
+ * generation, and tests cannot drift back into multi-host behavior.
  */
 
 import type { HostConfig } from '../scripts/host-config';
-import claude from './claude';
 import codex from './codex';
-import factory from './factory';
-import kiro from './kiro';
-import opencode from './opencode';
-import slate from './slate';
-import cursor from './cursor';
-import openclaw from './openclaw';
-import hermes from './hermes';
-import gbrain from './gbrain';
 
-/** All registered host configs. Add new hosts here. */
-export const ALL_HOST_CONFIGS: HostConfig[] = [claude, codex, factory, kiro, opencode, slate, cursor, openclaw, hermes, gbrain];
+/** All registered host configs. */
+export const ALL_HOST_CONFIGS: HostConfig[] = [codex];
 
 /** Map from host name to config. */
 export const HOST_CONFIG_MAP: Record<string, HostConfig> = Object.fromEntries(
@@ -42,7 +33,6 @@ export function getHostConfig(name: string): HostConfig {
 
 /**
  * Resolve a host name from a CLI argument, handling aliases.
- * e.g., 'agents' → 'codex', 'droid' → 'factory'
  */
 export function resolveHostArg(arg: string): string {
   // Direct name match
@@ -57,12 +47,11 @@ export function resolveHostArg(arg: string): string {
 }
 
 /**
- * Get hosts that are NOT the primary host (Claude).
- * These are the hosts that need generated skill docs.
+ * Compatibility helper for older tests/scripts. There are no external hosts in
+ * the Codex-only fork.
  */
 export function getExternalHosts(): HostConfig[] {
-  return ALL_HOST_CONFIGS.filter(c => c.name !== 'claude');
+  return [];
 }
 
-// Re-export individual configs for direct import
-export { claude, codex, factory, kiro, opencode, slate, cursor, openclaw, hermes, gbrain };
+export { codex };

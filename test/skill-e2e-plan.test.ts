@@ -82,7 +82,7 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       timeout: 360_000,
       testName: 'plan-ceo-review',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-ceo-review', result);
@@ -167,7 +167,7 @@ Focus on reviewing the plan content: architecture, error handling, security, and
       timeout: 360_000,
       testName: 'plan-ceo-review-selective',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-ceo-review (SELECTIVE)', result);
@@ -233,7 +233,7 @@ Write your expansion proposals to ${planDir}/proposals.md with ONLY the proposal
       timeout: 360_000,
       testName: 'plan-ceo-review-expansion-energy',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-ceo-review (EXPANSION ENERGY)', result);
@@ -333,7 +333,7 @@ Focus on architecture, code quality, tests, and performance sections.`,
       timeout: 360_000,
       testName: 'plan-eng-review',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-eng-review', result);
@@ -413,7 +413,7 @@ export function main() { return Dashboard(); }
     setupBrowseShims(planDir);
 
     // Create project directory for artifacts
-    projectDir = path.join(os.homedir(), '.gstack', 'projects', 'test-project');
+    projectDir = path.join(os.homedir(), '.cgstack', 'projects', 'test-project');
     fs.mkdirSync(projectDir, { recursive: true });
 
     // Clean up stale test-plan files from previous runs
@@ -459,7 +459,7 @@ Write your review to ${planDir}/review-output.md`,
       timeout: 360_000,
       testName: 'plan-eng-review-artifact',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-eng-review artifact', result);
@@ -610,7 +610,7 @@ Write your summary to ${benefitsDir}/benefits-summary.md`,
 });
 
 // --- Plan Review Report E2E ---
-// Verifies that plan-eng-review writes a "## GSTACK REVIEW REPORT" section
+// Verifies that plan-eng-review writes a "## CGSTACK REVIEW REPORT" section
 // to the bottom of the plan file (the living review status footer).
 
 describeIfSelected('Plan Review Report E2E', ['plan-review-report'], () => {
@@ -662,7 +662,7 @@ We're building a real-time notification system for our SaaS app.
     try { fs.rmSync(planDir, { recursive: true, force: true }); } catch {}
   });
 
-  test('/plan-eng-review writes GSTACK REVIEW REPORT to plan file', async () => {
+  test('/plan-eng-review writes CGSTACK REVIEW REPORT to plan file', async () => {
     const result = await runSkillTest({
       prompt: `Read plan-eng-review/SKILL.md for the review workflow.
 
@@ -671,7 +671,7 @@ Read plan.md — that's the plan to review. This is a standalone plan document, 
 Proceed directly to the full review. Skip any AskUserQuestion calls — this is non-interactive.
 Skip the preamble bash block, lake intro, telemetry, and contributor mode sections.
 
-CRITICAL REQUIREMENT: plan.md IS the plan file for this review session. After completing your review, you MUST write a "## GSTACK REVIEW REPORT" section to the END of plan.md, exactly as described in the "Plan File Review Report" section of SKILL.md. If gstack-review-read is not available or returns NO_REVIEWS, write the placeholder table with all four review rows (CEO, Codex, Eng, Design). Use the Edit tool to append to plan.md — do NOT overwrite the existing plan content.
+CRITICAL REQUIREMENT: plan.md IS the plan file for this review session. After completing your review, you MUST write a "## CGSTACK REVIEW REPORT" section to the END of plan.md, exactly as described in the "Plan File Review Report" section of SKILL.md. If cgstack-review-read is not available or returns NO_REVIEWS, write the placeholder table with all four review rows (CEO, Codex, Eng, Design). Use the Edit tool to append to plan.md — do NOT overwrite the existing plan content.
 
 This review report at the bottom of the plan is the MOST IMPORTANT deliverable of this test.`,
       workingDirectory: planDir,
@@ -679,7 +679,7 @@ This review report at the bottom of the plan is the MOST IMPORTANT deliverable o
       timeout: 360_000,
       testName: 'plan-review-report',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/plan-eng-review report', result);
@@ -696,10 +696,10 @@ This review report at the bottom of the plan is the MOST IMPORTANT deliverable o
     expect(planContent).toContain('WebSocket');
 
     // Review report section must exist
-    expect(planContent).toContain('## GSTACK REVIEW REPORT');
+    expect(planContent).toContain('## CGSTACK REVIEW REPORT');
 
     // Report should be at the bottom of the file
-    const reportIndex = planContent.lastIndexOf('## GSTACK REVIEW REPORT');
+    const reportIndex = planContent.lastIndexOf('## CGSTACK REVIEW REPORT');
     const afterReport = planContent.slice(reportIndex);
 
     // Should contain the review table with standard rows

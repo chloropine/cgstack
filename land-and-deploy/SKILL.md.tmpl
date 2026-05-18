@@ -6,7 +6,7 @@ description: |
   Land and deploy workflow. Merges the PR, waits for CI and deploy,
   verifies production health via canary checks. Takes over after /ship
   creates the PR. Use when: "merge", "land", "deploy", "merge and verify",
-  "land it", "ship it to production". (gstack)
+  "land it", "ship it to production". (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -111,12 +111,12 @@ and whether the deploy configuration has changed since then:
 
 ```bash
 {{SLUG_EVAL}}
-if [ ! -f ~/.gstack/projects/$SLUG/land-deploy-confirmed ]; then
+if [ ! -f ~/.cgstack/projects/$SLUG/land-deploy-confirmed ]; then
   echo "FIRST_RUN"
 else
   # Check if deploy config has changed since confirmation
-  SAVED_HASH=$(cat ~/.gstack/projects/$SLUG/land-deploy-confirmed 2>/dev/null)
-  CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' CLAUDE.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
+  SAVED_HASH=$(cat ~/.cgstack/projects/$SLUG/land-deploy-confirmed 2>/dev/null)
+  CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' AGENTS.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
   # Also hash workflow files that affect deploy behavior
   WORKFLOW_HASH=$(find .github/workflows -maxdepth 1 \( -name '*deploy*' -o -name '*cd*' \) 2>/dev/null | xargs cat 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
   COMBINED_HASH="${CURRENT_HASH}-${WORKFLOW_HASH}"
@@ -156,7 +156,7 @@ Run the deploy configuration bootstrap to detect the platform and settings:
 {{DEPLOY_BOOTSTRAP}}
 
 Parse the output and record: the detected platform, production URL, deploy workflow (if any),
-and any persisted config from CLAUDE.md.
+and any persisted config from AGENTS.md.
 
 ### 1.5b: Command validation
 
@@ -221,9 +221,9 @@ CLI to verify the deploy worked."
 
 Check for staging environments in this order:
 
-1. **CLAUDE.md persisted config:** Check for a staging URL in the Deploy Configuration section:
+1. **AGENTS.md persisted config:** Check for a staging URL in the Deploy Configuration section:
 ```bash
-grep -i "staging" CLAUDE.md 2>/dev/null | head -3
+grep -i "staging" AGENTS.md 2>/dev/null | head -3
 ```
 
 2. **GitHub Actions staging workflow:** Check for workflow files with "staging" in the name or content:
@@ -248,7 +248,7 @@ Tell the user: "Before I merge any PR, I run a series of readiness checks — co
 Preview the readiness checks that will run at Step 3.5 (without re-running tests):
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-review-read 2>/dev/null
+~/.codex/skills/cgstack/bin/cgstack-review-read 2>/dev/null
 ```
 
 Show a summary of review status: which reviews have been run, how stale they are.
@@ -276,16 +276,16 @@ Present the full dry-run results to the user via AskUserQuestion:
 
 Save the deploy config fingerprint so we can detect future changes:
 ```bash
-mkdir -p ~/.gstack/projects/$SLUG
-CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' CLAUDE.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
+mkdir -p ~/.cgstack/projects/$SLUG
+CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' AGENTS.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
 WORKFLOW_HASH=$(find .github/workflows -maxdepth 1 \( -name '*deploy*' -o -name '*cd*' \) 2>/dev/null | xargs cat 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
-echo "${CURRENT_HASH}-${WORKFLOW_HASH}" > ~/.gstack/projects/$SLUG/land-deploy-confirmed
+echo "${CURRENT_HASH}-${WORKFLOW_HASH}" > ~/.cgstack/projects/$SLUG/land-deploy-confirmed
 ```
 Continue to Step 2.
 
 **If B:** **STOP.** "Tell me what's different about your setup and I'll adjust. You can also run `/setup-deploy` to walk through the full configuration."
 
-**If C:** **STOP.** "Running `/setup-deploy` will walk through your deploy platform, production URL, and health checks in detail. It saves everything to CLAUDE.md so I'll know exactly what to do next time. Run `/land-and-deploy` again when that's done."
+**If C:** **STOP.** "Running `/setup-deploy` will walk through your deploy platform, production URL, and health checks in detail. It saves everything to AGENTS.md so I'll know exactly what to do next time. Run `/land-and-deploy` again when that's done."
 
 ---
 
@@ -341,7 +341,7 @@ BASE_VERSION=$(git show origin/$BASE_BRANCH:VERSION 2>/dev/null | tr -d '\r\n[:s
 # We don't need the exact original level — we just need "a level" that passes to the util.
 # If the minor digit advanced, call it minor; patch digit, patch; etc. If base > branch, skip (not ours to land).
 # For simplicity: use "patch" as a conservative default; util handles collision-past regardless of input level.
-QUEUE_JSON=$(bun run bin/gstack-next-version \
+QUEUE_JSON=$(bun run bin/cgstack-next-version \
   --base "$BASE_BRANCH" \
   --bump patch \
   --current-version "$BASE_VERSION" 2>/dev/null || echo '{"offline":true}')
@@ -384,7 +384,7 @@ Collect evidence for each check below. Track warnings (yellow) and blockers (red
 ### 3.5a: Review staleness check
 
 ```bash
-~/.claude/skills/gstack/bin/gstack-review-read 2>/dev/null
+~/.codex/skills/cgstack/bin/cgstack-review-read 2>/dev/null
 ```
 
 Parse the output. For each review skill (plan-eng-review, plan-ceo-review,
@@ -430,7 +430,7 @@ Use AskUserQuestion:
 
 Read the review checklist:
 ```bash
-cat ~/.claude/skills/gstack/review/checklist.md 2>/dev/null || echo "Checklist not found"
+cat ~/.codex/skills/cgstack/review/checklist.md 2>/dev/null || echo "Checklist not found"
 ```
 Apply each checklist item to the current diff. This is the same quick review that `/ship`
 runs in its Step 3.5. Auto-fix trivial issues (whitespace, imports). For critical findings
@@ -451,7 +451,7 @@ and tell the user: "I found and fixed a few issues during the review. The fixes 
 
 **Free tests — run them now:**
 
-Read CLAUDE.md to find the project's test command. If not specified, use `bun test`.
+Read AGENTS.md to find the project's test command. If not specified, use `bun test`.
 Run the test command and capture the exit code and output.
 
 ```bash
@@ -464,7 +464,7 @@ If tests fail: **BLOCKER.** Cannot merge with failing tests.
 
 ```bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-ls -t ~/.gstack-dev/evals/*-e2e-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -20
+ls -t ~/.cgstack-dev/evals/*-e2e-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -20
 ```
 
 For each eval file from today, parse pass/fail counts. Show:
@@ -480,7 +480,7 @@ If E2E results exist but have failures: **WARNING — N tests failed.** List the
 
 ```bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-ls -t ~/.gstack-dev/evals/*-llm-judge-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -5
+ls -t ~/.cgstack-dev/evals/*-llm-judge-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -5
 ```
 
 If found, parse and show pass/fail. If not found, note "No LLM evals run today."
@@ -515,7 +515,7 @@ git log --oneline --all-match --grep="docs:" $(gh pr view --json baseRefName -q 
 
 Also check if key doc files were modified:
 ```bash
-git diff --name-only $(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || echo main)...HEAD -- README.md CHANGELOG.md ARCHITECTURE.md CONTRIBUTING.md CLAUDE.md VERSION
+git diff --name-only $(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || echo main)...HEAD -- README.md CHANGELOG.md ARCHITECTURE.md CONTRIBUTING.md AGENTS.md VERSION
 ```
 
 If CHANGELOG.md and VERSION were NOT modified on this branch and the diff includes
@@ -665,10 +665,10 @@ First, run the deploy configuration bootstrap to detect or read persisted deploy
 
 {{DEPLOY_BOOTSTRAP}}
 
-Then run `gstack-diff-scope` to classify the changes:
+Then run `cgstack-diff-scope` to classify the changes:
 
 ```bash
-eval $(~/.claude/skills/gstack/bin/gstack-diff-scope $(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || echo main) 2>/dev/null)
+eval $(~/.codex/skills/cgstack/bin/cgstack-diff-scope $(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || echo main) 2>/dev/null)
 echo "FRONTEND=$SCOPE_FRONTEND BACKEND=$SCOPE_BACKEND DOCS=$SCOPE_DOCS CONFIG=$SCOPE_CONFIG"
 ```
 
@@ -692,7 +692,7 @@ Look for workflow names containing "deploy", "release", "production", or "cd". I
 
 ### 5a: Staging-first option
 
-If staging was detected in Step 1.5c (or from CLAUDE.md deploy config), and the changes
+If staging was detected in Step 1.5c (or from AGENTS.md deploy config), and the changes
 include code (not docs-only), offer the staging-first option:
 
 Use AskUserQuestion:
@@ -743,7 +743,7 @@ gh run view <run-id> --json status,conclusion
 
 ### Strategy B: Platform CLI (Fly.io, Render, Heroku)
 
-If a deploy status command was configured in CLAUDE.md (e.g., `fly status --app myapp`), use it instead of or in addition to GitHub Actions polling.
+If a deploy status command was configured in AGENTS.md (e.g., `fly status --app myapp`), use it instead of or in addition to GitHub Actions polling.
 
 **Fly.io:** After merge, Fly deploys via GitHub Actions or `fly deploy`. Check with:
 ```bash
@@ -768,7 +768,7 @@ Vercel and Netlify deploy automatically on merge. No explicit deploy trigger nee
 
 ### Strategy D: Custom deploy hooks
 
-If CLAUDE.md has a custom deploy status command in the "Custom deploy hooks" section, run that command and check its exit code.
+If AGENTS.md has a custom deploy status command in the "Custom deploy hooks" section, run that command and check its exit code.
 
 ### Common: Timing and failure handling
 
@@ -828,7 +828,7 @@ $B text
 Verify the page has content (not blank, not a generic error page).
 
 ```bash
-$B snapshot -i -a -o ".gstack/deploy-reports/post-deploy.png"
+$B snapshot -i -a -o ".cgstack/deploy-reports/post-deploy.png"
 ```
 
 Take an annotated screenshot as evidence.
@@ -877,7 +877,7 @@ After a successful revert: Tell the user "Revert pushed to {base}. The deploy sh
 Create the deploy report directory:
 
 ```bash
-mkdir -p .gstack/deploy-reports
+mkdir -p .cgstack/deploy-reports
 ```
 
 Produce and display the ASCII summary:
@@ -917,13 +917,13 @@ Verification: <HEALTHY / DEGRADED / SKIPPED / REVERTED>
 VERDICT: <DEPLOYED AND VERIFIED / DEPLOYED (UNVERIFIED) / STAGING VERIFIED / REVERTED>
 ```
 
-Save report to `.gstack/deploy-reports/{date}-pr{number}-deploy.md`.
+Save report to `.cgstack/deploy-reports/{date}-pr{number}-deploy.md`.
 
 Log to the review dashboard:
 
 ```bash
 {{SLUG_EVAL}}
-mkdir -p ~/.gstack/projects/$SLUG
+mkdir -p ~/.cgstack/projects/$SLUG
 ```
 
 Write a JSONL entry with timing data:

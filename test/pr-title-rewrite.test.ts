@@ -2,14 +2,14 @@ import { describe, test, expect } from 'bun:test';
 import { spawnSync } from 'child_process';
 import * as path from 'path';
 
-const HELPER = path.join(import.meta.dir, '..', 'bin', 'gstack-pr-title-rewrite.sh');
+const HELPER = path.join(import.meta.dir, '..', 'bin', 'cgstack-pr-title-rewrite.sh');
 
 function rewrite(version: string, title: string): { stdout: string; status: number; stderr: string } {
   const r = spawnSync(HELPER, [version, title], { encoding: 'utf-8' });
   return { stdout: (r.stdout ?? '').trimEnd(), status: r.status ?? -1, stderr: r.stderr ?? '' };
 }
 
-describe('gstack-pr-title-rewrite', () => {
+describe('cgstack-pr-title-rewrite', () => {
   test('already correct: no change', () => {
     const r = rewrite('1.2.3.4', 'v1.2.3.4 feat: foo');
     expect(r.status).toBe(0);

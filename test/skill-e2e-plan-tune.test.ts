@@ -23,12 +23,12 @@ const evalCollector = createEvalCollector('e2e-plan-tune');
 
 describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
   let workDir: string;
-  let gstackHome: string;
+  let cgstackHome: string;
   let slug: string;
 
   beforeAll(() => {
     workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-e2e-plan-tune-'));
-    gstackHome = path.join(workDir, '.gstack-home');
+    cgstackHome = path.join(workDir, '.cgstack-home');
 
     const run = (cmd: string, args: string[]) =>
       spawnSync(cmd, args, { cwd: workDir, stdio: 'pipe', timeout: 5000 });
@@ -47,12 +47,12 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
     const binDir = path.join(workDir, 'bin');
     fs.mkdirSync(binDir, { recursive: true });
     for (const script of [
-      'gstack-slug',
-      'gstack-config',
-      'gstack-question-log',
-      'gstack-question-preference',
-      'gstack-developer-profile',
-      'gstack-builder-profile',
+      'cgstack-slug',
+      'cgstack-config',
+      'cgstack-question-log',
+      'cgstack-question-preference',
+      'cgstack-developer-profile',
+      'cgstack-builder-profile',
     ]) {
       const src = path.join(ROOT, 'bin', script);
       if (fs.existsSync(src)) {
@@ -61,7 +61,7 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
       }
     }
 
-    // gstack-developer-profile --derive imports from scripts/ — copy those too.
+    // cgstack-developer-profile --derive imports from scripts/ — copy those too.
     const scriptsDir = path.join(workDir, 'scripts');
     fs.mkdirSync(scriptsDir, { recursive: true });
     for (const src of ['question-registry.ts', 'psychographic-signals.ts', 'archetypes.ts', 'one-way-doors.ts']) {
@@ -72,7 +72,7 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
     slug = path.basename(workDir).replace(/[^a-zA-Z0-9._-]/g, '');
 
     // Seed a few question-log entries so "review questions" has something to show.
-    const projectDir = path.join(gstackHome, 'projects', slug);
+    const projectDir = path.join(cgstackHome, 'projects', slug);
     fs.mkdirSync(projectDir, { recursive: true });
     const entries = [
       {
@@ -121,7 +121,7 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
     );
 
     // Pre-set question_tuning=true so the skill doesn't enter the first-time setup flow.
-    const cfgDir = path.join(gstackHome);
+    const cfgDir = path.join(cgstackHome);
     fs.mkdirSync(cfgDir, { recursive: true });
     fs.writeFileSync(path.join(cfgDir, 'config.yaml'), 'question_tuning: true\n');
   });
@@ -141,9 +141,9 @@ describeIfSelected('PlanTune E2E', ['plan-tune-inspect'], () => {
 The user has invoked /plan-tune and says: "Review the questions I've been asked recently."
 
 IMPORTANT:
-- Use GSTACK_HOME="${gstackHome}" as an environment variable for all bin calls.
-- Replace any ~/.claude/skills/gstack/bin/ references with ./bin/ (relative path).
-- Replace any ~/.claude/skills/gstack/scripts/ references with ./scripts/.
+- Use CGSTACK_HOME="${cgstackHome}" as an environment variable for all bin calls.
+- Replace any ~/.codex/skills/cgstack/bin/ references with ./bin/ (relative path).
+- Replace any ~/.codex/skills/cgstack/scripts/ references with ./scripts/.
 - Do NOT use AskUserQuestion.
 - Do NOT implement code changes.
 - Route the user's intent to the right section of the skill (Review question log).

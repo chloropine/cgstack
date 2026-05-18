@@ -1,5 +1,5 @@
 /**
- * gstack browse — background service worker
+ * cgstack browse — background service worker
  *
  * Polls /health every 10s to detect browse server.
  * Fetches /refs on snapshot completion, relays to content script.
@@ -46,7 +46,7 @@ async function loadAuthToken() {
       if (data.token) authToken = data.token;
     }
   } catch (err) {
-    console.error('[gstack bg] Failed to load auth token:', err.message);
+    console.error('[cgstack bg] Failed to load auth token:', err.message);
   }
 }
 
@@ -76,7 +76,7 @@ async function checkHealth() {
       setDisconnected();
     }
   } catch (err) {
-    console.error('[gstack bg] Health check failed:', err.message);
+    console.error('[cgstack bg] Health check failed:', err.message);
     setDisconnected();
   }
 }
@@ -89,7 +89,7 @@ function setConnected(healthData) {
 
   // Broadcast health to popup and side panel (token excluded — use getToken message instead)
   chrome.runtime.sendMessage({ type: 'health', data: healthData }).catch((err) => {
-    console.debug('[gstack bg] No listener for health broadcast:', err.message);
+    console.debug('[cgstack bg] No listener for health broadcast:', err.message);
   });
 
   // Notify content scripts on connection change
@@ -105,7 +105,7 @@ function setDisconnected() {
   chrome.action.setBadgeText({ text: '' });
 
   chrome.runtime.sendMessage({ type: 'health', data: null }).catch((err) => {
-    console.debug('[gstack bg] No listener for disconnect broadcast:', err.message);
+    console.debug('[cgstack bg] No listener for disconnect broadcast:', err.message);
   });
 
   // Notify content scripts on disconnection
@@ -125,7 +125,7 @@ async function notifyContentScripts(type) {
       }
     }
   } catch (err) {
-    console.error('[gstack bg] Failed to query tabs for notification:', err.message);
+    console.error('[cgstack bg] Failed to query tabs for notification:', err.message);
   }
 }
 
@@ -165,7 +165,7 @@ async function fetchAndRelayRefs() {
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
     const resp = await fetch(`${base}/refs`, { signal: AbortSignal.timeout(3000), headers });
     if (!resp.ok) {
-      console.warn(`[gstack bg] Refs endpoint returned ${resp.status}`);
+      console.warn(`[cgstack bg] Refs endpoint returned ${resp.status}`);
       return;
     }
     const data = await resp.json();
@@ -180,7 +180,7 @@ async function fetchAndRelayRefs() {
       }
     }
   } catch (err) {
-    console.error('[gstack bg] Failed to fetch/relay refs:', err.message);
+    console.error('[cgstack bg] Failed to fetch/relay refs:', err.message);
   }
 }
 
@@ -203,13 +203,13 @@ async function injectInspector(tabId) {
         files: ['inspector.css'],
       });
     } catch (err) {
-      console.debug('[gstack bg] Inspector CSS injection failed (non-fatal):', err.message);
+      console.debug('[cgstack bg] Inspector CSS injection failed (non-fatal):', err.message);
     }
     // Send startPicker to the injected inspector.js
     try {
       await chrome.tabs.sendMessage(tabId, { type: 'startPicker' });
     } catch (err) {
-      console.warn('[gstack bg] Failed to send startPicker:', err.message);
+      console.warn('[cgstack bg] Failed to send startPicker:', err.message);
     }
     inspectorMode = 'full';
     return { ok: true, mode: 'full' };
@@ -221,7 +221,7 @@ async function injectInspector(tabId) {
       inspectorMode = 'basic';
       return { ok: true, mode: 'basic' };
     } catch (err2) {
-      console.error('[gstack bg] Inspector injection failed completely:', err.message, '| Basic fallback:', err2.message);
+      console.error('[cgstack bg] Inspector injection failed completely:', err.message, '| Basic fallback:', err2.message);
       inspectorMode = 'full';
       return { error: 'Cannot inspect this page' };
     }
@@ -232,7 +232,7 @@ async function stopInspector(tabId) {
   try {
     await chrome.tabs.sendMessage(tabId, { type: 'stopPicker' });
   } catch (err) {
-    console.debug('[gstack bg] Failed to stop picker on tab', tabId, ':', err.message);
+    console.debug('[cgstack bg] Failed to stop picker on tab', tabId, ':', err.message);
   }
   return { ok: true };
 }
@@ -261,7 +261,7 @@ async function postInspectorPick(selector, frameInfo, basicData, activeTabUrl) {
     const data = await resp.json();
     return { mode: 'cdp', ...data };
   } catch (err) {
-    console.debug('[gstack bg] Inspector pick server unavailable, using basic mode:', err.message);
+    console.debug('[cgstack bg] Inspector pick server unavailable, using basic mode:', err.message);
     return { mode: 'basic', selector, basicData, frameInfo };
   }
 }
@@ -280,7 +280,7 @@ async function sendToContentScript(tabId, message) {
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Security: only accept messages from this extension's own scripts
   if (sender.id !== chrome.runtime.id) {
-    console.warn('[gstack] Rejected message from unknown sender:', sender.id);
+    console.warn('[cgstack] Rejected message from unknown sender:', sender.id);
     return;
   }
 
@@ -294,7 +294,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     'inspectResult'
   ]);
   if (!ALLOWED_TYPES.has(msg.type)) {
-    console.warn('[gstack] Rejected unknown message type:', msg.type);
+    console.warn('[cgstack] Rejected unknown message type:', msg.type);
     return;
   }
 
@@ -326,7 +326,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // sender.tab set, so reject those to prevent token access from injected contexts.
   if (msg.type === 'getToken') {
     if (sender.tab) {
-      console.warn('[gstack] Rejected getToken from content script context');
+      console.warn('[cgstack] Rejected getToken from content script context');
       sendResponse({ token: null });
     } else {
       sendResponse({ token: authToken });
@@ -343,7 +343,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'openSidePanel') {
     if (chrome.sidePanel?.open && sender.tab) {
       chrome.sidePanel.open({ tabId: sender.tab.id }).catch((err) => {
-        console.warn('[gstack bg] Failed to open side panel:', err.message);
+        console.warn('[cgstack bg] Failed to open side panel:', err.message);
       });
     }
     return;
@@ -404,7 +404,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
               frameInfo,
             },
           }).catch((err) => {
-            console.warn('[gstack bg] Failed to forward inspectResult to sidepanel:', err.message);
+            console.warn('[cgstack bg] Failed to forward inspectResult to sidepanel:', err.message);
           });
           sendResponse({ ok: true });
         });
@@ -415,7 +415,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Inspector: picker cancelled
   if (msg.type === 'pickerCancelled') {
     chrome.runtime.sendMessage({ type: 'pickerCancelled' }).catch((err) => {
-      console.debug('[gstack bg] No listener for pickerCancelled:', err.message);
+      console.debug('[cgstack bg] No listener for pickerCancelled:', err.message);
     });
     return;
   }
@@ -436,7 +436,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
-  // Sidebar → Claude Code (file-based message queue)
+  // Sidebar → Codex (file-based message queue)
   if (msg.type === 'sidebar-command') {
     const base = getBaseUrl();
     if (!base || !authToken) {
@@ -458,14 +458,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
         .then(r => {
           if (!r.ok) {
-            console.error(`[gstack bg] sidebar-command failed: ${r.status} ${r.statusText}`);
+            console.error(`[cgstack bg] sidebar-command failed: ${r.status} ${r.statusText}`);
             return r.json().catch(() => ({ error: `Server returned ${r.status}` }));
           }
           return r.json();
         })
         .then(data => sendResponse(data))
         .catch(err => {
-          console.error('[gstack bg] sidebar-command error:', err.message);
+          console.error('[cgstack bg] sidebar-command error:', err.message);
           sendResponse({ error: err.message });
         });
     });
@@ -478,7 +478,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // Click extension icon → open side panel directly (no popup)
 if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((err) => {
-    console.warn('[gstack bg] Failed to set panel behavior:', err.message);
+    console.warn('[cgstack bg] Failed to set panel behavior:', err.message);
   });
 }
 
@@ -491,17 +491,17 @@ async function autoOpenSidePanel() {
       const wins = await chrome.windows.getAll({ windowTypes: ['normal'] });
       if (wins.length > 0) {
         await chrome.sidePanel.open({ windowId: wins[0].id });
-        console.log(`[gstack] Side panel opened on attempt ${attempt + 1}`);
+        console.log(`[cgstack] Side panel opened on attempt ${attempt + 1}`);
         return; // success
       }
     } catch (e) {
       // May throw if window isn't ready or user gesture required
-      console.log(`[gstack] Side panel open attempt ${attempt + 1} failed:`, e.message);
+      console.log(`[cgstack] Side panel open attempt ${attempt + 1} failed:`, e.message);
     }
     // Backoff: 500ms, 1000ms, 2000ms, 3000ms, 5000ms
     await new Promise(r => setTimeout(r, [500, 1000, 2000, 3000, 5000][attempt]));
   }
-  console.log('[gstack] Side panel auto-open failed after 5 attempts');
+  console.log('[cgstack] Side panel auto-open failed after 5 attempts');
 }
 
 // Fire on install/update
@@ -513,10 +513,10 @@ chrome.runtime.onInstalled.addListener(() => {
 autoOpenSidePanel();
 
 // ─── Tab Awareness ───────────────────────────────────────────────
-// Push live tab state to the sidepanel so claude in the Terminal pane
+// Push live tab state to the sidepanel so Codex in the Terminal pane
 // always has up-to-date tabs.json + active-tab.json on disk. The
 // sidepanel relays these to terminal-agent.ts over the live WebSocket;
-// terminal-agent writes the files for claude to read.
+// terminal-agent writes the files for Codex to read.
 
 async function snapshotTabs() {
   try {
@@ -553,7 +553,7 @@ async function pushTabState(reason) {
 chrome.tabs.onActivated.addListener((activeInfo) => {
   // Keep the legacy event for any consumer still listening to it (the chat
   // path is gone but the message type is harmless), and also fire the new
-  // unified state push so claude's tabs.json reflects the new active tab.
+  // unified state push so Codex's tabs.json reflects the new active tab.
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     if (chrome.runtime.lastError || !tab) return;
     chrome.runtime.sendMessage({
@@ -570,7 +570,7 @@ chrome.tabs.onCreated.addListener(() => pushTabState('created'));
 chrome.tabs.onRemoved.addListener(() => pushTabState('removed'));
 chrome.tabs.onUpdated.addListener((_id, changeInfo) => {
   // Throttle: only re-push on URL or title changes, not on every loading
-  // tick. We don't want to spam claude with a state push every 50ms while
+  // tick. We don't want to spam Codex with a state push every 50ms while
   // a page loads.
   if (changeInfo.url || changeInfo.title || changeInfo.status === 'complete') {
     pushTabState('updated');
@@ -595,7 +595,7 @@ loadAuthToken().then(() => {
           healthInterval = setInterval(checkHealth, 10000);
         }
         if (!isConnected) {
-          console.log('[gstack] Startup health checks failed after 15 attempts, falling back to 10s polling');
+          console.log('[cgstack] Startup health checks failed after 15 attempts, falling back to 10s polling');
         }
       }
     }, 1000);

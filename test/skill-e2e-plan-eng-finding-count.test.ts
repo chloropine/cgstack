@@ -14,7 +14,7 @@ import {
   runPlanSkillCounting,
   engStep0Boundary,
   assertReviewReportAtBottom,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -24,7 +24,7 @@ const FLOOR = N - 1; // 4
 const CEILING = N + 2; // 7
 
 const PLAN_ENG_5_FINDINGS = [
-  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/gstack-test-plan-eng.md (use Edit/Write to that exact path).',
+  'Please review this plan thoroughly. As you go, write your plan-mode plan to /tmp/cgstack-test-plan-eng.md (use Edit/Write to that exact path).',
   '',
   '# Plan: Multi-tenant Auth Refactor',
   '',
@@ -49,7 +49,7 @@ const PLAN_ENG_5_FINDINGS = [
   'SessionMint, AuthCache, RequestPolicy). Worth flagging the complexity check.',
 ].join('\n');
 
-const PLAN_ENG_PATH = '/tmp/gstack-test-plan-eng.md';
+const PLAN_ENG_PATH = '/tmp/cgstack-test-plan-eng.md';
 
 describeE2E('/plan-eng-review per-finding AskUserQuestion count (periodic)', () => {
   test(

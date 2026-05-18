@@ -1,5 +1,5 @@
 /**
- * gstack browse server — persistent Chromium daemon
+ * cgstack browse server — persistent Chromium daemon
  *
  * Architecture:
  *   Bun.serve HTTP on localhost → routes commands to Playwright
@@ -8,8 +8,8 @@
  *   Auto-shutdown after BROWSE_IDLE_TIMEOUT (default 30 min)
  *
  * State:
- *   State file: <project-root>/.gstack/browse.json (set via BROWSE_STATE_FILE env)
- *   Log files:  <project-root>/.gstack/browse-{console,network,dialog}.log
+ *   State file: <project-root>/.cgstack/browse.json (set via BROWSE_STATE_FILE env)
+ *   Log files:  <project-root>/.cgstack/browse-{console,network,dialog}.log
  *   Port:       random 10000-60000 (or BROWSE_PORT env for debug override)
  */
 
@@ -63,7 +63,7 @@ import * as crypto from 'crypto';
 // ─── Unicode Sanitization ───────────────────────────────────────
 // Remove unpaired UTF-16 surrogate halves (\uD800–\uDFFF). Page DOM text,
 // OCR output, and other CDP-sourced strings can contain lone surrogates;
-// JSON consumers downstream (Anthropic API in particular) reject them with
+// JSON consumers downstream (OpenAI API in particular) reject them with
 // "no low surrogate in string". Valid surrogate pairs (e.g. emoji) survive
 // unchanged. Lone halves become U+FFFD (�).
 //
@@ -103,7 +103,7 @@ ensureStateDir(config);
 initAuditLog(config.auditLog);
 
 // ─── Auth ───────────────────────────────────────────────────────
-// activeShutdown points to the factory-scoped shutdown function once
+// activeShutdown points to the codex-scoped shutdown function once
 // buildFetchHandler has been called. Module-level timers (idle check, parent
 // watchdog) and signal handlers route through activeShutdown so they close
 // the cfg-provided browserManager rather than a stale module-level reference.
@@ -129,8 +129,8 @@ function sanitizeAuthToken(raw: string | undefined): string | null {
 }
 // AUTH_TOKEN const + module-level initRegistry call deleted in v1.35.0.0.
 // buildFetchHandler now owns auth state end-to-end: cfg.authToken is the
-// single source of truth, factory body calls initRegistry(cfg.authToken),
-// and factory-scoped validateAuth closes over the same value. start() reads
+// single source of truth, codex body calls initRegistry(cfg.authToken),
+// and codex-scoped validateAuth closes over the same value. start() reads
 // env once via resolveConfigFromEnv() and threads the result through.
 const BROWSE_PORT = parseInt(process.env.BROWSE_PORT || '0', 10);
 const IDLE_TIMEOUT_MS = parseInt(process.env.BROWSE_IDLE_TIMEOUT || '1800000', 10); // 30 min
@@ -163,7 +163,7 @@ let tunnelServer: ReturnType<typeof Bun.serve> | null = null; // tunnel HTTP lis
 export type Surface = 'local' | 'tunnel';
 
 /**
- * Factory contract for embedders (gbrowser phoenix overlay).
+ * Codex contract for embedders (gbrowser phoenix overlay).
  *
  * Today the CLI calls `start()` which reads env vars and binds Bun.serve
  * itself. Embedders building on this server as a submodule (gbrowser's
@@ -175,7 +175,7 @@ export type Surface = 'local' | 'tunnel';
  * signal-handler registration is gated on `import.meta.main`, so phoenix
  * can `import { start } from '.../server'` without auto-starting. Full
  * `buildFetchHandler` extraction lands in a follow-up; see plan
- * `/Users/garrytan/.claude/plans/system-instruction-you-are-working-swirling-fountain.md`
+ * `/Users/garrytan/.codex/plans/system-instruction-you-are-working-swirling-fountain.md`
  * Part 1.
  */
 export interface ServerConfig {
@@ -197,10 +197,10 @@ export interface ServerConfig {
   proxyBridge?: BridgeHandle | null;
   startTime: number;
   /**
-   * Overlay hook. Runs AFTER gstack resolves auth and BEFORE route dispatch.
-   * Invalid tokens are auto-rejected at the gstack layer (401 returned
+   * Overlay hook. Runs AFTER cgstack resolves auth and BEFORE route dispatch.
+   * Invalid tokens are auto-rejected at the cgstack layer (401 returned
    * before hook fires), so the hook only ever sees valid TokenInfo or null
-   * (no token presented). Returning a Response short-circuits gstack
+   * (no token presented). Returning a Response short-circuits cgstack
    * dispatch; returning null falls through.
    */
   beforeRoute?: (req: Request, surface: Surface, auth: TokenInfo | null) => Promise<Response | null>;
@@ -227,7 +227,7 @@ export interface ServerHandle {
 }
 
 /**
- * Build a ServerConfig-shaped object from process.env. Used by gstack's
+ * Build a ServerConfig-shaped object from process.env. Used by cgstack's
  * own CLI when running `bun run dev` or the compiled binary directly.
  * Embedders construct their own ServerConfig explicitly.
  *
@@ -299,7 +299,7 @@ export function canDispatchOverTunnel(command: string | undefined | null): boole
 }
 
 /**
- * Read ngrok authtoken from env var, ~/.gstack/ngrok.env, or ngrok's native
+ * Read ngrok authtoken from env var, ~/.cgstack/ngrok.env, or ngrok's native
  * config files.  Returns null if nothing found.  Shared between the
  * /tunnel/start handler and the BROWSE_TUNNEL=1 auto-start flow.
  */
@@ -308,7 +308,7 @@ function resolveNgrokAuthtoken(): string | null {
   if (authtoken) return authtoken;
 
   const home = process.env.HOME || '';
-  const ngrokEnvPath = path.join(home, '.gstack', 'ngrok.env');
+  const ngrokEnvPath = path.join(home, '.cgstack', 'ngrok.env');
   if (fs.existsSync(ngrokEnvPath)) {
     try {
       const envContent = fs.readFileSync(ngrokEnvPath, 'utf-8');
@@ -346,7 +346,7 @@ async function closeTunnel(): Promise<void> {
   tunnelActive = false;
 }
 
-// Module-level validateAuth deleted in v1.35.0.0. Factory-scoped equivalent
+// Module-level validateAuth deleted in v1.35.0.0. Codex-scoped equivalent
 // in buildFetchHandler closes over cfg.authToken so every internal auth check
 // sees the same token the routes receive.
 
@@ -416,9 +416,8 @@ function isRootRequest(req: Request): boolean {
   return token !== null && isRootToken(token);
 }
 
-// Sidebar model router was here (sonnet vs opus by message intent). Ripped
-// alongside the chat queue; the interactive PTY just runs whatever model
-// the user's `claude` CLI is configured with.
+// Sidebar chat routing was removed. The interactive PTY runs whatever model
+// the user's `codex` CLI is configured with.
 
 // ─── Help text (auto-generated from COMMAND_DESCRIPTIONS) ────────
 function generateHelpText(): string {
@@ -436,7 +435,7 @@ function generateHelpText(): string {
     'Visual', 'Snapshot', 'Meta', 'Tabs', 'Server',
   ];
 
-  const lines = ['gstack browse — headless browser for AI agents', '', 'Commands:'];
+  const lines = ['cgstack browse — headless browser for AI agents', '', 'Commands:'];
   for (const cat of categoryOrder) {
     const cmds = groups.get(cat);
     if (!cmds) continue;
@@ -573,7 +572,7 @@ const idleCheckInterval = setInterval(() => {
 }, 60_000);
 
 // ─── Parent-Process Watchdog ────────────────────────────────────────
-// When the spawning CLI process (e.g. a Claude Code session) exits, this
+// When the spawning CLI process (e.g. a Codex session) exits, this
 // server can become an orphan — keeping chrome-headless-shell alive and
 // causing console-window flicker on Windows. Poll the parent PID every 15s
 // and self-terminate if it is gone.
@@ -588,7 +587,7 @@ const BROWSE_PARENT_PID = parseInt(process.env.BROWSE_PARENT_PID || '0', 10);
 // Outer gate: if the spawner explicitly marks this as headed (env var set at
 // launch time), skip registering the watchdog entirely. Cheaper than entering
 // the closure every 15s. The CLI's connect path sets BROWSE_HEADED=1 + PID=0,
-// so this branch is the normal path for /open-gstack-browser.
+// so this branch is the normal path for /open-cgstack-browser.
 const IS_HEADED_WATCHDOG = process.env.BROWSE_HEADED === '1';
 if (BROWSE_PARENT_PID > 0 && !IS_HEADED_WATCHDOG) {
   let parentGone = false;
@@ -603,8 +602,8 @@ if (BROWSE_PARENT_PID > 0 && !IS_HEADED_WATCHDOG) {
       // 2. Headed / tunnel mode? Shutdown. The idle timeout doesn't apply in
       //    these modes (see idleCheckInterval above — both early-return), so
       //    ignoring parent death here would leak orphan daemons after
-      //    /pair-agent or /open-gstack-browser sessions.
-      // 3. Normal (headless) mode? Stay alive. Claude Code's Bash tool kills
+      //    /pair-agent or /open-cgstack-browser sessions.
+      // 3. Normal (headless) mode? Stay alive. Codex's Bash tool kills
       //    the parent shell between invocations. The idle timeout (30 min)
       //    handles eventual cleanup.
       if (hasActivePicker()) return;
@@ -918,7 +917,7 @@ async function handleCommandInternalImpl(
       // Pass chain depth + executeCommand callback so chain routes subcommands
       // through the full security pipeline (scope, domain, tab, wrapping).
       const chainDepth = (opts?.chainDepth ?? 0);
-      // shutdown is factory-scoped (deleted from module scope in v1.35.0.0);
+      // shutdown is codex-scoped (deleted from module scope in v1.35.0.0);
       // route the call through activeShutdown which buildFetchHandler assigns.
       const shutdownFn = () => activeShutdown ? activeShutdown() : Promise.resolve();
       result = await handleMetaCommand(command, args, browserManager, shutdownFn, tokenInfo, {
@@ -1131,12 +1130,12 @@ async function handleCommand(body: any, tokenInfo?: TokenInfo | null): Promise<R
 //
 // Gated on `import.meta.main` so embedders (gbrowser phoenix) that import
 // server.ts as a submodule can register their own signal handlers without
-// fighting with gstack's. CLI path is unchanged.
+// fighting with cgstack's. CLI path is unchanged.
 if (import.meta.main) {
   // SIGINT (Ctrl+C): user intentionally stopping → shutdown.
   process.on('SIGINT', () => activeShutdown?.());
   // SIGTERM behavior depends on mode:
-  // - Normal (headless) mode: Claude Code's Bash sandbox fires SIGTERM when the
+  // - Normal (headless) mode: Codex's Bash sandbox fires SIGTERM when the
   //   parent shell exits between tool invocations. Ignoring it keeps the server
   //   alive across $B calls. Idle timeout (30 min) handles eventual cleanup.
   // - Headed / tunnel mode: idle timeout doesn't apply in these modes. Respect
@@ -1231,9 +1230,9 @@ if (import.meta.main) {
  * routes via cfg.beforeRoute. The CLI path calls it through start() with
  * env-derived defaults — externally-observable behavior is identical.
  *
- * Auth state lives ENTIRELY inside the factory closure: cfg.authToken is the
- * single source of truth for the bearer secret, factory-scoped validateAuth
- * closes over it, and factory-scoped shutdown closes the cfg-provided
+ * Auth state lives ENTIRELY inside the codex closure: cfg.authToken is the
+ * single source of truth for the bearer secret, codex-scoped validateAuth
+ * closes over it, and codex-scoped shutdown closes the cfg-provided
  * browserManager. Module-level lifecycle singletons (LOCAL_LISTEN_PORT,
  * tunnelActive, inspector state) intentionally STAY at module scope; see
  * the v1.35.0.0 CHANGELOG entry for the architectural rationale.
@@ -1260,7 +1259,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
 
   const { authToken, browserManager: cfgBrowserManager, startTime, beforeRoute, browsePort } = cfg;
 
-  // Factory-scoped validateAuth. Closes over cfg.authToken so every internal
+  // Codex-scoped validateAuth. Closes over cfg.authToken so every internal
   // auth check sees the same token the routes receive. Module-level
   // validateAuth was deleted in v1.35.0.0.
   function validateAuth(req: Request): boolean {
@@ -1268,7 +1267,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
     return header === `Bearer ${authToken}`;
   }
 
-  // Factory-scoped shutdown. Closes the cfg-provided browserManager so
+  // Codex-scoped shutdown. Closes the cfg-provided browserManager so
   // embedders that pass their own BrowserManager get correct teardown.
   // Module-level shutdown was deleted in v1.35.0.0.
   async function shutdown(exitCode: number = 0) {
@@ -1386,24 +1385,24 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         return handleCookiePickerRoute(url, req, browserManager, authToken);
       }
 
-      // Welcome page — served when GStack Browser launches in headed mode
+      // Welcome page — served when CGStack Browser launches in headed mode
       if (url.pathname === '/welcome') {
         const welcomePath = (() => {
-          // Gate GSTACK_SLUG on a strict regex BEFORE interpolating it into
+          // Gate CGSTACK_SLUG on a strict regex BEFORE interpolating it into
           // the filesystem path. Without this, a slug like "../../etc/passwd"
-          // would resolve to ~/.gstack/projects/../../etc/passwd/... — path
+          // would resolve to ~/.cgstack/projects/../../etc/passwd/... — path
           // traversal.  Not exploitable today (attacker needs local env-var
           // access), but the gate is one regex and buys us defense-in-depth.
-          const rawSlug = process.env.GSTACK_SLUG || 'unknown';
+          const rawSlug = process.env.CGSTACK_SLUG || 'unknown';
           const slug = /^[a-z0-9_-]+$/.test(rawSlug) ? rawSlug : 'unknown';
           const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp';
-          const projectWelcome = `${homeDir}/.gstack/projects/${slug}/designs/welcome-page-20260331/finalized.html`;
+          const projectWelcome = `${homeDir}/.cgstack/projects/${slug}/designs/welcome-page-20260331/finalized.html`;
           if (fs.existsSync(projectWelcome)) return projectWelcome;
-          // Fallback: built-in welcome page from gstack install.  Reject
+          // Fallback: built-in welcome page from cgstack install.  Reject
           // SKILL_ROOT values containing '..' for the same defense-in-depth
-          // reason as the GSTACK_SLUG regex above.  Not exploitable today
+          // reason as the CGSTACK_SLUG regex above.  Not exploitable today
           // (env set at install time), but the gate is one check.
-          const rawSkillRoot = process.env.GSTACK_SKILL_ROOT || `${homeDir}/.claude/skills/gstack`;
+          const rawSkillRoot = process.env.CGSTACK_SKILL_ROOT || `${homeDir}/.agents/skills/cgstack`;
           if (rawSkillRoot.includes('..')) return null;
           const builtinWelcome = `${rawSkillRoot}/browse/src/welcome.html`;
           if (fs.existsSync(builtinWelcome)) return builtinWelcome;
@@ -1419,10 +1418,10 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         }
         // No welcome page found — serve a simple fallback (avoid ERR_UNSAFE_REDIRECT on Windows)
         return new Response(
-          `<!DOCTYPE html><html><head><title>GStack Browser</title>
+          `<!DOCTYPE html><html><head><title>CGStack Browser</title>
           <style>body{background:#111;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
           .msg{text-align:center;opacity:.7;}.gold{color:#f5a623;font-size:2em;margin-bottom:12px;}</style></head>
-          <body><div class="msg"><div class="gold">◈</div><p>GStack Browser ready.</p><p style="font-size:.85em">Waiting for commands from Claude Code.</p></div></body></html>`,
+          <body><div class="msg"><div class="gold">◈</div><p>CGStack Browser ready.</p><p style="font-size:.85em">Waiting for commands from Codex.</p></div></body></html>`,
           { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
         );
       }
@@ -1496,7 +1495,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
         return new Response(JSON.stringify({
           terminalPort: port,
           // Returned in the JSON body so the extension can pass it to
-          // `new WebSocket(url, [token])`. Browsers translate that to a
+          // `new WebSocket(url, [token])`. Browsers transform that to a
           // `Sec-WebSocket-Protocol` header — the only auth header we can
           // set from the browser WebSocket API. SameSite=Strict cookies
           // don't survive the port change between server.ts (34567) and
@@ -1724,7 +1723,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
           await closeTunnel();
         }
 
-        // 1) Resolve ngrok authtoken from env / .gstack / native config
+        // 1) Resolve ngrok authtoken from env / .cgstack / native config
         const authtoken = resolveNgrokAuthtoken();
         if (!authtoken) {
           return new Response(JSON.stringify({
@@ -1933,7 +1932,7 @@ export function buildFetchHandler(cfg: ServerConfig): ServerHandle {
       // /sidebar-tabs, /sidebar-tabs/switch, /sidebar-chat[/clear],
       // /sidebar-command, /sidebar-agent/{event,kill,stop},
       // /sidebar-queue/dismiss, /sidebar-session{,/new,/list} all lived
-      // here. They drove the one-shot claude -p chat queue. Replaced by
+      // here. They drove the one-shot codex -p chat queue. Replaced by
       // the interactive PTY in terminal-agent.ts; the queue + browser-tab
       // multiplexing are no longer needed.
 
@@ -2418,9 +2417,9 @@ export async function start() {
 
   const startTime = Date.now();
 
-  // ─── Build the request handlers via buildFetchHandler factory ───
+  // ─── Build the request handlers via buildFetchHandler codex ───
   // CLI path passes env-derived values; no beforeRoute hook. Phoenix uses
-  // the same factory with its own cfg + overlay hook.
+  // the same codex with its own cfg + overlay hook.
   const handle = buildFetchHandler({
     ...envCfg,
     browsePort: port,        // actual bound port (resolveConfigFromEnv default is 0)
@@ -2508,7 +2507,7 @@ export async function start() {
   if (process.env.BROWSE_TUNNEL === '1') {
     const authtoken = resolveNgrokAuthtoken();
     if (!authtoken) {
-      console.error('[browse] BROWSE_TUNNEL=1 but no NGROK_AUTHTOKEN found. Set it via env var or ~/.gstack/ngrok.env');
+      console.error('[browse] BROWSE_TUNNEL=1 but no NGROK_AUTHTOKEN found. Set it via env var or ~/.cgstack/ngrok.env');
     } else {
       let boundTunnel: ReturnType<typeof Bun.serve> | null = null;
       try {

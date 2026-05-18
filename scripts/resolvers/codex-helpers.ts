@@ -61,12 +61,12 @@ policy:
 `;
 }
 
-/** Compute skill name for external hosts (Codex, Factory, etc.) */
+/** Compute skill name for external hosts (Codex, Codex, etc.) */
 export function externalSkillName(skillDir: string): string {
-  if (skillDir === '.' || skillDir === '') return 'gstack';
-  // Don't double-prefix: gstack-upgrade → gstack-upgrade (not gstack-gstack-upgrade)
-  if (skillDir.startsWith('gstack-')) return skillDir;
-  return `gstack-${skillDir}`;
+  if (skillDir === '.' || skillDir === '') return 'cgstack';
+  // Don't double-prefix: cgstack-upgrade → cgstack-upgrade (not cgstack-cgstack-upgrade)
+  if (skillDir.startsWith('cgstack-')) return skillDir;
+  return `cgstack-${skillDir}`;
 }
 
 /**
@@ -75,7 +75,7 @@ export function externalSkillName(skillDir: string): string {
  * Handles multiline block scalar descriptions (YAML | syntax).
  */
 export function transformFrontmatter(content: string, host: Host): string {
-  if (host === 'claude') return content;
+  if (host === 'codex') return content;
 
   // Find frontmatter boundaries
   const fmStart = content.indexOf('---\n');

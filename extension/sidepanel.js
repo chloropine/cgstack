@@ -1,9 +1,9 @@
 /**
- * gstack browse — Side Panel
+ * cgstack browse — Side Panel
  *
- * Terminal pane (default): live claude PTY via xterm.js, driven by
+ * Terminal pane (default): live Codex PTY via xterm.js, driven by
  * sidepanel-terminal.js. The chat queue + sidebar-agent.ts were ripped
- * in favor of the interactive REPL — no more one-shot claude -p.
+ * in favor of the interactive REPL — no more one-shot Codex -p.
  *
  * Debug tabs (behind the `debug` toggle): activity feed (SSE) + refs +
  * inspector. Quick-actions toolbar (Cleanup / Screenshot / Cookies)
@@ -86,7 +86,7 @@ function startReconnect() {
 // ─── Chat path ripped ────────────────────────────────────────────
 // Chat queue + sendMessage + pollChat + switchChatTab + browser-tabs
 // strip + security banner all lived here. Replaced by the interactive
-// claude PTY in sidepanel-terminal.js (and terminal-agent.ts on the
+// Codex PTY in sidepanel-terminal.js (and terminal-agent.ts on the
 // server side).
 
 // ─── Reload Sidebar ─────────────────────────────────────────────
@@ -105,7 +105,7 @@ document.getElementById('chat-cookies-btn').addEventListener('click', async () =
       body: JSON.stringify({ command: 'goto', args: [`${serverUrl}/cookie-picker`] }),
     });
   } catch (err) {
-    console.error('[gstack sidebar] Failed to open cookie picker:', err.message);
+    console.error('[cgstack sidebar] Failed to open cookie picker:', err.message);
   }
 });
 
@@ -259,7 +259,7 @@ async function ensureSseSessionCookie() {
     });
     return resp.ok;
   } catch (err) {
-    console.warn('[gstack sidebar] Failed to mint SSE session cookie:', err && err.message);
+    console.warn('[cgstack sidebar] Failed to mint SSE session cookie:', err && err.message);
     return false;
   }
 }
@@ -274,7 +274,7 @@ async function connectSSE() {
 
   eventSource.addEventListener('activity', (e) => {
     try { addEntry(JSON.parse(e.data)); } catch (err) {
-      console.error('[gstack sidebar] Failed to parse activity event:', err.message);
+      console.error('[cgstack sidebar] Failed to parse activity event:', err.message);
     }
   });
 
@@ -287,7 +287,7 @@ async function connectSSE() {
       banner.textContent = `Missed ${data.availableFrom - data.gapFrom} events`;
       feed.appendChild(banner);
     } catch (err) {
-      console.error('[gstack sidebar] Failed to parse gap event:', err.message);
+      console.error('[cgstack sidebar] Failed to parse gap event:', err.message);
     }
   });
 }
@@ -324,7 +324,7 @@ async function fetchRefs() {
     `).join('');
     footer.textContent = `${data.refs.length} refs`;
   } catch (err) {
-    console.error('[gstack sidebar] Failed to fetch refs:', err.message);
+    console.error('[cgstack sidebar] Failed to fetch refs:', err.message);
   }
 }
 
@@ -705,24 +705,24 @@ inspectorSendBtn.addEventListener('click', () => {
     message = `CSS Inspector data for: ${inspectorData.selector}\n\n${JSON.stringify(inspectorData, null, 2)}`;
   }
 
-  // Inject into the running claude PTY so the user can ask claude to act
+  // Inject into the running Codex PTY so the user can ask Codex to act
   // on the inspector data. Replaces the old `sidebar-command` route which
-  // spawned a one-shot claude -p (sidebar-agent.ts is gone).
-  const ok = window.gstackInjectToTerminal?.(message + '\n');
+  // spawned a one-shot Codex -p (sidebar-agent.ts is gone).
+  const ok = window.cgstackInjectToTerminal?.(message + '\n');
   if (!ok) {
-    console.warn('[gstack sidebar] Inspector send needs an active Terminal session.');
+    console.warn('[cgstack sidebar] Inspector send needs an active Terminal session.');
   }
 });
 
 // ─── Quick Action Helpers (toolbar buttons) ──────────────────────
 
 /**
- * "Cleanup" injects a prompt into the running claude PTY. claude takes the
+ * "Cleanup" injects a prompt into the running Codex PTY. Codex takes the
  * prompt, snapshots the page, hides ads/banners/popups, leaves article
  * content. The user watches it happen in the Terminal pane.
  *
  * Replaced the old chat-queue path (sidebar-agent.ts spawning a one-shot
- * claude -p) — we have a live REPL now, so route through that instead.
+ * Codex -p) — we have a live REPL now, so route through that instead.
  */
 async function runCleanup(...buttons) {
   buttons.forEach(b => b?.classList.add('loading'));
@@ -735,9 +735,9 @@ async function runCleanup(...buttons) {
     'header/masthead, headline, article body, images, byline, and date. Also',
     'unlock scrolling if the page is scroll-locked.',
   ].join('\n');
-  const sent = window.gstackInjectToTerminal?.(cleanupPrompt + '\n');
+  const sent = window.cgstackInjectToTerminal?.(cleanupPrompt + '\n');
   if (!sent) {
-    console.warn('[gstack sidebar] Cleanup needs an active Terminal session.');
+    console.warn('[cgstack sidebar] Cleanup needs an active Terminal session.');
   }
   setTimeout(() => buttons.forEach(b => b?.classList.remove('loading')), 1200);
 }
@@ -754,12 +754,12 @@ async function runScreenshot(...buttons) {
     });
     const text = await resp.text();
     if (!resp.ok) {
-      console.warn('[gstack sidebar] Screenshot failed:', text);
+      console.warn('[cgstack sidebar] Screenshot failed:', text);
     } else {
-      console.log('[gstack sidebar] Screenshot:', text);
+      console.log('[cgstack sidebar] Screenshot:', text);
     }
   } catch (err) {
-    console.error('[gstack sidebar] Screenshot error:', err.message);
+    console.error('[cgstack sidebar] Screenshot error:', err.message);
   } finally {
     buttons.forEach(b => b?.classList.remove('loading'));
   }
@@ -811,7 +811,7 @@ async function connectInspectorSSE() {
         const data = JSON.parse(e.data);
         inspectorShowData(data);
       } catch (err) {
-        console.error('[gstack sidebar] Failed to parse inspectResult:', err.message);
+        console.error('[cgstack sidebar] Failed to parse inspectResult:', err.message);
       }
     });
 
@@ -820,7 +820,7 @@ async function connectInspectorSSE() {
       if (inspectorSSE) { inspectorSSE.close(); inspectorSSE = null; }
     });
   } catch (err) {
-    console.debug('[gstack sidebar] Inspector SSE not available:', err.message);
+    console.debug('[cgstack sidebar] Inspector SSE not available:', err.message);
   }
 }
 
@@ -842,11 +842,11 @@ function updateConnection(url, token) {
   // the bootstrap token to POST /pty-session and the port to derive the WS
   // URL. We never expose the PTY token — it lives in an HttpOnly cookie.
   if (url) {
-    try { window.gstackServerPort = parseInt(new URL(url).port, 10); } catch {}
-    window.gstackAuthToken = token || null;
+    try { window.cgstackServerPort = parseInt(new URL(url).port, 10); } catch {}
+    window.cgstackAuthToken = token || null;
   } else {
-    window.gstackServerPort = null;
-    window.gstackAuthToken = null;
+    window.cgstackServerPort = null;
+    window.cgstackAuthToken = null;
   }
   if (url) {
     document.getElementById('footer-dot').className = 'dot connected';
@@ -904,10 +904,10 @@ document.getElementById('conn-reconnect').addEventListener('click', () => {
 });
 
 document.getElementById('conn-copy').addEventListener('click', () => {
-  navigator.clipboard.writeText('/open-gstack-browser').then(() => {
+  navigator.clipboard.writeText('/open-cgstack-browser').then(() => {
     const btn = document.getElementById('conn-copy');
     btn.textContent = 'copied!';
-    setTimeout(() => { btn.textContent = '/open-gstack-browser'; }, 2000);
+    setTimeout(() => { btn.textContent = '/open-cgstack-browser'; }, 2000);
   });
 });
 
@@ -999,7 +999,7 @@ async function tryConnect() {
   } catch (e) {
     setLoadingStatus(
       `Server not reachable on port ${port} (attempt ${connectAttempts})`,
-      `GET /health failed: ${e.message}\n\nThe browse server may still be starting.\nRun /open-gstack-browser in Claude Code.`
+      `GET /health failed: ${e.message}\n\nThe browse server may still be starting.\nRun /open-cgstack-browser in Codex.`
     );
   }
 
@@ -1042,9 +1042,9 @@ chrome.runtime.onMessage.addListener((msg) => {
   // browserTabState: full snapshot of all open tabs + the active one,
   // pushed by background.js on chrome.tabs events. We forward it as a
   // custom event so sidepanel-terminal.js can relay to terminal-agent.ts.
-  // Result: claude's <stateDir>/tabs.json + active-tab.json stay live.
+  // Result: Codex's <stateDir>/tabs.json + active-tab.json stay live.
   if (msg.type === 'browserTabState') {
-    document.dispatchEvent(new CustomEvent('gstack:tab-state', {
+    document.dispatchEvent(new CustomEvent('cgstack:tab-state', {
       detail: { active: msg.active, tabs: msg.tabs, reason: msg.reason },
     }));
   }

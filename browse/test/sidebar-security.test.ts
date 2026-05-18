@@ -2,7 +2,7 @@
  * Sidebar prompt injection defense tests
  *
  * Validates: XML escaping, command allowlist in system prompt,
- * Opus model default, and sidebar-agent arg plumbing.
+ * GPT model default, and sidebar-agent arg plumbing.
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -86,11 +86,9 @@ describe('Sidebar prompt injection defense', () => {
 
   // --- Model Selection ---
 
-  test('model routing defaults to opus for analysis tasks', () => {
-    // pickSidebarModel returns opus for ambiguous/analysis messages
-    expect(SERVER_SRC).toContain("return 'opus'");
-    // spawnClaude uses the model router
-    expect(SERVER_SRC).toContain("'--model', model");
+  test('sidebar does not override the Codex CLI model', () => {
+    expect(SERVER_SRC).not.toContain('function pickSidebarModel(');
+    expect(SERVER_SRC).not.toContain("'--model', model");
   });
 
   // --- Trust Boundary ---
@@ -135,7 +133,7 @@ describe('Sidebar prompt injection defense', () => {
 
   test('sidebar-agent scans Read/Glob/Grep/WebFetch tool outputs', () => {
     // Codex review gap: untrusted content read via these tools enters
-    // Claude's context without passing through content-security.ts.
+    // Codex's context without passing through content-security.ts.
     // Verify the SCANNED_TOOLS set includes each.
     const scannedToolsMatch = AGENT_SRC.match(/SCANNED_TOOLS = new Set\(\[([^\]]+)\]\)/);
     expect(scannedToolsMatch).toBeTruthy();

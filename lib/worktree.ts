@@ -5,7 +5,7 @@
  * harvests any changes the test agent makes as patches, and provides
  * deduplication across runs.
  *
- * Reusable platform module — future /batch or /codex challenge skills
+ * Reusable platform module — future /batch or Codex challenge skills
  * can import this directly.
  */
 
@@ -39,7 +39,7 @@ export interface HarvestResult {
 function copyDirSync(src: string, dest: string): void {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    // Skip symlinks to avoid infinite recursion (e.g., .claude/skills/gstack → repo root)
+    // Skip symlinks to avoid infinite recursion (e.g., .agents/skills/cgstack → repo root)
     if (entry.isSymbolicLink()) continue;
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
@@ -69,7 +69,7 @@ interface DedupIndex {
 }
 
 function getDedupPath(): string {
-  return path.join(os.homedir(), '.gstack-dev', 'harvests', 'dedup.json');
+  return path.join(os.homedir(), '.cgstack-dev', 'harvests', 'dedup.json');
 }
 
 function loadDedupIndex(): DedupIndex {
@@ -115,7 +115,7 @@ export class WorktreeManager {
   create(testName: string): string {
     const originalSha = git(['rev-parse', 'HEAD'], this.repoRoot);
 
-    const worktreeBase = path.join(this.repoRoot, '.gstack-worktrees', this.runId);
+    const worktreeBase = path.join(this.repoRoot, '.cgstack-worktrees', this.runId);
     fs.mkdirSync(worktreeBase, { recursive: true });
 
     const worktreePath = path.join(worktreeBase, testName);
@@ -184,7 +184,7 @@ export class WorktreeManager {
 
       if (!isDuplicate) {
         // Save patch
-        const harvestDir = path.join(os.homedir(), '.gstack-dev', 'harvests', this.runId);
+        const harvestDir = path.join(os.homedir(), '.cgstack-dev', 'harvests', this.runId);
         fs.mkdirSync(harvestDir, { recursive: true });
         patchPath = path.join(harvestDir, `${testName}.patch`);
         fs.writeFileSync(patchPath, patch);
@@ -236,7 +236,7 @@ export class WorktreeManager {
     }
 
     // Clean up the run directory if empty
-    const runDir = path.join(this.repoRoot, '.gstack-worktrees', this.runId);
+    const runDir = path.join(this.repoRoot, '.cgstack-worktrees', this.runId);
     try {
       const entries = fs.readdirSync(runDir);
       if (entries.length === 0) {
@@ -250,7 +250,7 @@ export class WorktreeManager {
     try {
       git(['worktree', 'prune'], this.repoRoot, true);
 
-      const worktreeBase = path.join(this.repoRoot, '.gstack-worktrees');
+      const worktreeBase = path.join(this.repoRoot, '.cgstack-worktrees');
       if (!fs.existsSync(worktreeBase)) return;
 
       for (const entry of fs.readdirSync(worktreeBase)) {

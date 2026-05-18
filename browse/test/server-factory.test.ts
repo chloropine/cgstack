@@ -13,12 +13,12 @@ import { resolveConfig } from '../src/config';
 import * as crypto from 'crypto';
 
 /**
- * Tests for the factory-export API surface added so gbrowser (phoenix) can
- * consume gstack as a submodule. The full buildFetchHandler hybrid hoist is
+ * Tests for the codex-export API surface added so gbrowser (phoenix) can
+ * consume cgstack as a submodule. The full buildFetchHandler hybrid hoist is
  * deferred to a follow-up PR; this test file proves the type contract,
  * resolveConfigFromEnv behavior, and preserved exports.
  */
-describe('server.ts factory API surface', () => {
+describe('server.ts codex API surface', () => {
   describe('resolveConfigFromEnv', () => {
     test('honors AUTH_TOKEN env var', () => {
       const orig = process.env.AUTH_TOKEN;
@@ -197,9 +197,9 @@ describe('server.ts factory API surface', () => {
   });
 });
 
-// ─── buildFetchHandler factory contract tests (v1.35.0.0) ──────────
+// ─── buildFetchHandler codex contract tests (v1.35.0.0) ──────────
 //
-// 12 contract tests covering the factory's behavior:
+// 12 contract tests covering the codex's behavior:
 //   1. ServerHandle shape  | 2. auth wiring (split positive/negative per D10)
 //   3. throws on bad cfg.authToken  | 4. throws on missing browserManager
 //   5-8. beforeRoute hook semantics  | 9. tunnel surface 404s non-TUNNEL_PATHS
@@ -210,7 +210,7 @@ describe('server.ts factory API surface', () => {
 // the new initRegistry guard never fires across tests.
 
 function makeMinimalConfig(overrides: Partial<ServerConfig> = {}): ServerConfig {
-  const token = 'factory-test-' + crypto.randomBytes(16).toString('hex');
+  const token = 'codex-test-' + crypto.randomBytes(16).toString('hex');
   return {
     authToken: token,
     browsePort: 34567,
@@ -222,7 +222,7 @@ function makeMinimalConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
   };
 }
 
-describe('buildFetchHandler factory contract', () => {
+describe('buildFetchHandler codex contract', () => {
   beforeEach(() => {
     __resetRegistry();
   });
@@ -294,7 +294,7 @@ describe('buildFetchHandler factory contract', () => {
     expect(await resp.text()).toBe('overlay-body');
   });
 
-  test('6. falls through to gstack dispatch when beforeRoute returns null', async () => {
+  test('6. falls through to cgstack dispatch when beforeRoute returns null', async () => {
     const handle = buildFetchHandler(makeMinimalConfig({
       beforeRoute: async () => null,
     }));

@@ -13,7 +13,7 @@ import * as path from 'path';
 
 const ROOT = path.resolve(__dirname, '..');
 
-// ─── System prompt tests (server.ts spawnClaude) ─────────────────
+// ─── System prompt tests (server.ts spawnCodex) ─────────────────
 
 describe('sidebar system prompt (server.ts)', () => {
   const serverSrc = fs.readFileSync(path.join(ROOT, 'src', 'server.ts'), 'utf-8');
@@ -21,7 +21,7 @@ describe('sidebar system prompt (server.ts)', () => {
   test('system prompt does not bake in page URL', () => {
     // The old prompt had: `The user is currently viewing: ${pageUrl}`
     // The new prompt should NOT contain this pattern
-    // Extract the systemPrompt array from spawnClaude
+    // Extract the systemPrompt array from spawnCodex
     const promptSection = serverSrc.slice(
       serverSrc.indexOf('const systemPrompt = ['),
       serverSrc.indexOf("].join('\\n');", serverSrc.indexOf('const systemPrompt = [')) + 15,
@@ -50,9 +50,9 @@ describe('sidebar system prompt (server.ts)', () => {
     expect(promptSection).toContain('STOP');
   });
 
-  test('--resume is never used in spawnClaude args', () => {
-    // Extract the spawnClaude function
-    const fnStart = serverSrc.indexOf('function spawnClaude(');
+  test('--resume is never used in spawnCodex args', () => {
+    // Extract the spawnCodex function
+    const fnStart = serverSrc.indexOf('function spawnCodex(');
     const fnEnd = serverSrc.indexOf('\nfunction ', fnStart + 1);
     const fnBody = serverSrc.slice(fnStart, fnEnd);
     // Should not push --resume to args
@@ -99,7 +99,7 @@ describe('sidebar HTML (sidepanel.html)', () => {
 
   test('input placeholder says "Ask about this page"', () => {
     expect(html).toContain('Ask about this page');
-    expect(html).not.toContain('Message Claude Code');
+    expect(html).not.toContain('Message Codex');
   });
 
   test('stop button exists with id stop-agent-btn', () => {
@@ -517,7 +517,7 @@ describe('processAgentEvent handles sidebar-agent event types', () => {
   const fnEnd = serverSrc.indexOf('\nfunction ', fnStart + 1);
   const fnBody = serverSrc.slice(fnStart, fnEnd > fnStart ? fnEnd : fnStart + 2000);
 
-  test('handles tool_use events directly (not raw Claude stream format)', () => {
+  test('handles tool_use events directly (not raw Codex stream format)', () => {
     // Must handle { type: 'tool_use', tool, input } from sidebar-agent
     expect(fnBody).toContain("event.type === 'tool_use'");
     expect(fnBody).toContain('event.tool');
@@ -542,7 +542,7 @@ describe('processAgentEvent handles sidebar-agent event types', () => {
     expect(fnBody).toContain('event.error');
   });
 
-  test('does NOT re-parse raw Claude stream events (no content_block_start)', () => {
+  test('does NOT re-parse raw Codex stream events (no content_block_start)', () => {
     // sidebar-agent.ts already transforms these. Server should not duplicate.
     expect(fnBody).not.toContain('content_block_start');
     expect(fnBody).not.toContain('content_block_delta');
@@ -582,17 +582,17 @@ describe('per-tab chat context (server.ts)', () => {
     }
   });
 
-  test('spawnClaude passes active tab ID to queue entry', () => {
+  test('spawnCodex passes active tab ID to queue entry', () => {
     const spawnFn = serverSrc.slice(
-      serverSrc.indexOf('function spawnClaude('),
-      serverSrc.indexOf('\nfunction ', serverSrc.indexOf('function spawnClaude(') + 1),
+      serverSrc.indexOf('function spawnCodex('),
+      serverSrc.indexOf('\nfunction ', serverSrc.indexOf('function spawnCodex(') + 1),
     );
     expect(spawnFn).toContain('tabId');
   });
 
   test('tab isolation uses BROWSE_TAB env var instead of system prompt hack', () => {
     const agentSrc = fs.readFileSync(path.join(ROOT, 'src', 'sidebar-agent.ts'), 'utf-8');
-    // Agent passes BROWSE_TAB env var to claude (not a system prompt instruction)
+    // Agent passes BROWSE_TAB env var to codex (not a system prompt instruction)
     expect(agentSrc).toContain('BROWSE_TAB');
     // Server handleCommand reads tabId from body and pins to that tab
     expect(serverSrc).toContain('savedTabId');
@@ -882,8 +882,8 @@ describe('cleanup heuristics (write-commands.ts)', () => {
     expect(wcSrc).toContain('text.length < 20');
   });
 
-  test('sticky cleanup skips gstack control indicator', () => {
-    expect(wcSrc).toContain("gstack-ctrl");
+  test('sticky cleanup skips cgstack control indicator', () => {
+    expect(wcSrc).toContain("cgstack-ctrl");
   });
 
   test('CLEANUP_SELECTORS has clutter category', () => {
@@ -991,17 +991,10 @@ describe('sidebar agent conciseness + no focus stealing', () => {
     expect(promptSection).toContain('Do NOT keep exploring');
   });
 
-  test('sidebar agent auto-routes model based on message type', () => {
-    // Model router exists and defaults to opus for analysis tasks
-    expect(serverSrc).toContain('function pickSidebarModel(');
-    expect(serverSrc).toContain("return 'opus'");
-    expect(serverSrc).toContain("return 'sonnet'");
-    // spawnClaude uses the router, not a hardcoded model
-    const spawnFn = serverSrc.slice(
-      serverSrc.indexOf('function spawnClaude('),
-      serverSrc.indexOf('\nfunction ', serverSrc.indexOf('function spawnClaude(') + 1),
-    );
-    expect(spawnFn).toContain('pickSidebarModel(userMessage)');
+  test('sidebar PTY leaves model choice to the Codex CLI', () => {
+    expect(serverSrc).not.toContain('function pickSidebarModel(');
+    expect(serverSrc).not.toContain('pickSidebarModel(userMessage)');
+    expect(serverSrc).not.toContain("'--model', model");
   });
 
   test('switchTab has bringToFront option', () => {
@@ -1211,12 +1204,12 @@ describe('welcome page', () => {
     expect(welcomeExists).toBe(true);
   });
 
-  test('welcome page has GStack Browser branding', () => {
-    expect(welcomeSrc).toContain('GStack Browser');
+  test('welcome page has CGStack Browser branding', () => {
+    expect(welcomeSrc).toContain('CGStack Browser');
   });
 
   test('welcome page has extension-ready listener to hide prompt', () => {
-    expect(welcomeSrc).toContain('gstack-extension-ready');
+    expect(welcomeSrc).toContain('cgstack-extension-ready');
     expect(welcomeSrc).toContain('sidebar-prompt');
   });
 
@@ -1260,7 +1253,7 @@ describe('server /welcome endpoint', () => {
     );
     // Changed from 302 redirect to about:blank (ERR_UNSAFE_REDIRECT on Windows)
     // to inline HTML fallback page (PR #822)
-    expect(welcomeSection).toContain('GStack Browser ready');
+    expect(welcomeSection).toContain('CGStack Browser ready');
     expect(welcomeSection).toContain('status: 200');
   });
 });
@@ -1332,8 +1325,8 @@ describe('sidebar arrow hint hide flow (4-step signal chain)', () => {
   // Signal flow:
   //   1. sidepanel.js connects → sends { type: 'sidebarOpened' } to background
   //   2. background.js receives → relays to active tab's content script
-  //   3. content.js receives 'sidebarOpened' → dispatches 'gstack-extension-ready'
-  //   4. welcome.html listens for 'gstack-extension-ready' → hides arrow
+  //   3. content.js receives 'sidebarOpened' → dispatches 'cgstack-extension-ready'
+  //   4. welcome.html listens for 'cgstack-extension-ready' → hides arrow
   //
   const contentSrc = fs.readFileSync(path.join(ROOT, '..', 'extension', 'content.js'), 'utf-8');
   const bgSrc = fs.readFileSync(path.join(ROOT, '..', 'extension', 'background.js'), 'utf-8');
@@ -1373,10 +1366,10 @@ describe('sidebar arrow hint hide flow (4-step signal chain)', () => {
     expect(handler).toContain("{ type: 'sidebarOpened' }");
   });
 
-  // Step 3: content.js fires gstack-extension-ready ONLY on sidebarOpened
+  // Step 3: content.js fires cgstack-extension-ready ONLY on sidebarOpened
   test('step 3: content.js dispatches extension-ready on sidebarOpened message', () => {
     expect(contentSrc).toContain("msg.type === 'sidebarOpened'");
-    expect(contentSrc).toContain("new CustomEvent('gstack-extension-ready')");
+    expect(contentSrc).toContain("new CustomEvent('cgstack-extension-ready')");
   });
 
   test('step 3: content.js does NOT auto-fire extension-ready on load', () => {
@@ -1384,20 +1377,20 @@ describe('sidebar arrow hint hide flow (4-step signal chain)', () => {
     // Now it should only fire when sidebarOpened message arrives.
     // Check there's no top-level dispatchEvent outside the message handler.
     const beforeListener = contentSrc.slice(0, contentSrc.indexOf('chrome.runtime.onMessage'));
-    expect(beforeListener).not.toContain("dispatchEvent(new CustomEvent('gstack-extension-ready'))");
+    expect(beforeListener).not.toContain("dispatchEvent(new CustomEvent('cgstack-extension-ready'))");
   });
 
-  // Step 4: welcome page hides arrow on gstack-extension-ready
-  test('step 4: welcome page hides arrow on gstack-extension-ready event', () => {
-    expect(welcomeSrc).toContain("'gstack-extension-ready'");
+  // Step 4: welcome page hides arrow on cgstack-extension-ready
+  test('step 4: welcome page hides arrow on cgstack-extension-ready event', () => {
+    expect(welcomeSrc).toContain("'cgstack-extension-ready'");
     expect(welcomeSrc).toContain("classList.add('hidden')");
   });
 
   test('step 4: welcome page does NOT auto-hide via status pill polling', () => {
-    // The old fallback (checkPill/gstack-status-pill) would hide the arrow
+    // The old fallback (checkPill/cgstack-status-pill) would hide the arrow
     // as soon as the content script injected the pill, even without sidebar open.
     expect(welcomeSrc).not.toContain('checkPill');
-    expect(welcomeSrc).not.toContain('gstack-status-pill');
+    expect(welcomeSrc).not.toContain('cgstack-status-pill');
   });
 });
 
@@ -1478,7 +1471,7 @@ describe('BROWSE_NO_AUTOSTART (sidebar headless prevention)', () => {
   });
 
   test('cli.ts shows actionable error message when BROWSE_NO_AUTOSTART blocks', () => {
-    expect(cliSrc).toContain('/open-gstack-browser');
+    expect(cliSrc).toContain('/open-cgstack-browser');
     expect(cliSrc).toContain('BROWSE_NO_AUTOSTART is set');
   });
 
@@ -1511,8 +1504,8 @@ describe('sidebar-agent hides internal tool-result reads', () => {
     expect(agentSrc).toContain("input.file_path.includes('/tool-results/')");
   });
 
-  test('describeToolCall returns empty for .claude/projects paths', () => {
-    expect(agentSrc).toContain("input.file_path.includes('/.claude/projects/')");
+  test('describeToolCall returns empty for .codex/projects paths', () => {
+    expect(agentSrc).toContain("input.file_path.includes('/.codex/projects/')");
   });
 
   test('empty description causes early return (no event sent)', () => {
@@ -1643,29 +1636,13 @@ describe('cookie import button (sidebar)', () => {
   });
 });
 
-// ─── Model routing (server.ts) ──────────────────────────────────
+// ─── Model ownership (server.ts) ────────────────────────────────
 
-describe('sidebar model routing (server.ts)', () => {
+describe('sidebar Codex model ownership (server.ts)', () => {
   const serverSrc = fs.readFileSync(path.join(ROOT, 'src', 'server.ts'), 'utf-8');
 
-  test('pickSidebarModel routes actions to sonnet', () => {
-    expect(serverSrc).toContain("return 'sonnet'");
-  });
-
-  test('pickSidebarModel routes analysis to opus', () => {
-    expect(serverSrc).toContain("return 'opus'");
-  });
-
-  test('analysis words override action verbs', () => {
-    // ANALYSIS_WORDS check comes before ACTION_PATTERNS
-    const routerFn = serverSrc.slice(
-      serverSrc.indexOf('function pickSidebarModel('),
-      serverSrc.indexOf('function pickSidebarModel(') + 600,
-    );
-    const analysisCheck = routerFn.indexOf('ANALYSIS_WORDS');
-    const actionCheck = routerFn.indexOf('ACTION_PATTERNS');
-    expect(analysisCheck).toBeGreaterThan(0);
-    expect(actionCheck).toBeGreaterThan(0);
-    expect(analysisCheck).toBeLessThan(actionCheck);
+  test('server does not force a model for Codex PTY sessions', () => {
+    expect(serverSrc).not.toContain('function pickSidebarModel(');
+    expect(serverSrc).not.toContain("'--model', model");
   });
 });

@@ -36,10 +36,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {
-  launchClaudePty,
+  launchCodexPty,
   isPermissionDialogVisible,
   isNumberedOptionListVisible,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -61,7 +61,7 @@ interface ShipFixture {
  * Returns the work-tree dir for /ship to operate on.
  */
 function buildShippedFixture(): ShipFixture {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-ship-fixture-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-ship-fixture-'));
   const workTree = path.join(root, 'workspace');
   const bareRemote = path.join(root, 'origin.git');
   fs.mkdirSync(workTree, { recursive: true });
@@ -155,7 +155,7 @@ describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
       const fixture = buildShippedFixture();
       const before = snapshotFixture(fixture.workTree);
 
-      const session = await launchClaudePty({
+      const session = await launchCodexPty({
         permissionMode: 'plan',
         cwd: fixture.workTree,
         timeoutMs: 720_000,
@@ -184,7 +184,7 @@ describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
           const visible = session.visibleSince(since);
 
           // Auto-grant any permission dialogs the preamble triggers
-          // (e.g. touch on a marker file claude considers sensitive).
+          // (e.g. touch on a marker file codex considers sensitive).
           // Classify on the recent tail; don't double-press the same render.
           const tail = visible.slice(-1500);
           if (isNumberedOptionListVisible(tail) && isPermissionDialogVisible(tail)) {
@@ -250,7 +250,7 @@ describeE2E('/ship idempotency E2E (periodic, real-PTY)', () => {
           );
         }
         if (outcome === 'exited') {
-          throw new Error(`claude exited unexpectedly.\n--- evidence ---\n${evidence}`);
+          throw new Error(`codex exited unexpectedly.\n--- evidence ---\n${evidence}`);
         }
         if (outcome === 'timeout') {
           throw new Error(

@@ -63,7 +63,7 @@ describe('browse-client', () => {
   beforeEach(async () => {
     server = await startMockServer();
     // Snapshot env we mutate so tests are hermetic.
-    for (const k of ['GSTACK_PORT', 'GSTACK_SKILL_TOKEN', 'BROWSE_STATE_FILE', 'BROWSE_TAB']) {
+    for (const k of ['CGSTACK_PORT', 'CGSTACK_SKILL_TOKEN', 'BROWSE_STATE_FILE', 'BROWSE_TAB']) {
       origEnv[k] = process.env[k];
       delete process.env[k];
     }
@@ -78,18 +78,18 @@ describe('browse-client', () => {
   });
 
   describe('resolveBrowseAuth', () => {
-    it('uses GSTACK_PORT + GSTACK_SKILL_TOKEN env when present', () => {
-      process.env.GSTACK_PORT = String(server.port);
-      process.env.GSTACK_SKILL_TOKEN = 'scoped-token';
+    it('uses CGSTACK_PORT + CGSTACK_SKILL_TOKEN env when present', () => {
+      process.env.CGSTACK_PORT = String(server.port);
+      process.env.CGSTACK_SKILL_TOKEN = 'scoped-token';
       const auth = resolveBrowseAuth();
       expect(auth.port).toBe(server.port);
       expect(auth.token).toBe('scoped-token');
       expect(auth.source).toBe('env');
     });
 
-    it('rejects GSTACK_PORT env values with trailing characters', () => {
-      process.env.GSTACK_PORT = `${server.port}abc`;
-      process.env.GSTACK_SKILL_TOKEN = 'scoped-token';
+    it('rejects CGSTACK_PORT env values with trailing characters', () => {
+      process.env.CGSTACK_PORT = `${server.port}abc`;
+      process.env.CGSTACK_SKILL_TOKEN = 'scoped-token';
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-client-test-'));
       try {
         expect(() => resolveBrowseAuth({ stateFile: path.join(tmpDir, 'missing.json') }))

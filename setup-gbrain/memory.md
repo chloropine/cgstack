@@ -1,4 +1,4 @@
-# gstack memory ingest — what it does, what stays local, what you can do with it
+# cgstack memory ingest — what it does, what stays local, what you can do with it
 
 This is the user-facing reference for the V1 transcript + memory ingest
 feature in `/setup-gbrain`. If you ran `/setup-gbrain` and it asked
@@ -9,23 +9,23 @@ happens after you say yes.
 
 | Source | Type | Where | Sensitivity |
 |---|---|---|---|
-| Claude Code session JSONL | `transcript` | `~/.claude/projects/*/` | High — full conversations including tool I/O |
+| Codex session JSONL | `transcript` | `~/.codex/projects/*/` | High — full conversations including tool I/O |
 | Codex CLI session JSONL | `transcript` | `~/.codex/sessions/YYYY/MM/DD/` | High |
-| Cursor session SQLite (V1.0.1) | `transcript` | `~/Library/Application Support/Cursor/` | Same — deferred V1.0.1 |
-| Eureka log | `eureka` | `~/.gstack/analytics/eureka.jsonl` | Medium — your insights, often non-secret |
-| Project learnings | `learning` | `~/.gstack/projects/<slug>/learnings.jsonl` | Medium |
-| Project timeline | `timeline` | `~/.gstack/projects/<slug>/timeline.jsonl` | Low |
-| CEO plans | `ceo-plan` | `~/.gstack/projects/<slug>/ceo-plans/*.md` | Medium |
-| Design docs | `design-doc` | `~/.gstack/projects/<slug>/*-design-*.md` | Medium |
-| Retros | `retro` | `~/.gstack/projects/<slug>/retros/*.md` | Medium |
-| Builder profile | `builder-profile-entry` | `~/.gstack/builder-profile.jsonl` | Low |
+| Codex session JSONL | `transcript` | `~/.codex/sessions/` and `~/.codex/projects/` | Supported |
+| Eureka log | `eureka` | `~/.cgstack/analytics/eureka.jsonl` | Medium — your insights, often non-secret |
+| Project learnings | `learning` | `~/.cgstack/projects/<slug>/learnings.jsonl` | Medium |
+| Project timeline | `timeline` | `~/.cgstack/projects/<slug>/timeline.jsonl` | Low |
+| CEO plans | `ceo-plan` | `~/.cgstack/projects/<slug>/ceo-plans/*.md` | Medium |
+| Design docs | `design-doc` | `~/.cgstack/projects/<slug>/*-design-*.md` | Medium |
+| Retros | `retro` | `~/.cgstack/projects/<slug>/retros/*.md` | Medium |
+| Builder profile | `builder-profile-entry` | `~/.cgstack/builder-profile.jsonl` | Low |
 
 ## What stays local
 
-- **State files** (`~/.gstack/.gbrain-sync-state.json`,
-  `~/.gstack/.transcript-ingest-state.json`,
-  `~/.gstack/.gbrain-engine-cache.json`,
-  `~/.gstack/.gbrain-errors.jsonl`) are local-only per ED1 (state file
+- **State files** (`~/.cgstack/.gbrain-sync-state.json`,
+  `~/.cgstack/.transcript-ingest-state.json`,
+  `~/.cgstack/.gbrain-engine-cache.json`,
+  `~/.cgstack/.gbrain-errors.jsonl`) are local-only per ED1 (state file
   sync semantics decision). They are not synced via the brain remote.
 
 - **Sessions with no resolvable git remote** (running in `/tmp/`, scratch
@@ -37,7 +37,7 @@ happens after you say yes.
 
 ## What gets scanned for secrets
 
-The cross-machine secret boundary is `gstack-brain-sync` (the git push
+The cross-machine secret boundary is `cgstack-brain-sync` (the git push
 to your private artifacts repo), which runs its own scanner before any
 content leaves this Mac. Local PGLite ingest doesn't change the exposure
 surface for content that already lives on disk in plaintext.
@@ -47,21 +47,21 @@ v1.33.0.0 — off by default. To re-enable it (adds ~4-8 min to cold runs
 on a large transcript corpus), use either:
 
 ```bash
-gstack-memory-ingest --bulk --scan-secrets
+cgstack-memory-ingest --bulk --scan-secrets
 # or
-GSTACK_MEMORY_INGEST_SCAN_SECRETS=1 gstack-memory-ingest --bulk
+CGSTACK_MEMORY_INGEST_SCAN_SECRETS=1 cgstack-memory-ingest --bulk
 ```
 
 When enabled, gitleaks covers:
 
 - AWS / GCP / Azure access keys
-- ANTHROPIC_API_KEY, OPENAI_API_KEY, GitHub tokens
+- OPENAI_API_KEY, GitHub tokens
 - Stripe keys, Slack tokens, JWT secrets
 - Generic high-entropy strings (configurable threshold)
 
 A session with a positive finding is **skipped entirely** — not partially
 redacted. The match line + rule ID are logged to stderr; you can see what
-was skipped via `bun run bin/gstack-memory-ingest.ts --probe` (which
+was skipped via `bun run bin/cgstack-memory-ingest.ts --probe` (which
 shows new vs. updated counts) or by reviewing the helper's output during
 `/sync-gbrain --full`.
 
@@ -75,7 +75,7 @@ Storage tier depends on your gbrain engine (set during `/setup-gbrain`):
 
 - **Supabase configured:** code + transcripts go to Supabase Storage
   (multi-Mac native). Curated memory (eureka/learnings/etc.) goes to the
-  brain-linked git repo via `gstack-brain-sync`.
+  brain-linked git repo via `cgstack-brain-sync`.
 - **Local PGLite only:** everything stays on this Mac. Curated memory
   syncs via git if you've enabled brain-sync.
 
@@ -99,7 +99,7 @@ replaceable from disk on each Mac.
 
 - **Read a specific page:**
   ```bash
-  gbrain get_page transcripts/claude-code/garrytan-gstack/2026-05-01-abc123
+  gbrain get_page transcriptsCodex CLI/garrytan-cgstack/2026-05-01-abc123
   ```
 
 - **Delete a page:**
@@ -110,20 +110,20 @@ replaceable from disk on each Mac.
   index but git history retains it. For hard-delete, run `git filter-repo`
   on the brain remote.
 
-- **Bulk-delete by criteria** (V1.0.1 follow-up — `gstack-transcript-prune`
+- **Bulk-delete by criteria** (V1.0.1 follow-up — `cgstack-transcript-prune`
   helper). For V1.0, use `gbrain delete_page <slug>` per-page or write
   a small loop over `gbrain list_pages` output.
 
 - **Disable entirely:**
   ```bash
-  gstack-config set transcript_ingest_mode off
-  gstack-config set gbrain_context_load off  # also disables retrieval
+  cgstack-config set transcript_ingest_mode off
+  cgstack-config set gbrain_context_load off  # also disables retrieval
   ```
 
 ## How the agent uses it
 
-At every gstack skill start, the preamble runs
-`gstack-brain-context-load` which:
+At every cgstack skill start, the preamble runs
+`cgstack-brain-context-load` which:
 
 1. Reads the active skill's `gbrain.context_queries:` frontmatter
 2. Dispatches each query to gbrain (vector / list / filesystem)
@@ -155,7 +155,7 @@ verdict block. If a row is RED, the row tells you what to do.
 Common cases:
 
 - **Salience block is empty** — your transcripts may not be ingested
-  yet. Run `gstack-gbrain-sync --full` to do a full pass.
+  yet. Run `cgstack-gbrain-sync --full` to do a full pass.
 
 - **"gbrain CLI missing" in the preamble output** — gbrain isn't on
   your PATH. Run `/setup-gbrain` to install/wire it.
@@ -166,15 +166,15 @@ Common cases:
   --pglite && gbrain import <brain-remote-clone-dir>`.
 
 - **A page has stale or wrong content** — `gbrain delete_page <slug>`,
-  then re-run `gstack-gbrain-sync --incremental` to re-ingest from
+  then re-run `cgstack-gbrain-sync --incremental` to re-ingest from
   source if the source file is still on disk and unchanged.
 
 ## Privacy + audit
 
 - Every `secretScanFile` finding is logged to stderr at ingest time.
-- Every gbrain put/delete is logged to `~/.gstack/.gbrain-errors.jsonl`
+- Every gbrain put/delete is logged to `~/.cgstack/.gbrain-errors.jsonl`
   with `{ts, op, duration_ms, outcome}` for forensic tracing.
-- `~/.gstack/.gbrain-engine-cache.json` shows which storage tier is
+- `~/.cgstack/.gbrain-engine-cache.json` shows which storage tier is
   active (PGLite vs Supabase).
 - Brain-sync git history shows every curated artifact push with the
   user's git identity.
@@ -199,43 +199,43 @@ You provide:
 - A bearer token (issued by the brain admin via `gbrain access-token issue`)
 
 What `/setup-gbrain` does:
-1. Verifies the URL + token via `gstack-gbrain-mcp-verify`. Three failure
+1. Verifies the URL + token via `cgstack-gbrain-mcp-verify`. Three failure
    modes get classified with one-line remediation hints:
    **NETWORK** ("check Tailscale/DNS"), **AUTH** ("rotate token"),
    **MALFORMED** ("Accept-header gotcha — pass both `application/json`
    AND `text/event-stream`").
 2. Registers the MCP at user scope:
    ```
-   claude mcp add --scope user --transport http gbrain "$URL" \
+   codex mcp add --scope user --transport http gbrain "$URL" \
      --header "Authorization: Bearer $TOKEN"
    ```
 3. Skips local install, local doctor, transcript ingest, and federated
    source registration. All four require a local `gbrain` CLI that Path 4
    doesn't install.
-4. Optionally provisions a `gstack-artifacts-$USER` private repo on
+4. Optionally provisions a `cgstack-artifacts-$USER` private repo on
    GitHub or GitLab and prints the one-line `gbrain sources add` command
    for your brain admin to run on the brain host.
 
 ### Token storage trade-off
 
-The bearer token lives in `~/.claude.json` (mode 0600), where Claude Code
-stores every MCP server's credentials. During `claude mcp add --header
+The bearer token lives in `~/.codex.json` (mode 0600), where Codex
+stores every MCP server's credentials. During `codex mcp add --header
 "Authorization: Bearer $TOKEN"`, the token is briefly visible in
 process argv (~10ms) — visible to `ps` running concurrently. The window
 is small but it's not zero.
 
 Mitigations we've considered:
 - **Stdin or env-var input form for headers** — would close the argv
-  window. As of Claude Code v1.0.x, the CLI doesn't expose either.
+  window. As of Codex v1.0.x, the CLI doesn't expose either.
   When it does, `/setup-gbrain` Path 4 will switch automatically.
 - **Keychain storage** — explicitly out of scope (the token's resting
-  state in `~/.claude.json` is the existing trust surface for every MCP
+  state in `~/.codex.json` is the existing trust surface for every MCP
   credential; expanding to Keychain would touch every MCP server, not
   just gbrain).
 
 ### Why Path 4 is "always print" for the brain-admin hookup
 
-`gstack-artifacts-init` always prints the `gbrain sources add` command
+`cgstack-artifacts-init` always prints the `gbrain sources add` command
 labeled "Send this to your brain admin" — even when the user IS the
 brain admin (consistent UX, no mode-detection fragility).
 
@@ -252,10 +252,10 @@ Until gbrain ships:
 we always print the command rather than pretending we know who has
 permission to run it.
 
-### CLAUDE.md block in Path 4
+### AGENTS.md block in Path 4
 
-Distinct from local-stdio mode. Token is **never** written to CLAUDE.md
-(many projects check CLAUDE.md into git). The block records the URL,
+Distinct from local-stdio mode. Token is **never** written to AGENTS.md
+(many projects check AGENTS.md into git). The block records the URL,
 the verified server version, the artifacts repo URL (if provisioned),
 and the per-repo trust policy.
 
@@ -266,8 +266,8 @@ and the per-repo trust policy.
 - Server version: gbrain v0.27.1
 - Setup date: 2026-05-06
 - MCP registered: yes (user scope)
-- Token: stored in ~/.claude.json (do not commit; never written to CLAUDE.md)
-- Artifacts repo: github.com/garrytan/gstack-artifacts-garrytan (private)
+- Token: stored in ~/.codex.json (do not commit; never written to AGENTS.md)
+- Artifacts repo: github.com/chloropine/cgstack-artifacts-garrytan (private)
 - Artifacts sync: artifacts-only
 - Current repo policy: read-write
 ```
@@ -282,6 +282,6 @@ token), the helper says: "rotate token on the brain host, re-run
 gbrain access-token rotate    # invalidates old, issues new
 ```
 
-(See `gstack/setup-gbrain/SKILL.md.tmpl` for the full Path 4 flow plus
+(See `cgstack/setup-gbrain/SKILL.md.tmpl` for the full Path 4 flow plus
 the gbrain enhancement requests around scoped tokens that would let
-gstack auto-rotate in V2.)
+cgstack auto-rotate in V2.)

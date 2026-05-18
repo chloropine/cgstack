@@ -1,5 +1,5 @@
 /**
- * Question Registry — typed schema for AskUserQuestion invocations across gstack.
+ * Question Registry — typed schema for AskUserQuestion invocations across cgstack.
  *
  * Purpose
  * -------
@@ -10,7 +10,7 @@
  * - One-way door safety is declared here, not inferred from prose summaries
  * - The psychographic signal map (scripts/psychographic-signals.ts) maps id → dimension delta
  *
- * Not every AskUserQuestion in gstack needs a registry entry right away. Skills
+ * Not every AskUserQuestion in cgstack needs a registry entry right away. Skills
  * often craft questions dynamically at runtime — the agent generates an ad-hoc id
  * of the form `{skill}-{slug}` for those. The /plan-tune skill surfaces frequently-
  * firing ad-hoc ids as candidates for registry promotion.
@@ -74,7 +74,7 @@ export type StandardOption =
 export interface QuestionDef {
   /** Stable kebab-case id: `{skill}-{semantic-description}` */
   id: string;
-  /** Skill that owns this question (must match a gstack skill directory name) */
+  /** Skill that owns this question (must match a cgstack skill directory name) */
   skill: string;
   /** Shape of the question */
   category: QuestionCategory;
@@ -227,13 +227,13 @@ export const QUESTIONS = {
     options: ['accept', 'reject'],
     description: "Premise check — agree or disagree?",
   },
-  'office-hours-cross-model-run': {
-    id: 'office-hours-cross-model-run',
+  'office-hours-independent Codex-run': {
+    id: 'office-hours-independent Codex-run',
     skill: 'office-hours',
     category: 'approval',
     door_type: 'two-way',
     options: ['accept', 'skip'],
-    description: "Want a second-opinion cross-model review of your brainstorm?",
+    description: "Want a second-opinion independent Codex review of your brainstorm?",
   },
   'office-hours-landscape-privacy-gate': {
     id: 'office-hours-landscape-privacy-gate',
@@ -288,7 +288,7 @@ export const QUESTIONS = {
     category: 'approval',
     door_type: 'one-way',
     options: ['revise', 'hold'],
-    description: "Cross-model challenged an agreed premise — revise or keep?",
+    description: "Independent Codex challenged an agreed premise — revise or keep?",
   },
   'plan-ceo-review-outside-voice': {
     id: 'plan-ceo-review-outside-voice',
@@ -487,15 +487,15 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /gstack-upgrade — version upgrade
+  // /cgstack-upgrade — version upgrade
   // -----------------------------------------------------------------------
-  'gstack-upgrade-inline': {
-    id: 'gstack-upgrade-inline',
-    skill: 'gstack-upgrade',
+  'cgstack-upgrade-inline': {
+    id: 'cgstack-upgrade-inline',
+    skill: 'cgstack-upgrade',
     category: 'approval',
     door_type: 'two-way',
     options: ['yes-upgrade', 'always-auto', 'not-now', 'never-ask'],
-    description: "Upgrade gstack now? (Also: always auto-upgrade, snooze, or disable the prompt.)",
+    description: "Upgrade cgstack now? (Also: always auto-upgrade, snooze, or disable the prompt.)",
   },
 
   // -----------------------------------------------------------------------
@@ -507,7 +507,7 @@ export const QUESTIONS = {
     category: 'approval',
     door_type: 'two-way',
     options: ['community', 'anonymous', 'off'],
-    description: "Share usage data with gstack? community (recommended) / anonymous / off",
+    description: "Share usage data with cgstack? community (recommended) / anonymous / off",
   },
   'preamble-proactive-behavior': {
     id: 'preamble-proactive-behavior',
@@ -515,7 +515,7 @@ export const QUESTIONS = {
     category: 'approval',
     door_type: 'two-way',
     options: ['on', 'off'],
-    description: "Let gstack proactively suggest skills based on conversation context?",
+    description: "Let cgstack proactively suggest skills based on conversation context?",
   },
   'preamble-routing-injection': {
     id: 'preamble-routing-injection',
@@ -523,7 +523,7 @@ export const QUESTIONS = {
     category: 'approval',
     door_type: 'two-way',
     options: ['accept', 'decline'],
-    description: "Add gstack skill routing rules to CLAUDE.md?",
+    description: "Add cgstack skill routing rules to AGENTS.md?",
   },
   'preamble-vendored-migration': {
     id: 'preamble-vendored-migration',
@@ -531,7 +531,7 @@ export const QUESTIONS = {
     category: 'approval',
     door_type: 'two-way',
     options: ['accept', 'keep-vendored'],
-    description: "This repo has vendored gstack (deprecated) — migrate to team mode?",
+    description: "This repo has vendored cgstack (deprecated) — migrate to team mode?",
   },
   'preamble-completeness-intro': {
     id: 'preamble-completeness-intro',

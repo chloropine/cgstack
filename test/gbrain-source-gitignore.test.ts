@@ -4,7 +4,7 @@
  *
  * Covers #1384: v1.29.0.0 changelog promised the per-worktree pin would be
  * ignored in the consuming repo, but the change actually only added
- * `.gbrain-source` to gstack's own `.gitignore`. Without the consumer-side
+ * `.gbrain-source` to cgstack's own `.gitignore`. Without the consumer-side
  * entry, Conductor sibling worktrees commit the pin and clobber each other.
  */
 
@@ -13,13 +13,13 @@ import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync, chmodSync
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { ensureGbrainSourceGitignored } from "../bin/gstack-gbrain-sync";
+import { ensureGbrainSourceGitignored } from "../bin/cgstack-gbrain-sync";
 
 describe("ensureGbrainSourceGitignored", () => {
   let root: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), "gstack-gbrain-gitignore-"));
+    root = mkdtempSync(join(tmpdir(), "cgstack-gbrain-gitignore-"));
   });
 
   afterEach(() => {

@@ -3,8 +3,8 @@
  *
  * Asserts: no test in the most recent eval run grew its tool calls or
  * turns by more than 2× vs the prior recorded run. Pure library — does
- * not spawn `claude` or pay any API cost. Reads the project eval dir
- * (~/.gstack/projects/<slug>/evals/) and compares the latest run against
+ * not spawn `codex` or pay any API cost. Reads the project eval dir
+ * (~/.cgstack/projects/<slug>/evals/) and compares the latest run against
  * its predecessor.
  *
  * First-run grace: if there's no prior run, the test passes vacuously.
@@ -17,7 +17,7 @@
  * worth catching. We use a noise floor (5 tool calls / 3 turns) to
  * avoid flagging tests that started tiny and got slightly bigger.
  *
- * Override: GSTACK_BUDGET_RATIO=<n> (default 2.0).
+ * Override: CGSTACK_BUDGET_RATIO=<n> (default 2.0).
  *
  * Skipping: only the gate-level CI-blocking variant runs in EVALS_TIER=gate.
  * The same logic runs anywhere `bun test` is invoked because comparison

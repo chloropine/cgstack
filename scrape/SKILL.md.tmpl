@@ -7,7 +7,7 @@ description: |
   route to a codified browser-skill and return in ~200ms. Read-only — for
   mutating flows (form fills, clicks, submissions), use /automate.
   Use when asked to "scrape", "get data from", "pull", "extract from", or
-  "what's on" a page. (gstack)
+  "what's on" a page. (cgstack)
 allowed-tools:
   - Bash
   - Read
@@ -116,7 +116,7 @@ After a successful prototype, append exactly one line:
 > "Say /skillify to make this a permanent skill (200ms on next call)."
 
 That is the entire nudge. Do not nag, do not list pros, do not push.
-Proactive surfacing is a Phase 3 knob (`gstack-config browser_skillify_prompts`),
+Proactive surfacing is a Phase 3 knob (`cgstack-config browser_skillify_prompts`),
 not this skill's job.
 
 ## When the prototype fails

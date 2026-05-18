@@ -53,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          bun run bin/gstack-next-version \
+          bun run bin/cgstack-next-version \
             --base "${{ steps.versions.outputs.base_ref }}" \
             --bump "${{ steps.bump.outputs.level }}" \
             --current-version "${{ steps.versions.outputs.base_version }}" \

@@ -1,8 +1,8 @@
 /**
- * Claude CLI subprocess runner for skill E2E testing.
+ * Codex CLI subprocess runner for skill E2E testing.
  *
- * Spawns `claude -p` as a completely independent process (not via Agent SDK),
- * so it works inside Claude Code sessions. Pipes prompt via stdin, streams
+ * Spawns `codex -p` as a completely independent process (not via Agent SDK),
+ * so it works inside Codex sessions. Pipes prompt via stdin, streams
  * NDJSON output for real-time progress, scans for browse errors.
  */
 
@@ -11,9 +11,9 @@ import * as path from 'path';
 import * as os from 'os';
 import { getProjectEvalDir } from './eval-store';
 
-const GSTACK_DEV_DIR = path.join(os.homedir(), '.gstack-dev');
-const HEARTBEAT_PATH = path.join(GSTACK_DEV_DIR, 'e2e-live.json'); // heartbeat stays global
-const PROJECT_DIR = path.dirname(getProjectEvalDir()); // ~/.gstack/projects/$SLUG/
+const CGSTACK_DEV_DIR = path.join(os.homedir(), '.cgstack-dev');
+const HEARTBEAT_PATH = path.join(CGSTACK_DEV_DIR, 'e2e-live.json'); // heartbeat stays global
+const PROJECT_DIR = path.dirname(getProjectEvalDir()); // ~/.cgstack/projects/$SLUG/
 
 /** Sanitize test name for use as filename: strip leading slashes, replace / with - */
 export function sanitizeTestName(name: string): string {
@@ -43,7 +43,7 @@ export interface SkillTestResult {
   output: string;
   costEstimate: CostEstimate;
   transcript: any[];
-  /** Which model was used for this test (added for Sonnet/Opus split diagnostics) */
+  /** Which model was used for this test (added for GPT/GPT split diagnostics) */
   model: string;
   /** Time from spawn to first NDJSON line, in ms (added for rate-limit diagnostics) */
   firstResponseMs: number;
@@ -124,10 +124,10 @@ export async function runSkillTest(options: {
   timeout?: number;
   testName?: string;
   runId?: string;
-  /** Model to use. Defaults to claude-sonnet-4-6 (overridable via EVALS_MODEL env). */
+  /** Model to use. Defaults to gpt-5.4 (overridable via EVALS_MODEL env). */
   model?: string;
-  /** Extra env vars merged into the spawned claude -p process. Useful for
-   *  per-test GSTACK_HOME overrides so the test doesn't have to spell out
+  /** Extra env vars merged into the spawned codex -p process. Useful for
+   *  per-test CGSTACK_HOME overrides so the test doesn't have to spell out
    *  env setup in the prompt itself. */
   env?: Record<string, string>;
 }): Promise<SkillTestResult> {
@@ -141,7 +141,7 @@ export async function runSkillTest(options: {
     runId,
     env: extraEnv,
   } = options;
-  const model = options.model ?? process.env.EVALS_MODEL ?? 'claude-sonnet-4-6';
+  const model = options.model ?? process.env.EVALS_MODEL ?? 'gpt-5.4';
 
   const startTime = Date.now();
   const startedAt = new Date().toISOString();
@@ -156,7 +156,7 @@ export async function runSkillTest(options: {
     } catch { /* non-fatal */ }
   }
 
-  // Spawn claude -p with streaming NDJSON output. Prompt piped via stdin to
+  // Spawn codex -p with streaming NDJSON output. Prompt piped via stdin to
   // avoid shell escaping issues. --verbose is required for stream-json mode.
   const args = [
     '-p',
@@ -174,7 +174,7 @@ export async function runSkillTest(options: {
   const promptFile = path.join(os.tmpdir(), `.prompt-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   fs.writeFileSync(promptFile, prompt);
 
-  const proc = Bun.spawn(['sh', '-c', `cat "${promptFile}" | claude ${args.map(a => `"${a}"`).join(' ')}`], {
+  const proc = Bun.spawn(['sh', '-c', `cat "${promptFile}" | codex ${args.map(a => `"${a}"`).join(' ')}`], {
     cwd: workingDirectory,
     env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
     stdout: 'pipe',
@@ -310,7 +310,7 @@ export async function runSkillTest(options: {
   // Use resultLine for structured result data
   if (resultLine) {
     if (resultLine.subtype === 'success' && resultLine.is_error) {
-      // claude -p can return subtype=success with is_error=true (e.g. API connection failure)
+      // codex -p can return subtype=success with is_error=true (e.g. API connection failure)
       exitReason = 'error_api';
     } else if (resultLine.subtype === 'success') {
       exitReason = 'success';
@@ -323,7 +323,7 @@ export async function runSkillTest(options: {
   // Save failure transcript to persistent run directory (or fallback to workingDirectory)
   if (browseErrors.length > 0 || exitReason !== 'success') {
     try {
-      const failureDir = runDir || path.join(workingDirectory, '.gstack', 'test-transcripts');
+      const failureDir = runDir || path.join(workingDirectory, '.cgstack', 'test-transcripts');
       fs.mkdirSync(failureDir, { recursive: true });
       const failureName = safeName
         ? `${safeName}-failure.json`

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# cgstack-team-init — generate repo-level Codex bootstrap instructions.
+#
+# Usage:
+#   cgstack-team-init optional
+#   cgstack-team-init required
+#
+# Run from the root of your team's repo, not from the cgstack directory.
+
+set -euo pipefail
+
+MODE="${1:-}"
+
+if [ "$MODE" != "optional" ] && [ "$MODE" != "required" ]; then
+  echo "Usage: cgstack-team-init {optional|required}" >&2
+  echo "" >&2
+  echo "  optional  — suggest cgstack install once per developer" >&2
+  echo "  required  — require cgstack before AI-assisted work" >&2
+  exit 1
+fi
+
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  echo "Error: not in a git repository. Run from your project root." >&2
+  exit 1
+fi
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+AGENTS_MD="$REPO_ROOT/AGENTS.md"
+GENERATED=()
+
+if [ "$MODE" = "optional" ]; then
+  SNIPPET='## cgstack (recommended)
+
+This project uses [cgstack](https://github.com/chloropine/cgstack) for Codex-assisted workflows.
+Install it for the best experience:
+
+```bash
+git clone --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/cgstack
+cd ~/.cgstack/repos/cgstack && ./setup --team
+```
+
+After install, skills like /qa, /ship, /review, /investigate, and /browse are available to Codex.
+Use /browse for all web browsing. Use ~/.codex/skills/cgstack/... for cgstack runtime file paths.'
+else
+  SNIPPET='## cgstack (REQUIRED)
+
+Before doing AI-assisted work, verify cgstack is installed for Codex:
+
+```bash
+test -d ~/.codex/skills/cgstack/bin && echo "CGSTACK_OK" || echo "CGSTACK_MISSING"
+```
+
+If CGSTACK_MISSING: stop and tell the user:
+
+> cgstack is required for AI-assisted work in this repo.
+> Install it:
+> ```bash
+> git clone --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/cgstack
+> cd ~/.cgstack/repos/cgstack && ./setup --team
+> ```
+> Then restart Codex.
+
+Do not skip skills, ignore cgstack errors, or work around missing cgstack.
+
+Using cgstack skills: after install, skills like /qa, /ship, /review, /investigate,
+and /browse are available. Use /browse for all web browsing.
+Use ~/.codex/skills/cgstack/... for cgstack runtime file paths.'
+fi
+
+if [ -f "$AGENTS_MD" ] && grep -q "## cgstack" "$AGENTS_MD" 2>/dev/null; then
+  echo "AGENTS.md already has a cgstack section. Skipping AGENTS.md update."
+  echo "  To replace it, remove the existing ## cgstack section and re-run."
+else
+  if [ -f "$AGENTS_MD" ]; then
+    printf '\n' >> "$AGENTS_MD"
+  fi
+  printf '%s\n' "$SNIPPET" >> "$AGENTS_MD"
+  GENERATED+=("AGENTS.md")
+  echo "  + AGENTS.md — added cgstack $MODE section"
+fi
+
+echo ""
+echo "Team mode ($MODE) initialized."
+echo ""
+if [ ${#GENERATED[@]} -gt 0 ]; then
+  echo "Commit the generated files:"
+  echo "  git add ${GENERATED[*]}"
+  echo "  git commit -m \"chore: require cgstack for AI-assisted work\""
+fi
+echo ""
+echo "Each developer then runs:"
+echo "  git clone --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/cgstack"
+echo "  cd ~/.cgstack/repos/cgstack && ./setup --team"

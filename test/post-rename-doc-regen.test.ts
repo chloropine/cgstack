@@ -1,9 +1,9 @@
 // Post-rename doc-regen regression: after `bun run gen:skill-docs`, no
-// `gstack-brain-init` or `gbrain_sync_mode` strings appear in any of the
+// `cgstack-brain-init` or `gbrain_sync_mode` strings appear in any of the
 // generated SKILL.md files (the cross-product blind spot codex
 // Finding #12 flagged).
 //
-// The check runs against the canonical claude-host output already on
+// The check runs against the canonical codex-host output already on
 // disk. We don't shell out to gen-skill-docs again; the existing
 // freshness check in gen-skill-docs.test.ts covers that. This test
 // just verifies the rename actually propagated to the generated
@@ -18,12 +18,12 @@ const ROOT = path.resolve(import.meta.dir, '..');
 const FORBIDDEN_PATTERNS = [
   // Bare identifier — should NEVER appear in generated docs (if it does,
   // a template still has the old call site).
-  /^.*\bgstack-brain-init\b.*$/m,
+  /^.*\bcgstack-brain-init\b.*$/m,
   /^.*\bgbrain_sync_mode\b.*$/m,
 ];
 
 // Per the preamble resolver: generated docs DO contain the
-// "~/.gstack-brain-remote.txt" string in the migration-window fallback. We
+// "~/.cgstack-brain-remote.txt" string in the migration-window fallback. We
 // don't grep for that — it's intentional. We grep for the call-site
 // identifiers only.
 
@@ -42,15 +42,15 @@ function findSkillMdFiles(): string[] {
 }
 
 describe('post-rename doc-regen regression (codex Finding #12)', () => {
-  test('no generated SKILL.md contains "gstack-brain-init"', () => {
+  test('no generated SKILL.md contains "cgstack-brain-init"', () => {
     const offenders: string[] = [];
     for (const file of findSkillMdFiles()) {
       const content = fs.readFileSync(file, 'utf-8');
-      const m = content.match(/^.*\bgstack-brain-init\b.*$/m);
+      const m = content.match(/^.*\bcgstack-brain-init\b.*$/m);
       if (m) offenders.push(`${path.relative(ROOT, file)}: ${m[0].slice(0, 100)}`);
     }
     if (offenders.length > 0) {
-      console.error(`Stale "gstack-brain-init" in generated SKILL.md files:\n${offenders.map((o) => '  ' + o).join('\n')}`);
+      console.error(`Stale "cgstack-brain-init" in generated SKILL.md files:\n${offenders.map((o) => '  ' + o).join('\n')}`);
     }
     expect(offenders).toEqual([]);
   });

@@ -1,5 +1,5 @@
 /**
- * Tests the split-engine SKIP semantics in bin/gstack-gbrain-sync.ts (plan D12).
+ * Tests the split-engine SKIP semantics in bin/cgstack-gbrain-sync.ts (plan D12).
  *
  * When localEngineStatus() returns anything except 'ok', the orchestrator's
  * code + memory stages return ran=false summaries; the brain-sync stage runs
@@ -24,14 +24,14 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { execFileSync, spawnSync } from "child_process";
 
-const SCRIPT = join(import.meta.dir, "..", "bin", "gstack-gbrain-sync.ts");
+const SCRIPT = join(import.meta.dir, "..", "bin", "cgstack-gbrain-sync.ts");
 const BUN_BIN = execFileSync("sh", ["-c", "command -v bun"], { encoding: "utf-8" }).trim();
 
 interface FakeEnv {
   tmp: string;
   bindir: string;
   home: string;
-  gstackHome: string;
+  cgstackHome: string;
   cleanup: () => void;
 }
 
@@ -48,12 +48,12 @@ function makeEnv(opts: {
   const tmp = mkdtempSync(join(tmpdir(), "gbrain-sync-skip-"));
   const bindir = join(tmp, "bin");
   const home = join(tmp, "home");
-  const gstackHome = join(home, ".gstack");
+  const cgstackHome = join(home, ".cgstack");
   const gbrainDir = join(home, ".gbrain");
 
   mkdirSync(bindir, { recursive: true });
   mkdirSync(home, { recursive: true });
-  mkdirSync(gstackHome, { recursive: true });
+  mkdirSync(cgstackHome, { recursive: true });
   mkdirSync(gbrainDir, { recursive: true });
 
   if (opts.withConfig) {
@@ -90,7 +90,7 @@ exit 0
     tmp,
     bindir,
     home,
-    gstackHome,
+    cgstackHome,
     cleanup: () => rmSync(tmp, { recursive: true, force: true }),
   };
 }
@@ -111,7 +111,7 @@ function runOrchestrator(env: FakeEnv, args: string[]): { stdout: string; stderr
     env: {
       ...process.env,
       HOME: env.home,
-      GSTACK_HOME: env.gstackHome,
+      CGSTACK_HOME: env.cgstackHome,
       PATH: `${env.bindir}:/usr/bin:/bin`,
     },
   });
@@ -122,7 +122,7 @@ function runOrchestrator(env: FakeEnv, args: string[]): { stdout: string; stderr
   };
 }
 
-describe("gstack-gbrain-sync — split-engine SKIP (plan D12)", () => {
+describe("cgstack-gbrain-sync — split-engine SKIP (plan D12)", () => {
   it("SKIPs code stage when local engine is broken-db; brain-sync still attempted", () => {
     const env = makeEnv({ withGbrain: true, gbrainBehavior: "broken-db", withConfig: true });
     try {

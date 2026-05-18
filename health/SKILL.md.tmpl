@@ -7,7 +7,7 @@ description: |
   test runner, dead code detector, shell linter), computes a weighted composite
   0-10 score, and tracks trends over time. Use when: "health check",
   "code quality", "how healthy is the codebase", "run all checks",
-  "quality score". (gstack)
+  "quality score". (cgstack)
 triggers:
   - code health check
   - quality dashboard
@@ -42,7 +42,7 @@ When the user types `/health`, run this skill.
 
 ## Step 1: Detect Health Stack
 
-Read CLAUDE.md and look for a `## Health Stack` section. If found, parse the tools
+Read AGENTS.md and look for a `## Health Stack` section. If found, parse the tools
 listed there and skip auto-detection.
 
 If no `## Health Stack` section exists, auto-detect available tools:
@@ -90,12 +90,12 @@ After auto-detection, present the detected tools via AskUserQuestion:
 - Dead code: `knip`
 - Shell lint: `shellcheck *.sh`
 
-A) Looks right -- persist to CLAUDE.md and continue
+A) Looks right -- persist to AGENTS.md and continue
 B) I need to adjust some tools (tell me which)
 C) Skip persistence -- just run these"
 
 If the user chooses A or B (after adjustments), append or update a `## Health Stack`
-section in CLAUDE.md:
+section in AGENTS.md:
 
 ```markdown
 ## Health Stack
@@ -167,10 +167,10 @@ remaining categories.
 ```
 doctor_component: 10 if `gbrain doctor --json | jq -r .status` == "ok";
                    7 if "warnings"; 0 otherwise (or command times out after 5s).
-queue_component:   10 if ~/.gstack/.brain-queue.jsonl has <10 lines;
+queue_component:   10 if ~/.cgstack/.brain-queue.jsonl has <10 lines;
                     7 if 10-100; 0 if >=100 (suggests secret-scan rejections
                     piling up). N/A if artifacts_sync_mode == off.
-push_component:    10 if (now - mtime of ~/.gstack/.brain-last-push) < 24h;
+push_component:    10 if (now - mtime of ~/.cgstack/.brain-last-push) < 24h;
                     7 if <72h; 0 if >=72h. N/A if artifacts_sync_mode == off.
 gbrain_score     = 0.5 * doctor_component + 0.3 * queue_component + 0.2 * push_component
                    (redistribute 0.3 + 0.2 into doctor when sync_mode is off:
@@ -232,7 +232,7 @@ DETAILS: Lint (3 warnings)
 {{SLUG_SETUP}}
 ```
 
-Append one JSONL line to `~/.gstack/projects/$SLUG/health-history.jsonl`:
+Append one JSONL line to `~/.cgstack/projects/$SLUG/health-history.jsonl`:
 
 ```json
 {"ts":"2026-03-31T14:30:00Z","branch":"main","score":9.1,"typecheck":10,"lint":8,"test":10,"deadcode":7,"shell":10,"gbrain":10,"duration_s":23}
@@ -253,12 +253,12 @@ and start new tracking from the first post-D6 run.
 
 ## Step 6: Trend Analysis + Recommendations
 
-Read the last 10 entries from `~/.gstack/projects/$SLUG/health-history.jsonl` (if the
+Read the last 10 entries from `~/.cgstack/projects/$SLUG/health-history.jsonl` (if the
 file exists and has prior entries).
 
 ```bash
 {{SLUG_SETUP}}
-tail -10 ~/.gstack/projects/$SLUG/health-history.jsonl 2>/dev/null || echo "NO_HISTORY"
+tail -10 ~/.cgstack/projects/$SLUG/health-history.jsonl 2>/dev/null || echo "NO_HISTORY"
 ```
 
 **If prior entries exist, show the trend:**
@@ -313,7 +313,7 @@ Rank by `weight * (10 - score)` descending. Only show categories below 10.
 
 1. **Wrap, don't replace.** Run the project's own tools. Never substitute your own analysis for what the tool reports.
 2. **Read-only.** Never fix issues. Present the dashboard and let the user decide.
-3. **Respect CLAUDE.md.** If `## Health Stack` is configured, use those exact commands. Do not second-guess.
+3. **Respect AGENTS.md.** If `## Health Stack` is configured, use those exact commands. Do not second-guess.
 4. **Skipped is not failed.** If a tool isn't available, skip it gracefully and redistribute weight. Do not penalize the score.
 5. **Show raw output for failures.** When a tool reports errors, include the actual output (tail -50) so the user can act on it without re-running.
 6. **Trends require history.** On first run, say "First health check -- no trend data yet. Run /health again after making changes to track progress."

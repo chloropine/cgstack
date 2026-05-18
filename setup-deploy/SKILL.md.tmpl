@@ -6,9 +6,9 @@ description: |
   Configure deployment settings for /land-and-deploy. Detects your deploy
   platform (Fly.io, Render, Vercel, Netlify, Heroku, GitHub Actions, custom),
   production URL, health check endpoints, and deploy status commands. Writes
-  the configuration to CLAUDE.md so all future deploys are automatic.
+  the configuration to AGENTS.md so all future deploys are automatic.
   Use when: "setup deploy", "configure deployment", "set up land-and-deploy",
-  "how do I deploy with gstack", "add deploy config".
+  "how do I deploy with cgstack", "add deploy config".
 triggers:
   - configure deploy
   - setup deployment
@@ -25,13 +25,13 @@ allowed-tools:
 
 {{PREAMBLE}}
 
-# /setup-deploy — Configure Deployment for gstack
+# /setup-deploy — Configure Deployment for cgstack
 
 You are helping the user configure their deployment so `/land-and-deploy` works
 automatically. Your job is to detect the deploy platform, production URL, health
-checks, and deploy status commands — then persist everything to CLAUDE.md.
+checks, and deploy status commands — then persist everything to AGENTS.md.
 
-After this runs once, `/land-and-deploy` reads CLAUDE.md and skips detection entirely.
+After this runs once, `/land-and-deploy` reads AGENTS.md and skips detection entirely.
 
 ## User-invocable
 When the user types `/setup-deploy`, run this skill.
@@ -41,12 +41,12 @@ When the user types `/setup-deploy`, run this skill.
 ### Step 1: Check existing configuration
 
 ```bash
-grep -A 20 "## Deploy Configuration" CLAUDE.md 2>/dev/null || echo "NO_CONFIG"
+grep -A 20 "## Deploy Configuration" AGENTS.md 2>/dev/null || echo "NO_CONFIG"
 ```
 
 If configuration already exists, show it and ask:
 
-- **Context:** Deploy configuration already exists in CLAUDE.md.
+- **Context:** Deploy configuration already exists in AGENTS.md.
 - **RECOMMENDATION:** Choose A to update if your setup changed.
 - A) Reconfigure from scratch (overwrite existing)
 - B) Edit specific fields (show current config, let me change one thing)
@@ -148,7 +148,7 @@ Use AskUserQuestion to gather the information:
 
 2. **What's the production URL?** (Free text — the URL where the app runs)
 
-3. **How can gstack check if a deploy succeeded?**
+3. **How can cgstack check if a deploy succeeded?**
    - A) HTTP health check at a specific URL (e.g., /health, /api/status)
    - B) CLI command (e.g., `fly status`, `kubectl rollout status`)
    - C) Check the GitHub Actions workflow status
@@ -160,7 +160,7 @@ Use AskUserQuestion to gather the information:
 
 ### Step 4: Write configuration
 
-Read CLAUDE.md (or create it). Find and replace the `## Deploy Configuration` section
+Read AGENTS.md (or create it). Find and replace the `## Deploy Configuration` section
 if it exists, or append it at the end.
 
 ```markdown
@@ -208,11 +208,11 @@ Health check:  {health check}
 Status cmd:    {status command}
 Merge method:  {merge method}
 
-Saved to CLAUDE.md. /land-and-deploy will use these settings automatically.
+Saved to AGENTS.md. /land-and-deploy will use these settings automatically.
 
 Next steps:
 - Run /land-and-deploy to merge and deploy your current PR
-- Edit the "## Deploy Configuration" section in CLAUDE.md to change settings
+- Edit the "## Deploy Configuration" section in AGENTS.md to change settings
 - Run /setup-deploy again to reconfigure
 ```
 
@@ -220,6 +220,6 @@ Next steps:
 
 - **Never expose secrets.** Don't print full API keys, tokens, or passwords.
 - **Confirm with the user.** Always show the detected config and ask for confirmation before writing.
-- **CLAUDE.md is the source of truth.** All configuration lives there — not in a separate config file.
+- **AGENTS.md is the source of truth.** All configuration lives there — not in a separate config file.
 - **Idempotent.** Running /setup-deploy multiple times overwrites the previous config cleanly.
 - **Platform CLIs are optional.** If `fly` or `vercel` CLI isn't installed, fall back to URL-based health checks.

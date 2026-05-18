@@ -16,9 +16,9 @@ import * as os from 'os';
 import { startTestServer } from './test-server';
 import { BrowserManager } from '../src/browser-manager';
 
-const TMP_HOME = path.join(os.tmpdir(), `gstack-domain-e2e-${process.pid}-${Date.now()}`);
-process.env.GSTACK_HOME = TMP_HOME;
-process.env.GSTACK_PROJECT_SLUG = 'e2e-test-slug';
+const TMP_HOME = path.join(os.tmpdir(), `cgstack-domain-e2e-${process.pid}-${Date.now()}`);
+process.env.CGSTACK_HOME = TMP_HOME;
+process.env.CGSTACK_PROJECT_SLUG = 'e2e-test-slug';
 
 let testServer: ReturnType<typeof startTestServer>;
 let bm: BrowserManager;

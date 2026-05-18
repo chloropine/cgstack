@@ -2,7 +2,7 @@
 
 **Status:** Phase 1 shipped on `garrytan/browserharness`. Phases 2-4 enumerated below.
 **Last updated:** 2026-04-26
-**Authors:** garrytan (with /plan-eng-review and /codex outside-voice review)
+**Authors:** garrytan (with /plan-eng-review and Codex CLI outside-voice review)
 
 ## What this is
 
@@ -62,7 +62,7 @@ The plan as approved replaces the existing P1.
 | **1** | `garrytan/browserharness` | SDK, storage, `$B skill list/run/show/test/rm` subcommands, scoped-token model, bundled `hackernews-frontpage` reference. **Shipped (v1.19.0.0, consolidated with Phase 2a).** |
 | **2a** | `garrytan/browserharness` (continues) | `/scrape <intent>` (read-only, single entry point with match/prototype paths) + `/skillify` (codifies prototype into permanent skill). Adds `browse/src/browser-skill-write.ts` D3 atomic-write helper. **Shipping v1.19.0.0.** |
 | **2b** | new (`browser-skills-automate`) | `/automate` skill template (mutating-flow sibling of `/scrape`). Reuses `/skillify` and the D3 helper. Per-mutating-step confirmation gate when running non-codified. P0 in TODOS. |
-| **3** | new (`browser-skills-resolver`) | Resolver injection at session start (per-host browser-skill discovery). Mirrors domain-skill injection. `gstack-config browser_skillify_prompts` knob. |
+| **3** | new (`browser-skills-resolver`) | Resolver injection at session start (per-host browser-skill discovery). Mirrors domain-skill injection. `cgstack-config browser_skillify_prompts` knob. |
 | **4** | new | Eval test infrastructure (LLM-judge), fixture-staleness detection, periodic re-validation against live pages, OS-level FS sandbox for untrusted spawns. |
 
 ---
@@ -86,9 +86,9 @@ The plan as approved replaces the existing P1.
    impossible (the SDK is frozen at the version the skill was authored
    against). Disk cost: ~3KB per skill.
 5. **Three-tier lookup: bundled → global → project.** Bundled skills ship
-   read-only with the gstack install (`<gstack-install>/browser-skills/<name>/`).
-   Global at `~/.gstack/browser-skills/<name>/`. Per-project at
-   `<project>/.gstack/browser-skills/<name>/`. Lookup walks tiers in priority
+   read-only with the cgstack install (`<cgstack-install>/browser-skills/<name>/`).
+   Global at `~/.cgstack/browser-skills/<name>/`. Per-project at
+   `<project>/.cgstack/browser-skills/<name>/`. Lookup walks tiers in priority
    order project → global → bundled; first hit wins. **`$B skill list`
    prints the resolved tier alongside each skill name** so "why did it run
    that one?" is never a debugging mystery.
@@ -116,12 +116,12 @@ The plan as approved replaces the existing P1.
     target.
 12. **Token/port discovery: scoped-token env-only for spawned skills;
     state-file fallback for standalone debug runs.** When spawned via
-    `$B skill run`, the SDK reads `GSTACK_PORT` + `GSTACK_SKILL_TOKEN` from
+    `$B skill run`, the SDK reads `CGSTACK_PORT` + `CGSTACK_SKILL_TOKEN` from
     env. For standalone `bun run script.ts`, the SDK falls back to
-    `<project>/.gstack/browse.json` (the actual state-file path per
+    `<project>/.cgstack/browse.json` (the actual state-file path per
     `config.ts:50`).
 13. **CHANGELOG honesty.** Phase 1 lead: humans can hand-write deterministic
-    browser scripts that gstack runs. Phase 1 explicitly notes that agent
+    browser scripts that cgstack runs. Phase 1 explicitly notes that agent
     authoring lands in next release. No fabricated perf numbers — Phase 1
     has no before/after.
 
@@ -132,9 +132,9 @@ Two orthogonal axes:
 | Axis | Mechanism | Default |
 |------|-----------|---------|
 | **Daemon-side capability** | Per-spawn scoped token bound to `read+write` scope (the 17-cmd browser-driving surface, minus admin commands like `eval`/`js`/`cookies`/`storage`). Single-use clientId encodes skill name + spawn id. Revoked when the spawn exits. | Always scoped (never the daemon root token). |
-| **Process-side env access** | SKILL.md frontmatter `trusted: true` passes `process.env` minus `GSTACK_TOKEN`. `trusted: false` (default) drops everything except a minimal allowlist (LANG, LC_ALL, TERM, TZ, locked PATH) and explicitly strips secret-pattern keys (TOKEN/KEY/SECRET/PASSWORD, AWS_*, AZURE_*, GCP_*, ANTHROPIC_*, OPENAI_*, GITHUB_*, etc.). | Untrusted (must opt in). |
+| **Process-side env access** | SKILL.md frontmatter `trusted: true` passes `process.env` minus `CGSTACK_TOKEN`. `trusted: false` (default) drops everything except a minimal allowlist (LANG, LC_ALL, TERM, TZ, locked PATH) and explicitly strips secret-pattern keys (TOKEN/KEY/SECRET/PASSWORD, AWS_*, AZURE_*, GCP_*, OPENAI_*, GITHUB_*, etc.). | Untrusted (must opt in). |
 
-`GSTACK_PORT` and `GSTACK_SKILL_TOKEN` are always injected last so a parent
+`CGSTACK_PORT` and `CGSTACK_SKILL_TOKEN` are always injected last so a parent
 process cannot override them by setting them in env.
 
 **What this gets right:** the daemon-side scoped token is enforceable by the
@@ -191,7 +191,7 @@ test/skill-validation.test.ts       # extended: bundled-skill contract checks
 
 ## Codex outside-voice findings (post-review responses)
 
-The /codex review flagged 8 findings. The plan addresses them as follows:
+The Codex review flagged 8 findings. The plan addresses them as follows:
 
 | # | Finding | Phase 1 response |
 |---|---------|------------------|
@@ -199,9 +199,9 @@ The /codex review flagged 8 findings. The plan addresses them as follows:
 | 2 | Phase 1 is overbuilt for one bundled skill (lookup tiers, tombstones, etc.) | **Acknowledged but kept.** User chose full Phase 1 to lock the architecture before Phase 2 lands agent authoring. Each subsystem is small enough to remove cleanly if data later says it's unused. |
 | 3 | Existing client pattern in `cli.ts:398` may make sibling SDK redundant | **Verified false.** Line 398 is the end of `extractTabId()` (a flag-parser). The actual HTTP client is `sendCommand()` at cli.ts:401-467, but it's CLI-coupled (`process.stdout.write`, `process.exit`, server-restart recovery). Not reusable as a library. The new `browse-client.ts` mirrors its wire format but is library-shaped. |
 | 4 | "First hit wins" lookup is opaque | **Mitigated** by listing the resolved tier inline in `$B skill list` and `$B skill show`. Future: optional `--source bundled\|global\|project` flag if the tier override proves confusing. |
-| 5 | Atomic skill packaging matters more than the index question; symlink defenses | **Closed for Phase 1**: bundled skills ship as part of the gstack install (no live writes; atomic by virtue of being read-only files in the install dir). Phase 2's `writeBrowserSkill` will write to a temp dir then rename, and use `realpath`/`lstat` discipline (existing `browse/src/path-security.ts`). |
+| 5 | Atomic skill packaging matters more than the index question; symlink defenses | **Closed for Phase 1**: bundled skills ship as part of the cgstack install (no live writes; atomic by virtue of being read-only files in the install dir). Phase 2's `writeBrowserSkill` will write to a temp dir then rename, and use `realpath`/`lstat` discipline (existing `browse/src/path-security.ts`). |
 | 6 | Phase 2 synthesis from activity feed is weak (lossy ring buffer) | **Open issue for Phase 2 design.** The activity feed is telemetry, not a replay IR. Phase 2 will need a structured recorder OR re-prompting the agent to write the script from scratch using its own context. Decide in Phase 2's design pass. |
-| 7 | Bun runtime regression: skill scripts as standalone Bun reintroduce a Bun runtime requirement | **Open issue for Phase 2 distribution.** Phase 1 sidesteps this because the bundled reference skill ships inside the gstack install (which already builds with Bun). Phase 2 needs to decide between (a) shipping a Bun binary with each generated skill, (b) compiling skills to self-contained executables, or (c) using Node.js with `cli.ts`'s HTTP pattern. |
+| 7 | Bun runtime regression: skill scripts as standalone Bun reintroduce a Bun runtime requirement | **Open issue for Phase 2 distribution.** Phase 1 sidesteps this because the bundled reference skill ships inside the cgstack install (which already builds with Bun). Phase 2 needs to decide between (a) shipping a Bun binary with each generated skill, (b) compiling skills to self-contained executables, or (c) using Node.js with `cli.ts`'s HTTP pattern. |
 | 8 | `file://` fixtures don't prove timing/auth/navigation/lazy hydration | **Documented limit.** Adequate for `hackernews-frontpage`. Phase 2 `/automate` will need richer fixtures (mock daemon with timing, recorded HAR replay, etc.). |
 
 ---
@@ -221,7 +221,7 @@ sibling `/automate` deferred to Phase 2b (P0 in TODOS).
 |----|----------|-----------------|
 | **D1** | `/skillify` provenance guard | Walk back ≤10 agent turns looking for a clearly-bounded `/scrape` invocation (the prototype's intent line + its trailing JSON output). If not found, refuse with: *"No recent /scrape result found in this conversation. Run /scrape <intent> first, then say /skillify."* No silent fallback. |
 | **D2** | Synthesis input slice | Template instructs the agent to extract ONLY the final-attempt `$B` calls that produced the JSON the user accepted, plus the user's stated intent string. Drop failed selector attempts, drop unrelated chat, drop earlier-session content. Closes Codex finding #6 by picking option (b) (re-prompt from agent's own context, not a structured recorder). |
-| **D3** | Atomic write discipline | `/skillify` writes to `~/.gstack/.tmp/skillify-<spawnId>/`, runs `$B skill test` against the temp dir, and only renames into the final tier path on success + user approval. On test failure or approval rejection: `rm -rf` the temp dir entirely (no tombstone for never-approved skills). New module `browse/src/browser-skill-write.ts` (`stageSkill` / `commitSkill` / `discardStaged`) with `realpath`/`lstat` discipline per Codex finding #5. |
+| **D3** | Atomic write discipline | `/skillify` writes to `~/.cgstack/.tmp/skillify-<spawnId>/`, runs `$B skill test` against the temp dir, and only renames into the final tier path on success + user approval. On test failure or approval rejection: `rm -rf` the temp dir entirely (no tombstone for never-approved skills). New module `browse/src/browser-skill-write.ts` (`stageSkill` / `commitSkill` / `discardStaged`) with `realpath`/`lstat` discipline per Codex finding #5. |
 | **D4** | Test scope | 5 gate-tier E2E (scrape match, scrape prototype, skillify happy, skillify provenance refusal, approval-gate reject) + 1 unit test (atomic-write helper failure cleanup) + 1 hand-verified smoke (mutating-intent refusal). Registered in `test/helpers/touchfiles.ts`. |
 
 ### Carry-overs
@@ -230,7 +230,7 @@ sibling `/automate` deferred to Phase 2b (P0 in TODOS).
   override at `/skillify` time (mirrors domain-skill scope). Phase 1 storage
   helpers support both lookup paths.
 - **Bun runtime distribution.** Codex finding #7 stays open. Phase 2a assumes
-  Bun is on PATH (gstack already requires it via `setup:6-15`). Documented
+  Bun is on PATH (cgstack already requires it via `setup:6-15`). Documented
   in `/skillify` SKILL.md "Limits". Real fix lands in Phase 4.
 
 ## Phase 2b — `/automate` sketch
@@ -256,7 +256,7 @@ if (browserSkillsBlock) {
 `renderBrowserSkillsForHost()` reads the 3 tiers, filters to skills whose
 `host` field matches, and emits an UNTRUSTED-wrapped block listing them.
 
-`gstack-config browser_skillify_prompts` (default off): when on, end-of-task
+`cgstack-config browser_skillify_prompts` (default off): when on, end-of-task
 nudges in `/qa`, `/design-review`, etc. fire when activity feed shows ≥N
 commands on a single host AND no skill exists yet for that host+intent.
 

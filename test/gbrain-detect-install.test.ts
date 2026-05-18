@@ -1,8 +1,8 @@
 /**
- * gstack-gbrain-detect + gstack-gbrain-install — Slice 2 of /setup-gbrain.
+ * cgstack-gbrain-detect + cgstack-gbrain-install — Slice 2 of /setup-gbrain.
  *
  * Detect: state-reporter JSON with presence, version, config, doctor health,
- * and gstack-brain-sync mode. Pure introspection, no side effects.
+ * and cgstack-brain-sync mode. Pure introspection, no side effects.
  *
  * Install: D5 detect-first (reuse pre-existing clones) + D19 PATH-shadow
  * validation. The install flow itself (git clone + bun install + bun link)
@@ -18,8 +18,8 @@ import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const DETECT = path.join(ROOT, 'bin', 'gstack-gbrain-detect');
-const INSTALL = path.join(ROOT, 'bin', 'gstack-gbrain-install');
+const DETECT = path.join(ROOT, 'bin', 'cgstack-gbrain-detect');
+const INSTALL = path.join(ROOT, 'bin', 'cgstack-gbrain-install');
 
 // Minimal PATH with POSIX tools + homebrew (for jq/git/curl) but no user-bin
 // dirs — this keeps `gbrain` out of PATH deterministically across dev machines
@@ -34,7 +34,7 @@ type RunOpts = { env?: Record<string, string>; cwd?: string };
 function run(bin: string, args: string[], opts: RunOpts = {}) {
   const env = {
     ...process.env,
-    GSTACK_HOME: tmpHome,
+    CGSTACK_HOME: tmpHome,
     HOME: tmpHomeReal,
     ...(opts.env || {}),
   };
@@ -51,7 +51,7 @@ function run(bin: string, args: string[], opts: RunOpts = {}) {
 }
 
 beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'gbrain-detect-gstack-'));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'gbrain-detect-cgstack-'));
   tmpHomeReal = fs.mkdtempSync(path.join(os.tmpdir(), 'gbrain-detect-home-'));
 });
 
@@ -60,7 +60,7 @@ afterEach(() => {
   fs.rmSync(tmpHomeReal, { recursive: true, force: true });
 });
 
-describe('gstack-gbrain-detect', () => {
+describe('cgstack-gbrain-detect', () => {
   test('emits valid JSON even when nothing is configured', () => {
     // Override PATH to exclude any real gbrain so the test is deterministic.
     const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'empty-bin-'));
@@ -73,20 +73,20 @@ describe('gstack-gbrain-detect', () => {
       expect(j.gbrain_config_exists).toBe(false);
       expect(j.gbrain_engine).toBeNull();
       expect(j.gbrain_doctor_ok).toBe(false);
-      expect(j.gstack_brain_sync_mode).toBe('off');
-      expect(j.gstack_brain_git).toBe(false);
+      expect(j.cgstack_brain_sync_mode).toBe('off');
+      expect(j.cgstack_brain_git).toBe(false);
     } finally {
       fs.rmSync(emptyBin, { recursive: true, force: true });
     }
   });
 
-  test('reports gstack_brain_git: true when GSTACK_HOME has a .git dir', () => {
+  test('reports cgstack_brain_git: true when CGSTACK_HOME has a .git dir', () => {
     fs.mkdirSync(path.join(tmpHome, '.git'));
     const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'empty-bin-'));
     try {
       const r = run(DETECT, [], { env: { PATH: `${emptyBin}:${SAFE_PATH}` } });
       const j = JSON.parse(r.stdout);
-      expect(j.gstack_brain_git).toBe(true);
+      expect(j.cgstack_brain_git).toBe(true);
     } finally {
       fs.rmSync(emptyBin, { recursive: true, force: true });
     }
@@ -144,7 +144,7 @@ describe('gstack-gbrain-detect', () => {
   });
 });
 
-describe('gstack-gbrain-install D5 detect-first', () => {
+describe('cgstack-gbrain-install D5 detect-first', () => {
   test('--dry-run reuses a pre-existing ~/git/gbrain-shaped clone', () => {
     // Stand up a fake ~/git/gbrain that looks valid (name + bin.gbrain).
     const fakeGit = path.join(tmpHomeReal, 'git', 'gbrain');
@@ -183,7 +183,7 @@ describe('gstack-gbrain-install D5 detect-first', () => {
   });
 });
 
-describe('gstack-gbrain-install D19 PATH-shadow validation', () => {
+describe('cgstack-gbrain-install D19 PATH-shadow validation', () => {
   function seedInstallDir(version: string): string {
     const d = fs.mkdtempSync(path.join(os.tmpdir(), 'gbrain-install-'));
     fs.writeFileSync(
@@ -283,11 +283,11 @@ describe('gstack-gbrain-install D19 PATH-shadow validation', () => {
   });
 });
 
-describe('gstack-gbrain-install argument handling', () => {
+describe('cgstack-gbrain-install argument handling', () => {
   test('--help prints usage without exiting non-zero', () => {
     const r = run(INSTALL, ['--help']);
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain('gstack-gbrain-install');
+    expect(r.stdout).toContain('cgstack-gbrain-install');
   });
 
   test('unknown flag exits 2 with an error message', () => {

@@ -1,4 +1,4 @@
-/* gstack browse — Side Panel
+/* cgstack browse — Side Panel
  * Design system: DESIGN.md (Industrial/Utilitarian, amber accent, zinc neutrals)
  */
 
@@ -142,8 +142,8 @@
 }
 
 @keyframes securityBannerEnter {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: transformY(-8px); }
+  to { opacity: 1; transform: transformY(0); }
 }
 
 .security-banner-close {
@@ -805,8 +805,8 @@ body::after {
 }
 
 @keyframes slideIn {
-  from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: transformY(8px); opacity: 0; }
+  to { transform: transformY(0); opacity: 1; }
 }
 
 /* Left border colors by type */
@@ -954,8 +954,8 @@ body::after {
   animation: bannerSlide 250ms ease-out;
 }
 @keyframes bannerSlide {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
+  from { transform: transformY(-100%); }
+  to { transform: transformY(0); }
 }
 
 /* ─── Command Bar ─────────────────────────────────────── */
@@ -1062,9 +1062,9 @@ body::after {
   opacity: 0.8;
 }
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  0%, 100% { transform: transformX(0); }
+  25% { transform: transformX(-4px); }
+  75% { transform: transformX(4px); }
 }
 .send-btn {
   width: 26px;
@@ -1536,10 +1536,10 @@ footer {
   color: var(--text-body);
 }
 
-.boxmodel-value.boxmodel-top { top: 1px; left: 50%; transform: translateX(-50%); }
-.boxmodel-value.boxmodel-right { right: 4px; top: 50%; transform: translateY(-50%); }
-.boxmodel-value.boxmodel-bottom { bottom: 1px; left: 50%; transform: translateX(-50%); }
-.boxmodel-value.boxmodel-left { left: 4px; top: 50%; transform: translateY(-50%); }
+.boxmodel-value.boxmodel-top { top: 1px; left: 50%; transform: transformX(-50%); }
+.boxmodel-value.boxmodel-right { right: 4px; top: 50%; transform: transformY(-50%); }
+.boxmodel-value.boxmodel-bottom { bottom: 1px; left: 50%; transform: transformX(-50%); }
+.boxmodel-value.boxmodel-left { left: 4px; top: 50%; transform: transformY(-50%); }
 
 /* ─── Matched Rules ──────────────────────────────────── */
 

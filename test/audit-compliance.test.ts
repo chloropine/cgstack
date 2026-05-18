@@ -46,7 +46,7 @@ describe('Audit compliance', () => {
     // Pending finalization must check _TEL and binary existence
     expect(preamble).toContain('_TEL" != "off"');
     expect(preamble).toContain('-x ');
-    expect(preamble).toContain('gstack-telemetry-log');
+    expect(preamble).toContain('cgstack-telemetry-log');
     // End-of-skill telemetry must also be conditional
     const completionIdx = preamble.indexOf('Telemetry (run last)');
     expect(completionIdx).toBeGreaterThan(-1);
@@ -116,7 +116,7 @@ describe('Audit compliance', () => {
   test('all generated SKILL.md files with telemetry calls use conditional pattern', () => {
     const skills = getAllSkillMds();
     for (const { name, content } of skills) {
-      if (content.includes('gstack-telemetry-log')) {
+      if (content.includes('cgstack-telemetry-log')) {
         expect(content).toContain('_TEL" != "off"');
       }
     }

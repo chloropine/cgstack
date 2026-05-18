@@ -97,21 +97,21 @@ This is a civic tech data platform called CivicPulse for government employees wh
 
 Skip research — work from your design knowledge. Skip the font preview page. Skip any AskUserQuestion calls — this is non-interactive. Accept your first design system proposal.
 
-Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
+Write DESIGN.md and AGENTS.md (or update it) in the working directory.`,
       workingDirectory: designDir,
       maxTurns: 20,
       timeout: 360_000,
       testName: 'design-consultation-core',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/design-consultation core', result);
 
     const designPath = path.join(designDir, 'DESIGN.md');
-    const claudePath = path.join(designDir, 'CLAUDE.md');
+    const codexPath = path.join(designDir, 'AGENTS.md');
     const designExists = fs.existsSync(designPath);
-    const claudeExists = fs.existsSync(claudePath);
+    const codexExists = fs.existsSync(codexPath);
     let designContent = '';
 
     if (designExists) {
@@ -144,7 +144,7 @@ Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
       }
     }
 
-    const structuralPass = designExists && claudeExists && missingSections.length === 0;
+    const structuralPass = designExists && codexExists && missingSections.length === 0;
     recordE2E(evalCollector, '/design-consultation core', 'Design Consultation E2E', result, {
       passed: structuralPass && judgeResult.passed && ['success', 'error_max_turns'].includes(result.exitReason),
     });
@@ -154,9 +154,9 @@ Write DESIGN.md and CLAUDE.md (or update it) in the working directory.`,
     if (designExists) {
       expect(missingSections).toHaveLength(0);
     }
-    if (claudeExists) {
-      const claude = fs.readFileSync(claudePath, 'utf-8');
-      expect(claude.toLowerCase()).toContain('design.md');
+    if (codexExists) {
+      const codex = fs.readFileSync(codexPath, 'utf-8');
+      expect(codex.toLowerCase()).toContain('design.md');
     }
   }, 420_000);
 
@@ -227,7 +227,7 @@ Skip research. Skip font preview. Skip any AskUserQuestion calls — this is non
       timeout: 360_000,
       testName: 'design-consultation-existing',
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost('/design-consultation existing', result);

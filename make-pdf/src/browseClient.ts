@@ -8,10 +8,10 @@
  *   - One place that maps non-zero exit codes to typed errors.
  *
  * Binary resolution order (Codex round 2 #4, v1.24-aligned):
- *   1. $GSTACK_BROWSE_BIN env override (preferred, matches v1.24 GSTACK_*_BIN pattern)
+ *   1. $CGSTACK_BROWSE_BIN env override (preferred, matches v1.24 CGSTACK_*_BIN pattern)
  *   2. $BROWSE_BIN env override (back-compat alias)
  *   3. sibling dir: dirname(argv[0])/../browse/dist/browse[.exe]
- *   4. ~/.claude/skills/gstack/browse/dist/browse[.exe]
+ *   4. ~/.codex/skills/cgstack/browse/dist/browse[.exe]
  *   5. PATH lookup via Bun.which('browse') — handles Windows PATHEXT natively
  *   6. error with setup hint
  *
@@ -65,7 +65,7 @@ export interface JsOptions {
 /**
  * Resolve an absolute or PATH-resolvable command via Bun.which-style semantics,
  * with a Windows .exe/.cmd/.bat extension probe for absolute paths. Mirrors
- * the v1.24 claude-bin.ts override-resolution shape.
+ * the v1.24 codex-bin.ts override-resolution shape.
  *
  * Returns null if nothing resolves; callers degrade with a typed error rather
  * than throwing here.
@@ -102,8 +102,8 @@ export function findExecutable(base: string): string | null {
  * canonical setup message if not found. See header for resolution order.
  */
 export function resolveBrowseBin(env: NodeJS.ProcessEnv = process.env): string {
-  // 1 + 2: env overrides (GSTACK_BROWSE_BIN preferred, BROWSE_BIN back-compat).
-  const overrideRaw = env.GSTACK_BROWSE_BIN ?? env.BROWSE_BIN;
+  // 1 + 2: env overrides (CGSTACK_BROWSE_BIN preferred, BROWSE_BIN back-compat).
+  const overrideRaw = env.CGSTACK_BROWSE_BIN ?? env.BROWSE_BIN;
   const override = resolveOverride(overrideRaw, env);
   if (override) return override;
 
@@ -121,7 +121,7 @@ export function resolveBrowseBin(env: NodeJS.ProcessEnv = process.env): string {
 
   // 4: global install.
   const home = os.homedir();
-  const globalPath = path.join(home, ".claude/skills/gstack/browse/dist/browse");
+  const globalPath = path.join(home, ".agents/skills/cgstack/browse/dist/browse");
   const globalFound = findExecutable(globalPath);
   if (globalFound) return globalFound;
 
@@ -137,21 +137,21 @@ export function resolveBrowseBin(env: NodeJS.ProcessEnv = process.env): string {
     [
       "browse binary not found.",
       "",
-      "make-pdf needs browse (the gstack Chromium daemon) to render PDFs.",
+      "make-pdf needs browse (the cgstack Chromium daemon) to render PDFs.",
       "Tried:",
-      `  - $GSTACK_BROWSE_BIN (${env.GSTACK_BROWSE_BIN || "unset"})`,
+      `  - $CGSTACK_BROWSE_BIN (${env.CGSTACK_BROWSE_BIN || "unset"})`,
       `  - $BROWSE_BIN (${env.BROWSE_BIN || "unset"})`,
       `  - sibling: ${siblingCandidates.join(", ")}`,
       `  - global: ${globalPath}`,
       "  - PATH: `browse`",
       "",
-      "To fix: run gstack setup from the gstack repo:",
-      "  cd ~/.claude/skills/gstack && ./setup",
+      "To fix: run cgstack setup from the cgstack repo:",
+      "  cd ~/.codex/skills/cgstack && ./setup",
       "",
-      "Or set GSTACK_BROWSE_BIN explicitly:",
+      "Or set CGSTACK_BROWSE_BIN explicitly:",
       process.platform === "win32"
-        ? '  setx GSTACK_BROWSE_BIN "C:\\path\\to\\browse.exe"'
-        : "  export GSTACK_BROWSE_BIN=/path/to/browse",
+        ? '  setx CGSTACK_BROWSE_BIN "C:\\path\\to\\browse.exe"'
+        : "  export CGSTACK_BROWSE_BIN=/path/to/browse",
     ].join("\n"),
   );
 }

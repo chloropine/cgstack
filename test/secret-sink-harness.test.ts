@@ -64,7 +64,7 @@ describe('secret-sink-harness — positive controls', () => {
   test('catches a seed written to a file under $HOME', async () => {
     const bin = makeLeakyBin(
       'leak-file',
-      'mkdir -p "$HOME/.gstack" && echo "seed: $LEAK_SEED" > "$HOME/.gstack/debug.log"'
+      'mkdir -p "$HOME/.cgstack" && echo "seed: $LEAK_SEED" > "$HOME/.cgstack/debug.log"'
     );
     const seed = 'file-leaked-secret-value-xyz';
     const r = await runWithSecretSink({
@@ -75,15 +75,15 @@ describe('secret-sink-harness — positive controls', () => {
     });
     const fileLeaks = r.leaks.filter((l) => l.channel === 'file');
     expect(fileLeaks.length).toBeGreaterThan(0);
-    expect(fileLeaks[0].where).toBe('.gstack/debug.log');
+    expect(fileLeaks[0].where).toBe('.cgstack/debug.log');
   });
 
   test('catches a seed leaked into the telemetry channel', async () => {
     const bin = makeLeakyBin(
       'leak-telemetry',
-      'mkdir -p "$HOME/.gstack/analytics" && ' +
+      'mkdir -p "$HOME/.cgstack/analytics" && ' +
       'echo "{\\"event\\":\\"x\\",\\"leaked_secret\\":\\"$LEAK_SEED\\"}" ' +
-      '  >> "$HOME/.gstack/analytics/skill-usage.jsonl"'
+      '  >> "$HOME/.cgstack/analytics/skill-usage.jsonl"'
     );
     const seed = 'telemetry-leaked-abc123xyz';
     const r = await runWithSecretSink({
@@ -142,7 +142,7 @@ describe('secret-sink-harness — positive controls', () => {
 
 describe('secret-sink-harness — real bins (negative controls)', () => {
   test('supabase-verify does not leak a URL password on reject', async () => {
-    const bin = path.join(ROOT, 'bin', 'gstack-gbrain-supabase-verify');
+    const bin = path.join(ROOT, 'bin', 'cgstack-gbrain-supabase-verify');
     const seedPassword = 'extremely-distinctive-password-abc-xyz-987';
     // Use a URL that will be REJECTED (wrong scheme) so all error paths run
     const leakyUrl = `mysql://user:${seedPassword}@host:6543/db`;
@@ -158,7 +158,7 @@ describe('secret-sink-harness — real bins (negative controls)', () => {
   });
 
   test('supabase-verify does not leak on direct-connection rejection path', async () => {
-    const bin = path.join(ROOT, 'bin', 'gstack-gbrain-supabase-verify');
+    const bin = path.join(ROOT, 'bin', 'cgstack-gbrain-supabase-verify');
     const seedPassword = 'another-distinctive-secret-for-direct-conn';
     const leakyUrl = `postgresql://postgres:${seedPassword}@db.abcdef.supabase.co:5432/postgres`;
     const r = await runWithSecretSink({
@@ -173,7 +173,7 @@ describe('secret-sink-harness — real bins (negative controls)', () => {
   test('lib.sh read_secret_to_env does not leak stdin via captured channels', async () => {
     const seed = 'piped-secret-that-should-stay-invisible-zzz';
     // Wrapper script: source lib.sh, read secret, echo only its length.
-    const lib = path.join(ROOT, 'bin', 'gstack-gbrain-lib.sh');
+    const lib = path.join(ROOT, 'bin', 'cgstack-gbrain-lib.sh');
     const bin = makeLeakyBin(
       'read-secret-wrapper',
       `. "${lib}"\nread_secret_to_env MY_SECRET "Prompt: "\necho "len=\${#MY_SECRET}"`
@@ -191,7 +191,7 @@ describe('secret-sink-harness — real bins (negative controls)', () => {
   });
 
   test('supabase-provision does not leak a PAT on auth-failure path', async () => {
-    const bin = path.join(ROOT, 'bin', 'gstack-gbrain-supabase-provision');
+    const bin = path.join(ROOT, 'bin', 'cgstack-gbrain-supabase-provision');
     const seedPat = 'sbp_very_distinctive_pat_seed_abc_xyz_1234567890';
     // With no SUPABASE_API_BASE override, the bin tries the real API URL.
     // We want to avoid real network calls — point at a bogus URL that

@@ -102,7 +102,7 @@ describe('SSE session cookie: cookie flag invariants', () => {
   test('Set-Cookie does NOT set Secure (local HTTP daemon)', () => {
     const { token } = mintSseSessionToken();
     // Adding Secure would block the browser from ever sending the cookie
-    // back to a 127.0.0.1 daemon over HTTP. If gstack ever moves to HTTPS,
+    // back to a 127.0.0.1 daemon over HTTP. If cgstack ever moves to HTTPS,
     // add Secure then.
     expect(buildSseSetCookie(token)).not.toContain('Secure');
   });
@@ -130,12 +130,12 @@ describe('SSE session cookie: extract from request', () => {
     expect(extractSseCookie(req)).toBeNull();
   });
 
-  test('returns null when cookie header has no gstack_sse', () => {
+  test('returns null when cookie header has no cgstack_sse', () => {
     const req = mockReq('other=x; unrelated=y');
     expect(extractSseCookie(req)).toBeNull();
   });
 
-  test('extracts gstack_sse from a multi-cookie header', () => {
+  test('extracts cgstack_sse from a multi-cookie header', () => {
     const req = mockReq(`other=x; ${SSE_COOKIE_NAME}=real-token; trailing=y`);
     expect(extractSseCookie(req)).toBe('real-token');
   });

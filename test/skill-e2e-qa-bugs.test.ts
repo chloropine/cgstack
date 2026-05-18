@@ -18,7 +18,7 @@ const evalCollector = createEvalCollector('e2e-qa-bugs');
 
 // --- B6/B7/B8: Planted-bug outcome evals ---
 
-// Outcome evals also need ANTHROPIC_API_KEY for the LLM judge
+// Outcome evals also need OPENAI_API_KEY for the LLM judge
 const describeOutcome = (evalsEnabled && hasApiKey) ? describe : describe.skip;
 
 // Wrap describeOutcome with selection — skip if no planted-bug tests are selected
@@ -100,7 +100,7 @@ CRITICAL RULES:
       timeout: 300_000,
       testName: `qa-${label}`,
       runId,
-      model: 'claude-opus-4-7',
+      model: 'gpt-5.4',
     });
 
     logCost(`/qa ${label}`, result);

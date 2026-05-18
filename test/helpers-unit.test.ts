@@ -14,7 +14,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { parseNumberedOptions } from './helpers/claude-pty-runner';
+import { parseNumberedOptions } from './helpers/codex-pty-runner';
 import {
   assertNoBudgetRegression,
   findBudgetRegressions,
@@ -235,19 +235,19 @@ describe('findBudgetRegressions', () => {
     expect(findBudgetRegressions(c, { ratioCap: 2.0 }).length).toBe(0);
   });
 
-  test('respects GSTACK_BUDGET_RATIO env override', () => {
+  test('respects CGSTACK_BUDGET_RATIO env override', () => {
     const c = makeComparison([
       makeDelta('a', { Bash: 10 }, { Bash: 16 }), // 1.6×
     ]);
-    const prev = process.env.GSTACK_BUDGET_RATIO;
+    const prev = process.env.CGSTACK_BUDGET_RATIO;
     try {
-      process.env.GSTACK_BUDGET_RATIO = '1.5';
+      process.env.CGSTACK_BUDGET_RATIO = '1.5';
       expect(findBudgetRegressions(c).length).toBe(1);
-      process.env.GSTACK_BUDGET_RATIO = '2.0';
+      process.env.CGSTACK_BUDGET_RATIO = '2.0';
       expect(findBudgetRegressions(c).length).toBe(0);
     } finally {
-      if (prev === undefined) delete process.env.GSTACK_BUDGET_RATIO;
-      else process.env.GSTACK_BUDGET_RATIO = prev;
+      if (prev === undefined) delete process.env.CGSTACK_BUDGET_RATIO;
+      else process.env.CGSTACK_BUDGET_RATIO = prev;
     }
   });
 
@@ -285,6 +285,6 @@ describe('assertNoBudgetRegression', () => {
     expect(err!.message).toContain('regressed-tools');
     expect(err!.message).toContain('regressed-turns');
     expect(err!.message).toContain('2.00×'); // default cap
-    expect(err!.message).toContain('GSTACK_BUDGET_RATIO');
+    expect(err!.message).toContain('CGSTACK_BUDGET_RATIO');
   });
 });

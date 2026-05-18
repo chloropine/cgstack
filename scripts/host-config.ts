@@ -1,12 +1,11 @@
 /**
  * Declarative host config system.
  *
- * Each supported host (Claude, Codex, Factory, OpenCode, OpenClaw, etc.) is
- * defined as a typed HostConfig object in hosts/*.ts. This module provides
- * the interface, loader, and validator.
+ * cgstack is Codex-only. The typed HostConfig remains because the generator and
+ * installer share one declarative Codex config.
  *
  * Architecture:
- *   hosts/*.ts  →  hosts/index.ts  →  host-config.ts (this file)
+ *   hosts/codex.ts  →  hosts/index.ts  →  host-config.ts (this file)
  *        │                                    │
  *        └── typed configs ──────────────────→ consumed by gen-skill-docs.ts,
  *                                              setup (via host-config-export.ts),
@@ -15,23 +14,23 @@
  */
 
 export interface HostConfig {
-  /** Unique host identifier (e.g., 'opencode'). Must match filename in hosts/. */
+  /** Unique host identifier. */
   name: string;
-  /** Human-readable name for UI/logs (e.g., 'OpenCode'). */
+  /** Human-readable name for UI/logs. */
   displayName: string;
-  /** Binary name for `command -v` detection (e.g., 'opencode'). */
+  /** Binary name for `command -v` detection. */
   cliCommand: string;
-  /** Alternative binary names (e.g., ['droid'] for factory). */
+  /** Alternative binary names. */
   cliAliases?: string[];
 
   // --- Path Configuration ---
-  /** Global install path relative to $HOME (e.g., '.config/opencode/skills/gstack'). */
+  /** Global install path relative to $HOME. */
   globalRoot: string;
-  /** Project-local skill path relative to repo root (e.g., '.opencode/skills/gstack'). */
+  /** Project-local skill path relative to repo root. */
   localSkillRoot: string;
-  /** Gitignored directory under repo root for generated docs (e.g., '.opencode'). */
+  /** Gitignored directory under repo root for generated docs. */
   hostSubdir: string;
-  /** Whether preamble generates $GSTACK_ROOT env vars (true for non-Claude hosts). */
+  /** Whether preamble generates $CGSTACK_ROOT env vars. */
   usesEnvVars: boolean;
 
   // --- Frontmatter Transformation ---
@@ -56,7 +55,7 @@ export interface HostConfig {
 
   // --- Generation ---
   generation: {
-    /** Whether to create sidecar metadata file (e.g., openai.yaml for Codex). */
+    /** Whether to create sidecar metadata file. */
     generateMetadata: boolean;
     /** Metadata file format (e.g., 'openai.yaml'). */
     metadataFormat?: string | null;
@@ -81,9 +80,9 @@ export interface HostConfig {
     /** Dir → explicit file list for selective file linking. */
     globalFiles?: Record<string, string[]>;
   };
-  /** Optional repo-local sidecar config (e.g., Codex uses .agents/skills/gstack). */
+  /** Optional repo-local sidecar config. */
   sidecar?: {
-    /** Sidecar path relative to repo root (e.g., '.agents/skills/gstack'). */
+    /** Sidecar path relative to repo root. */
     path: string;
     /** Assets to symlink into sidecar (different set than global). */
     symlinks: string[];
@@ -91,7 +90,7 @@ export interface HostConfig {
 
   // --- Install Behavior ---
   install: {
-    /** Whether gstack-config skill_prefix applies (Claude only). */
+    /** Whether cgstack-config skill_prefix applies. Codex does not use it. */
     prefixable: boolean;
     /** How skills are linked into the host dir. */
     linkingStrategy: 'real-dir-symlink' | 'symlink-generated';
@@ -102,10 +101,10 @@ export interface HostConfig {
   coAuthorTrailer?: string;
   /** Learnings implementation: 'full' = cross-project, 'basic' = simple. */
   learningsMode?: 'full' | 'basic';
-  /** Anti-prompt-injection boundary instruction for cross-model invocations. */
+  /** Anti-prompt-injection boundary instruction for independent Codex invocations. */
   boundaryInstruction?: string;
 
-  /** Static files to copy alongside generated skills (e.g., { 'SOUL.md': 'openclaw/SOUL.md' }). */
+  /** Static files to copy alongside generated skills. */
   staticFiles?: Record<string, string>;
   /** Optional path to host-adapter module for complex transformations. */
   adapter?: string;

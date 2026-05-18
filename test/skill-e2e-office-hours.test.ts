@@ -5,8 +5,8 @@
  * Both cases detect whether preamble Writing Style rules have flattened the
  * skill's distinctive posture at runtime.
  *
- * Judge: Sonnet via judgePosture() — cheap per-call.
- * Generator: whatever the skill runs with (Sonnet for office-hours).
+ * Judge: GPT via judgePosture() — cheap per-call.
+ * Generator: whatever the skill runs with (GPT for office-hours).
  */
 
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
@@ -73,7 +73,7 @@ Write Q3 output — the forcing question you would ask this founder — to ${wor
       timeout: 240_000,
       testName: 'office-hours-forcing-energy',
       runId,
-      model: 'claude-sonnet-4-6',
+      model: 'gpt-5.4',
     });
 
     logCost('/office-hours (FORCING)', result);
@@ -144,7 +144,7 @@ Write your response — the three adjacent unlocks — to ${workDir}/unlocks.md.
       timeout: 240_000,
       testName: 'office-hours-builder-wildness',
       runId,
-      model: 'claude-sonnet-4-6',
+      model: 'gpt-5.4',
     });
 
     logCost('/office-hours (BUILDER)', result);

@@ -2,7 +2,7 @@
 
 **Status:** Approved for implementation (2026-04-18)
 **Branch:** garrytan/plan-tune-skill
-**Authors:** Garry Tan (user), with AI-assisted reviews from Claude Opus 4.7 + OpenAI Codex gpt-5.4
+**Authors:** Garry Tan (user), with AI-assisted reviews from Codex GPT 4.7 + OpenAI Codex gpt-5.4
 **Supersedes scope:** adds writing-style + LOC-receipts layer on top of [PLAN_TUNING_V0.md](./PLAN_TUNING_V0.md) (observational substrate). V0 remains in place unchanged.
 **Related:** [PACING_UPDATES_V0.md](./PACING_UPDATES_V0.md) — extracted pacing overhaul, V1.1 plan.
 
@@ -12,7 +12,7 @@ A canonical record of what /plan-tune v1 is, what it is NOT, what we considered,
 
 ## Credit
 
-This plan exists because of **[Louise de Sadeleer](https://x.com/LouiseDSadeleer/status/2045139351227478199)**, who sat through a complete gstack run as a non-technical user and told us the truth about how it feels. Her specific feedback:
+This plan exists because of **[Louise de Sadeleer](https://x.com/LouiseDSadeleer/status/2045139351227478199)**, who sat through a complete cgstack run as a non-technical user and told us the truth about how it feels. Her specific feedback:
 
 1. "I was getting a bit tired after a while and it felt a little bit rigid." — *pacing/fatigue*
 2. "I'm just gonna say yes yes yes" (during architecture review). — *disengagement*
@@ -23,7 +23,7 @@ V1 addresses #3 and #4 directly: jargon-glossing + outcome-framed writing that r
 
 ## The feature, in one paragraph
 
-gstack skill output is the product. If the prose doesn't read well for a non-technical founder, they check out of the review and click "yes yes yes." V1 adds a writing-style standard that applies to every tier ≥ 2 skill: jargon glossed on first use (from a curated ~50-term list), questions framed in outcome terms ("what breaks for your users if...") not implementation terms, short sentences, concrete nouns. Power users who want the tighter V0 prose can set `gstack-config set explain_level terse`. Binary switch, no partial modes. Plus: the README's "600,000+ lines of production code" framing — rightly called out as LOC vanity by Louise — gets replaced with a real computed 2013-vs-2026 pro-rata multiple from an `scc`-backed script, with honest caveats about public-vs-private repo visibility.
+cgstack skill output is the product. If the prose doesn't read well for a non-technical founder, they check out of the review and click "yes yes yes." V1 adds a writing-style standard that applies to every tier ≥ 2 skill: jargon glossed on first use (from a curated ~50-term list), questions framed in outcome terms ("what breaks for your users if...") not implementation terms, short sentences, concrete nouns. Power users who want the tighter V0 prose can set `cgstack-config set explain_level terse`. Binary switch, no partial modes. Plus: the README's "600,000+ lines of production code" framing — rightly called out as LOC vanity by Louise — gets replaced with a real computed 2013-vs-2026 pro-rata multiple from an `scc`-backed script, with honest caveats about public-vs-private repo visibility.
 
 ## Why we're building the smaller version
 
@@ -43,16 +43,16 @@ The through-line: every review pass correctly narrowed the ambition until the re
 
 1. **Writing Style section in preamble** (`scripts/resolvers/preamble.ts`). Six rules: jargon-gloss on first use per skill invocation, outcome framing, short sentences / concrete nouns / active voice, decisions close with user impact, gloss-on-first-use-unconditional (even if user pasted the term), user-turn override (user says "be terse" → skip for that response).
 2. **Jargon boundary via repo-owned list** (`scripts/jargon-list.json`). ~50 curated high-frequency technical terms. Terms not on the list are assumed plain-English enough. Terms inlined into generated SKILL.md prose at `gen-skill-docs` time (zero runtime cost).
-3. **Terse opt-out** (`gstack-config set explain_level terse`). Binary: `default` vs `terse`. Terse skips the Writing Style block entirely and uses V0 prose style.
-4. **Host-aware preamble echo.** `_EXPLAIN_LEVEL=$(${binDir}/gstack-config get explain_level 2>/dev/null || echo "default")`. Host-portable via existing V0 `ctx.paths.binDir` pattern.
-5. **gstack-config validation.** Document `explain_level: default|terse` in header. Whitelist values. Warn on unknown with specific message + default to `default`.
-6. **LOC reframe in README.** Remove "600,000+ lines of production code" hero framing. Insert `<!-- GSTACK-THROUGHPUT-PLACEHOLDER -->` anchor. Build-time script replaces anchor with computed multiple + caveat.
+3. **Terse opt-out** (`cgstack-config set explain_level terse`). Binary: `default` vs `terse`. Terse skips the Writing Style block entirely and uses V0 prose style.
+4. **Host-aware preamble echo.** `_EXPLAIN_LEVEL=$(${binDir}/cgstack-config get explain_level 2>/dev/null || echo "default")`. Host-portable via existing V0 `ctx.paths.binDir` pattern.
+5. **cgstack-config validation.** Document `explain_level: default|terse` in header. Whitelist values. Warn on unknown with specific message + default to `default`.
+6. **LOC reframe in README.** Remove "600,000+ lines of production code" hero framing. Insert `<!-- CGSTACK-THROUGHPUT-PLACEHOLDER -->` anchor. Build-time script replaces anchor with computed multiple + caveat.
 7. **`scc`-backed throughput script** (`scripts/garry-output-comparison.ts`). For each of 2013 + 2026, enumerate Garry-authored public commits, extract added lines from `git diff`, classify via `scc --stdin` (or regex fallback). Output `docs/throughput-2013-vs-2026.json` with per-language breakdown + caveats.
 8. **`scc` as standalone install script** (`scripts/setup-scc.sh`). Not a `package.json` dependency (truly optional — 95% of users never run throughput). OS-detects and runs `brew install scc` / `apt install scc` / prints GitHub releases link.
-9. **README update pipeline** (`scripts/update-readme-throughput.ts`). Reads `docs/throughput-2013-vs-2026.json` if present, replaces the anchor with computed number. If missing, writes `GSTACK-THROUGHPUT-PENDING` marker that CI rejects — forces contributor to run the script before commit.
+9. **README update pipeline** (`scripts/update-readme-throughput.ts`). Reads `docs/throughput-2013-vs-2026.json` if present, replaces the anchor with computed number. If missing, writes `CGSTACK-THROUGHPUT-PENDING` marker that CI rejects — forces contributor to run the script before commit.
 10. **/retro adds logical SLOC + weighted commits above raw LOC.** Raw LOC stays for context but is visually demoted.
-11. **Upgrade migration** (`gstack-upgrade/migrations/v<VERSION>.sh`). One-time post-upgrade interactive prompt offering to restore V0 prose via `explain_level: terse` for users who prefer it. Flag-file gated.
-12. **Documentation.** CLAUDE.md gains a Writing Style section (project convention). CHANGELOG.md gets V1 entry (user-facing narrative, mentions scope reduction + V1.1 pacing). README.md gets a Writing Style explainer section (~80 words). CONTRIBUTING.md gains a note on jargon-list maintenance (PRs to add/remove terms).
+11. **Upgrade migration** (`cgstack-upgrade/migrations/v<VERSION>.sh`). One-time post-upgrade interactive prompt offering to restore V0 prose via `explain_level: terse` for users who prefer it. Flag-file gated.
+12. **Documentation.** AGENTS.md gains a Writing Style section (project convention). CHANGELOG.md gets V1 entry (user-facing narrative, mentions scope reduction + V1.1 pacing). README.md gets a Writing Style explainer section (~80 words). CONTRIBUTING.md gains a note on jargon-list maintenance (PRs to add/remove terms).
 13. **Tests.** 6 new test files + extension of existing `gen-skill-docs.test.ts`. All gate tier except LLM-judge E2E (periodic).
 14. **V0 dormancy negative tests.** Assert 5D dimension names and 8 archetype names don't appear in default-mode skill output. Prevents V0 psychographic machinery from leaking into V1.
 15. **V1 and V1.1 design docs.** PLAN_TUNING_V1.md (this file). PACING_UPDATES_V0.md (V1.1 plan, created during V1 implementation from the extracted appendix). TODOS.md P0 entry.
@@ -77,16 +77,16 @@ The through-line: every review pass correctly narrowed the ambition until the re
 - **ELI10 as a new resolver file (`scripts/resolvers/eli10-writing.ts`).** Codex Pass 1 caught the conflict with existing "smart 16-year-old" framing in preamble's AskUserQuestion Format section. Fold into existing preamble instead.
 - **Runtime suppression of the Writing Style block.** Codex Pass 1 caught that `gen-skill-docs` produces static Markdown — runtime `EXPLAIN_LEVEL=terse` can't hide content already baked in. Solution: conditional prose gate (prose convention, same category as V0's `QUESTION_TUNING` gate).
 - **Middle writing mode between default and terse.** Revision 3 proposed "terse = no glosses but keep outcome framing." Codex Pass 2 caught the contradiction with migration messaging. Binary wins: terse = V0 prose, full stop.
-- **User-editable jargon list at runtime.** Revision 3 proposed `~/.gstack/jargon-list.json` as user override. Codex Pass 2 caught the contradiction with gen-time inlining. Resolved: repo-owned only, PRs to add/remove, regenerate to take effect.
+- **User-editable jargon list at runtime.** Revision 3 proposed `~/.cgstack/jargon-list.json` as user override. Codex Pass 2 caught the contradiction with gen-time inlining. Resolved: repo-owned only, PRs to add/remove, regenerate to take effect.
 - **`devDependencies.optional` field in package.json.** Not a real npm/bun field. Eng review Pass 2 caught. Standalone install script instead.
-- **Using the same string as replacement anchor AND CI-reject marker in README.** Eng review Pass 2 / Codex Pass 2 caught that this makes the pipeline destroy its own update path. Two-string solution: `GSTACK-THROUGHPUT-PLACEHOLDER` (anchor, stays across runs) vs `GSTACK-THROUGHPUT-PENDING` (explicit "build didn't run" marker that CI rejects).
+- **Using the same string as replacement anchor AND CI-reject marker in README.** Eng review Pass 2 / Codex Pass 2 caught that this makes the pipeline destroy its own update path. Two-string solution: `CGSTACK-THROUGHPUT-PLACEHOLDER` (anchor, stays across runs) vs `CGSTACK-THROUGHPUT-PENDING` (explicit "build didn't run" marker that CI rejects).
 - **"Every technical term gets a gloss" as acceptance criterion.** Codex Pass 2 caught the contradiction with the curated-list rule. Acceptance rewritten to match rule: "every term on `scripts/jargon-list.json` that appears gets a gloss."
 - **Acceptance criterion "≤ 12 AskUserQuestion prompts per /autoplan."** Removed from V1 — that target requires the pacing overhaul now in V1.1.
 
 ## Architecture
 
 ```
-~/.gstack/
+~/.cgstack/
   developer-profile.json           # unchanged from V0
   config.yaml                       # + explain_level key (default | terse)
 
@@ -102,10 +102,10 @@ docs/
   designs/PACING_UPDATES_V0.md      # NEW: V1.1 plan (extracted)
   throughput-2013-vs-2026.json      # NEW: computed, committed
 
-~/.claude/skills/gstack/bin/
-  gstack-config                     # MODIFIED: explain_level header + validation
+~/.codex/skills/cgstack/bin/
+  cgstack-config                     # MODIFIED: explain_level header + validation
 
-gstack-upgrade/migrations/
+cgstack-upgrade/migrations/
   v<VERSION>.sh                     # NEW: V0 → V1 interactive prompt
 ```
 
@@ -116,7 +116,7 @@ User runs tier-≥2 skill
        │
        ▼
 Preamble bash (per-invocation):
-  _EXPLAIN_LEVEL=$(${binDir}/gstack-config get explain_level 2>/dev/null || "default")
+  _EXPLAIN_LEVEL=$(${binDir}/cgstack-config get explain_level 2>/dev/null || "default")
   echo "EXPLAIN_LEVEL: $_EXPLAIN_LEVEL"
        │
        ▼
@@ -197,7 +197,7 @@ bun run scripts/garry-output-comparison.ts
 
 ### Decision D: Jargon list location — runtime-user-editable vs. repo-owned gen-time — ANSWER: REPO-OWNED GEN-TIME
 
-**User-editable at runtime (rejected):** `~/.gstack/jargon-list.json` overrides `scripts/jargon-list.json`.
+**User-editable at runtime (rejected):** `~/.cgstack/jargon-list.json` overrides `scripts/jargon-list.json`.
 - Pros: User can add terms specific to their domain.
 - Cons (Codex #4, Pass 2): Gen-time inlining means user edits require regeneration. Contradiction.
 
@@ -217,11 +217,11 @@ bun run scripts/garry-output-comparison.ts
 
 ### Decision F: README update mechanism — single string vs. two-string — ANSWER: TWO-STRING
 
-**Single string (rejected):** `<!-- GSTACK-THROUGHPUT-MULTIPLE: N× -->` as both replacement anchor AND CI-reject marker.
+**Single string (rejected):** `<!-- CGSTACK-THROUGHPUT-MULTIPLE: N× -->` as both replacement anchor AND CI-reject marker.
 - Pros: Simple.
 - Cons (Codex Pass 2): Pipeline breaks on itself — CI rejects commits containing the marker, but the marker IS the anchor.
 
-**Two-string (chosen):** `GSTACK-THROUGHPUT-PLACEHOLDER` (anchor, stable) + `GSTACK-THROUGHPUT-PENDING` (explicit missing-build marker, CI rejects).
+**Two-string (chosen):** `CGSTACK-THROUGHPUT-PLACEHOLDER` (anchor, stable) + `CGSTACK-THROUGHPUT-PENDING` (explicit missing-build marker, CI rejects).
 - Pros: Anchor persists; CI catches actual failure state.
 - Cons: Two symbols to remember.
 
@@ -229,9 +229,9 @@ bun run scripts/garry-output-comparison.ts
 
 | Review | Runs | Status | Key findings integrated |
 |---|---|---|---|
-| CEO Review | 1 | CLEAR (HOLD SCOPE) | Premise pivot: four-level axis → ELI10 by default. Cross-model tensions resolved via explicit user choice. |
+| CEO Review | 1 | CLEAR (HOLD SCOPE) | Premise pivot: four-level axis → ELI10 by default. Independent Codex tensions resolved via explicit user choice. |
 | Codex Review | 2 | ISSUES_FOUND + drove scope reduction | Pass 1: 25 findings, 3 critical blockers (static-markdown, host-paths, README mechanism). Pass 2: 20 findings on revised plan, drove V1.1 extraction. |
 | Eng Review | 3 | CLEAR (SCOPE_REDUCED) | Pass 1: critical gaps + 3 decisions (all A). Pass 2: scoring-formula bug, path contradiction, fake `devDependencies.optional` field. Pass 3: identified pacing structural gaps, drove extraction. |
 | DX Review | 1 | CLEAR (TRIAGE) | 3 critical (docs plan, upgrade migration, hero moment). 9 auto-accepted as Silent DX Decisions. |
 
-Review report persisted in `~/.gstack/` via `gstack-review-log`. Plan file retained with full history at `~/.claude/plans/system-instruction-you-are-working-transient-sunbeam.md`.
+Review report persisted in `~/.cgstack/` via `cgstack-review-log`. Plan file retained with full history at `~/.codex/plans/system-instruction-you-are-working-transient-sunbeam.md`.

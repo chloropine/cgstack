@@ -12,7 +12,7 @@
  *      that match are excluded from the Windows-safe subset — they would fail
  *      on `windows-latest` no matter how the runner shards them.
  *
- * Adapted from the McGluut/gstack fork's test-free-shards.ts (190 LOC). The
+ * Adapted from the McGluut/cgstack fork's test-free-shards.ts (190 LOC). The
  * Windows-safe filter is upstream-original — codex flagged that sharding alone
  * doesn't fix POSIX-bound tests, so we curate the subset that actually runs
  * on the windows-latest CI job.
@@ -40,13 +40,13 @@ const PAID_EVAL_TESTS = [
   /^test\/skill-llm-eval\.test\.ts$/,
   /^test\/skill-routing-e2e\.test\.ts$/,
   /^test\/codex-e2e\.test\.ts$/,
-  /^test\/gemini-e2e\.test\.ts$/,
+  /^test\/codex-e2e-plan-format\.test\.ts$/,
 ] as const;
 
 // POSIX-only patterns that indicate a test will fail on windows-latest no
 // matter how the runner shards. Codex's v1.18.0.0 review flagged the first
 // three as concrete examples in the existing free suite (test/ship-version-sync.test.ts:72,
-// test/helpers/providers/claude.ts:22, package.json:12). We scan the test's
+// test/helpers/providers/codex.ts:22, package.json:12). We scan the test's
 // own content here so the filter stays automatic as new tests land. The
 // "Windows-incompatible APIs" patterns at the bottom were added after the
 // first windows-free-tests CI run surfaced concrete failure modes.
@@ -58,7 +58,7 @@ const WINDOWS_FRAGILE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /['"`]\/tmp\//, reason: 'raw /tmp/ path (use os.tmpdir())' },
   { pattern: /['"]chmod\b/, reason: 'chmod shell command' },
   { pattern: /['"]xargs\b/, reason: 'xargs pipeline' },
-  { pattern: /\bwhich claude\b/, reason: 'which claude (use Bun.which)' },
+  { pattern: /\bwhich codex\b/, reason: 'which codex (use Bun.which)' },
   // Windows-incompatible APIs.
   { pattern: /\.mode\s*&\s*0o[0-7]+/, reason: 'POSIX file mode bitmask (mode & 0o600 etc — Windows fakes mode bits)' },
   { pattern: /\.endsWith\(['"]\//, reason: 'hardcoded forward-slash path assertion (Windows uses \\\\)' },
@@ -100,7 +100,7 @@ const WINDOWS_FRAGILE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
 const KNOWN_WINDOWS_INCOMPATIBLE: Array<{ file: string; reason: string }> = [
   {
     file: 'test/host-config.test.ts',
-    reason: 'asserts "claude" binary on PATH (only true when running inside Claude Code, not on bare CI runner)',
+    reason: 'asserts "codex" binary on PATH (only true when running inside Codex, not on bare CI runner)',
   },
   {
     file: 'browse/test/findport.test.ts',

@@ -21,12 +21,12 @@ import * as os from 'os';
 
 export const ROOT = path.resolve(import.meta.dir, '..', '..');
 
-// Skip unless EVALS=1. Session runner strips CLAUDE* env vars to avoid nested session issues.
+// Skip unless EVALS=1. Session runner strips CODEX* env vars to avoid nested session issues.
 //
 // BLAME PROTOCOL: When an eval fails, do NOT claim "pre-existing" or "not related
 // to our changes" without proof. Run the same eval on main to verify. These tests
 // have invisible couplings — preamble text, SKILL.md content, and timing all affect
-// agent behavior. See CLAUDE.md "E2E eval failure blame protocol" for details.
+// agent behavior. See AGENTS.md "E2E eval failure blame protocol" for details.
 export const evalsEnabled = !!process.env.EVALS;
 
 // --- Diff-based test selection ---
@@ -83,8 +83,8 @@ export const runId = new Date().toISOString().replace(/[:.]/g, '').replace('T', 
 
 export const browseBin = path.resolve(ROOT, 'browse', 'dist', 'browse');
 
-// Check if Anthropic API key is available (needed for outcome evals)
-export const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
+// Check if OpenAI API key is available (needed for outcome evals)
+export const hasApiKey = !!(process.env.OPENAI_API_KEY || process.env.CGSTACK_OPENAI_API_KEY);
 
 /**
  * Copy a directory tree recursively (files only, follows structure).
@@ -144,7 +144,7 @@ export function logCost(label: string, result: { costEstimate: { turnsUsed: numb
  */
 export function dumpOutcomeDiagnostic(dir: string, label: string, report: string, judgeResult: any) {
   try {
-    const transcriptDir = path.join(dir, '.gstack', 'test-transcripts');
+    const transcriptDir = path.join(dir, '.cgstack', 'test-transcripts');
     fs.mkdirSync(transcriptDir, { recursive: true });
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     fs.writeFileSync(
@@ -196,7 +196,7 @@ export function recordE2E(
 /**
  * Threshold for `reason_substance` (1-5 rubric) above which a recommendation
  * is considered substantive enough to ship. 4 = "concrete and option-specific";
- * 3 = generic ("because it's faster"). We want to catch generic. If Haiku
+ * 3 = generic ("because it's faster"). We want to catch generic. If Mini
  * flakes at this bar in practice, lower the threshold rather than weakening
  * the gate (per design plan).
  */
@@ -252,22 +252,22 @@ export async function finalizeEvalCollector(evalCollector: EvalCollector | null)
 // Pre-seed preamble state files so E2E tests don't waste turns on lake intro + telemetry prompts.
 // These are one-time interactive prompts that burn 3-7 turns per test if not pre-seeded.
 if (evalsEnabled) {
-  const gstackDir = path.join(os.homedir(), '.gstack');
-  fs.mkdirSync(gstackDir, { recursive: true });
+  const cgstackDir = path.join(os.homedir(), '.cgstack');
+  fs.mkdirSync(cgstackDir, { recursive: true });
   for (const f of ['.completeness-intro-seen', '.telemetry-prompted', '.proactive-prompted']) {
-    const p = path.join(gstackDir, f);
+    const p = path.join(cgstackDir, f);
     if (!fs.existsSync(p)) fs.writeFileSync(p, '');
   }
 }
 
-// Fail fast if Anthropic API is unreachable — don't burn through tests getting ConnectionRefused
+// Fail fast if OpenAI API is unreachable — don't burn through tests getting ConnectionRefused
 if (evalsEnabled) {
-  const check = spawnSync('sh', ['-c', 'echo "ping" | claude -p --max-turns 1 --output-format stream-json --verbose --dangerously-skip-permissions'], {
+  const check = spawnSync('sh', ['-c', 'echo "ping" | codex -p --max-turns 1 --output-format stream-json --verbose --dangerously-skip-permissions'], {
     stdio: 'pipe', timeout: 30_000,
   });
   const output = check.stdout?.toString() || '';
   if (output.includes('ConnectionRefused') || output.includes('Unable to connect')) {
-    throw new Error('Anthropic API unreachable — aborting E2E suite. Fix connectivity and retry.');
+    throw new Error('OpenAI API unreachable — aborting E2E suite. Fix connectivity and retry.');
   }
 }
 

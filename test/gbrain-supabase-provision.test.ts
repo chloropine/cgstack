@@ -1,5 +1,5 @@
 /**
- * gstack-gbrain-supabase-provision — Supabase Management API wrapper.
+ * cgstack-gbrain-supabase-provision — Supabase Management API wrapper.
  *
  * All tests run against a per-test local mock HTTP server (Bun.serve)
  * that returns fixture responses. Never hits the real Supabase API, never
@@ -19,7 +19,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const BIN = path.join(ROOT, 'bin', 'gstack-gbrain-supabase-provision');
+const BIN = path.join(ROOT, 'bin', 'cgstack-gbrain-supabase-provision');
 
 // Minimal PATH that finds jq/curl but excludes user bins.
 const SAFE_PATH = '/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin';

@@ -30,11 +30,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {
-  launchClaudePty,
+  launchCodexPty,
   isPlanReadyVisible,
   isPermissionDialogVisible,
   isNumberedOptionListVisible,
-} from './helpers/claude-pty-runner';
+} from './helpers/codex-pty-runner';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'periodic';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -52,7 +52,7 @@ describeE2E('/autoplan chain ordering (periodic)', () => {
     'phases run sequentially: Phase 1 (CEO) before Phase 3 (Eng), Phase 2 (Design) between when present',
     async () => {
       // UI-heavy fixture so Phase 2 runs.
-      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-autoplan-chain-'));
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-autoplan-chain-'));
       try {
         const gitRun = (args: string[]) =>
           spawnSync('git', args, { cwd: tempDir, stdio: 'pipe', timeout: 5000 });
@@ -60,14 +60,14 @@ describeE2E('/autoplan chain ordering (periodic)', () => {
         gitRun(['config', 'user.email', 'test@test.com']);
         gitRun(['config', 'user.name', 'Test']);
 
-        const plansDir = path.join(tempDir, '.claude', 'plans');
+        const plansDir = path.join(tempDir, '.codex', 'plans');
         fs.mkdirSync(plansDir, { recursive: true });
         fs.copyFileSync(UI_FIXTURE, path.join(plansDir, 'ui-heavy-feature.md'));
         fs.writeFileSync(path.join(tempDir, 'README.md'), '# Autoplan chain fixture\n');
         gitRun(['add', '.']);
         gitRun(['commit', '-m', 'init UI-heavy fixture']);
 
-        const session = await launchClaudePty({
+        const session = await launchCodexPty({
           permissionMode: 'plan',
           cwd: tempDir,
           timeoutMs: 1_080_000, // 18 min, slightly above test budget

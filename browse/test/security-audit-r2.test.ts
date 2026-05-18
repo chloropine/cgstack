@@ -152,7 +152,7 @@ describe('Task 1: validateOutputPath uses realpathSync', () => {
     let symlinkPath: string;
 
     beforeAll(() => {
-      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-sec-test-'));
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgstack-sec-test-'));
       symlinkPath = path.join(tmpDir, 'evil-link');
       try {
         fs.symlinkSync('/etc', symlinkPath);
@@ -201,7 +201,7 @@ describe('Task 1: validateOutputPath uses realpathSync', () => {
       const mod = await import('../src/meta-commands.ts');
       // Use /tmp (which resolves to /private/tmp on macOS) — matches SAFE_DIRECTORIES
       const tmpBase = process.platform === 'darwin' ? '/tmp' : os.tmpdir();
-      const legitimatePath = path.join(tmpBase, 'gstack-screenshot.png');
+      const legitimatePath = path.join(tmpBase, 'cgstack-screenshot.png');
       expect(() => mod.validateOutputPath(legitimatePath)).not.toThrow();
     });
 
@@ -494,7 +494,7 @@ describe('Task 13: inbox output wrapped as untrusted content', () => {
 
 // ─── Task 16: SIGKILL escalation ────────────────────────────────────────────
 // Originally tested sidebar-agent's SIDEBAR_AGENT_TIMEOUT block. The chat
-// queue and its watchdog are gone. terminal-agent.ts disposes claude with
+// queue and its watchdog are gone. terminal-agent.ts disposes codex with
 // the same SIGINT-then-SIGKILL-after-3s pattern; that's covered by
 // browse/test/terminal-agent.test.ts ("cleanup escalates SIGINT to SIGKILL
 // after 3s on close").

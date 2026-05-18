@@ -6,7 +6,7 @@ description: |
   are currently claimed by open PRs, which sibling Conductor workspaces have
   WIP work likely to ship soon, and what slot /ship would pick next. No
   mutations — just a snapshot. Use when asked to "landing report", "what's in
-  the queue", "show me open PRs", or "which version do I claim next". (gstack)
+  the queue", "show me open PRs", or "which version do I claim next". (cgstack)
 triggers:
   - landing report
   - version queue
@@ -30,14 +30,14 @@ sensitive: false
 When you're running 5-10 parallel Conductor workspaces, it helps to see — at a
 glance — which version numbers are claimed, by whom, and what slot your next
 `/ship` would land in. This skill is a read-only call into the same
-`bin/gstack-next-version` utility `/ship` uses, but with nothing mutating.
+`bin/cgstack-next-version` utility `/ship` uses, but with nothing mutating.
 Think of it as `gh pr list` for VERSION numbers.
 
 ---
 
 ## Step 1: Detect platform and base branch
 
-Same detection as other gstack skills.
+Same detection as other cgstack skills.
 
 ```bash
 BASE_BRANCH=$(gh pr view --json baseRefName -q .baseRefName 2>/dev/null || \
@@ -67,7 +67,7 @@ they'd claim for micro/patch/minor/major. Cheap (same gh call cached by bun).
 
 ```bash
 for LEVEL in micro patch minor major; do
-  bun run bin/gstack-next-version \
+  bun run bin/cgstack-next-version \
     --base "$BASE_BRANCH" \
     --bump "$LEVEL" \
     --current-version "$BASE_VERSION" \
@@ -94,7 +94,7 @@ Render in this exact format:
 
 ```
 ╔══════════════════════════════════════════════════════════════════╗
-║                     GSTACK LANDING REPORT                        ║
+║                     CGSTACK LANDING REPORT                        ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║ Repo:    <owner/repo>                                            ║
 ║ Base:    <base> @ v<base-version>                                ║
@@ -128,7 +128,7 @@ For offline / unknown-host output, print a shorter block:
 
 ```
 ╔══════════════════════════════════════════════════════════════════╗
-║                     GSTACK LANDING REPORT                        ║
+║                     CGSTACK LANDING REPORT                        ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║ Status:  OFFLINE — queue-awareness unavailable                   ║
 ║ Reason:  <offline reason from warnings>                          ║

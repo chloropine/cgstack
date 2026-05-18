@@ -4,7 +4,7 @@
  * The helper shells out to the real `gbrain` CLI. To test idempotency
  * deterministically without a live brain, we put a fake `gbrain` binary on
  * PATH that emits canned `sources list --json` output and records its
- * invocations. The same trick `test/gstack-gbrain-source-wireup.test.ts` uses.
+ * invocations. The same trick `test/cgstack-gbrain-source-wireup.test.ts` uses.
  */
 
 import { describe, it, expect } from "bun:test";
@@ -106,7 +106,7 @@ exit 1
 describe("probeSource", () => {
   it("returns absent when source id is not in the list", () => {
     const fake = makeFakeGbrain({ sources: [{ id: "other-source", local_path: "/x" }] });
-    const state = probeSource("gstack-code-foo", fake.env);
+    const state = probeSource("cgstack-code-foo", fake.env);
     expect(state.status).toBe("absent");
     expect(state.registered_path).toBeUndefined();
     fake.cleanup();
@@ -114,9 +114,9 @@ describe("probeSource", () => {
 
   it("returns match when source id is registered (path included)", () => {
     const fake = makeFakeGbrain({
-      sources: [{ id: "gstack-code-foo", local_path: "/Users/me/repo" }],
+      sources: [{ id: "cgstack-code-foo", local_path: "/Users/me/repo" }],
     });
-    const state = probeSource("gstack-code-foo", fake.env);
+    const state = probeSource("cgstack-code-foo", fake.env);
     expect(state.status).toBe("match");
     expect(state.registered_path).toBe("/Users/me/repo");
     fake.cleanup();
@@ -126,7 +126,7 @@ describe("probeSource", () => {
 describe("ensureSourceRegistered", () => {
   it("adds source when absent, returns changed=true", async () => {
     const fake = makeFakeGbrain({ sources: [] });
-    const result = await ensureSourceRegistered("gstack-code-foo", "/Users/me/repo", {
+    const result = await ensureSourceRegistered("cgstack-code-foo", "/Users/me/repo", {
       federated: true,
       env: fake.env,
     });
@@ -135,16 +135,16 @@ describe("ensureSourceRegistered", () => {
     expect(result.state.registered_path).toBe("/Users/me/repo");
 
     const log = readFileSync(fake.logPath, "utf-8");
-    expect(log).toContain("sources add gstack-code-foo --path /Users/me/repo --federated");
+    expect(log).toContain("sources add cgstack-code-foo --path /Users/me/repo --federated");
     expect(log).not.toContain("sources remove");
     fake.cleanup();
   });
 
   it("is a no-op when source is already at the correct path, returns changed=false", async () => {
     const fake = makeFakeGbrain({
-      sources: [{ id: "gstack-code-foo", local_path: "/Users/me/repo" }],
+      sources: [{ id: "cgstack-code-foo", local_path: "/Users/me/repo" }],
     });
-    const result = await ensureSourceRegistered("gstack-code-foo", "/Users/me/repo", { env: fake.env });
+    const result = await ensureSourceRegistered("cgstack-code-foo", "/Users/me/repo", { env: fake.env });
     expect(result.changed).toBe(false);
     expect(result.state.status).toBe("match");
 
@@ -157,9 +157,9 @@ describe("ensureSourceRegistered", () => {
 
   it("recreates source when path differs (gbrain has no `sources update`), returns changed=true", async () => {
     const fake = makeFakeGbrain({
-      sources: [{ id: "gstack-code-foo", local_path: "/old/path" }],
+      sources: [{ id: "cgstack-code-foo", local_path: "/old/path" }],
     });
-    const result = await ensureSourceRegistered("gstack-code-foo", "/new/path", {
+    const result = await ensureSourceRegistered("cgstack-code-foo", "/new/path", {
       federated: true,
       env: fake.env,
     });
@@ -168,16 +168,16 @@ describe("ensureSourceRegistered", () => {
     expect(result.state.registered_path).toBe("/new/path");
 
     const log = readFileSync(fake.logPath, "utf-8");
-    expect(log).toContain("sources remove gstack-code-foo --yes");
-    expect(log).toContain("sources add gstack-code-foo --path /new/path --federated");
+    expect(log).toContain("sources remove cgstack-code-foo --yes");
+    expect(log).toContain("sources add cgstack-code-foo --path /new/path --federated");
     fake.cleanup();
   });
 
   it("when reregister_on_drift=false and source is at different path, returns changed=false", async () => {
     const fake = makeFakeGbrain({
-      sources: [{ id: "gstack-code-foo", local_path: "/old/path" }],
+      sources: [{ id: "cgstack-code-foo", local_path: "/old/path" }],
     });
-    const result = await ensureSourceRegistered("gstack-code-foo", "/new/path", {
+    const result = await ensureSourceRegistered("cgstack-code-foo", "/new/path", {
       reregister_on_drift: false,
       env: fake.env,
     });
@@ -196,11 +196,11 @@ describe("sourcePageCount", () => {
   it("returns the page_count when the source is registered", () => {
     const fake = makeFakeGbrain({
       sources: [
-        { id: "gstack-code-foo", local_path: "/x", page_count: 1247 },
+        { id: "cgstack-code-foo", local_path: "/x", page_count: 1247 },
         { id: "other-source", local_path: "/y", page_count: 99 },
       ],
     });
-    expect(sourcePageCount("gstack-code-foo", fake.env)).toBe(1247);
+    expect(sourcePageCount("cgstack-code-foo", fake.env)).toBe(1247);
     expect(sourcePageCount("other-source", fake.env)).toBe(99);
     fake.cleanup();
   });

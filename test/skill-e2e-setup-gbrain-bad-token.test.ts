@@ -2,8 +2,8 @@
 //
 // Drives the skill against a stub HTTP MCP server that returns 401
 // (auth-shape body). Asserts that the AUTH classifier hint shows up
-// AND no MCP registration happens (no claude mcp add --transport http
-// in the call log; no half-written CLAUDE.md block). This is the
+// AND no MCP registration happens (no codex mcp add --transport http
+// in the call log; no half-written AGENTS.md block). This is the
 // regression guard for the "verify failed → STOP" gate.
 //
 // Cost: ~$0.30-$0.50 per run. Gate-tier (EVALS=1 EVALS_TIER=gate).
@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as http from 'http';
-import { runAgentSdkTest, passThroughNonAskUserQuestion, resolveClaudeBinary } from './helpers/agent-sdk-runner';
+import { runAgentSdkTest, passThroughNonAskUserQuestion, resolveCodexBinary } from './helpers/agent-sdk-runner';
 
 // Periodic-tier (companion to skill-e2e-setup-gbrain-remote.test.ts).
 // Deterministic gate coverage lives in setup-gbrain-path4-structure.test.ts.
@@ -44,10 +44,10 @@ function startStub401(): Promise<{ url: string; close: () => Promise<void> }> {
   });
 }
 
-function makeFakeClaude(fakeBinDir: string): string {
-  const callLog = path.join(fakeBinDir, 'claude-calls.log');
+function makeFakeCodex(fakeBinDir: string): string {
+  const callLog = path.join(fakeBinDir, 'codex-calls.log');
   const script = `#!/bin/bash
-echo "claude $@" >> "${callLog}"
+echo "codex $@" >> "${callLog}"
 case "$1 $2" in
   "mcp add") exit 0 ;;
   "mcp list") echo "no gbrain" ; exit 0 ;;
@@ -56,30 +56,30 @@ case "$1 $2" in
 esac
 exit 0
 `;
-  fs.writeFileSync(path.join(fakeBinDir, 'claude'), script, { mode: 0o755 });
+  fs.writeFileSync(path.join(fakeBinDir, 'codex'), script, { mode: 0o755 });
   return callLog;
 }
 
 describeE2E('/setup-gbrain Path 4 — bad token STOPs cleanly', () => {
-  test('AUTH classifier fires, no MCP registration, no CLAUDE.md mutation', async () => {
+  test('AUTH classifier fires, no MCP registration, no AGENTS.md mutation', async () => {
     const stubServer = await startStub401();
-    const gstackHome = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-gbrain-bad-'));
+    const cgstackHome = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-gbrain-bad-'));
     const fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'setup-gbrain-bad-bin-'));
-    const callLog = makeFakeClaude(fakeBinDir);
+    const callLog = makeFakeCodex(fakeBinDir);
 
-    const ORIGINAL_CLAUDE_MD = '# Test project\n\nSome existing content here.\n';
-    fs.writeFileSync(path.join(gstackHome, 'CLAUDE.md'), ORIGINAL_CLAUDE_MD);
+    const ORIGINAL_CODEX_MD = '# Test project\n\nSome existing content here.\n';
+    fs.writeFileSync(path.join(cgstackHome, 'AGENTS.md'), ORIGINAL_CODEX_MD);
 
     const BAD_TOKEN = 'gbrain_BAD_TOKEN_67890_DELIBERATELY_INVALID';
     const askUserQuestions: Array<{ input: Record<string, unknown> }> = [];
-    const binary = resolveClaudeBinary();
+    const binary = resolveCodexBinary();
 
     const orig = {
-      gstackHome: process.env.GSTACK_HOME,
+      cgstackHome: process.env.CGSTACK_HOME,
       pathEnv: process.env.PATH,
       mcpToken: process.env.GBRAIN_MCP_TOKEN,
     };
-    process.env.GSTACK_HOME = gstackHome;
+    process.env.CGSTACK_HOME = cgstackHome;
     process.env.PATH = `${fakeBinDir}:${path.join(path.resolve(import.meta.dir, '..'), 'bin')}:${process.env.PATH ?? '/usr/bin:/bin:/opt/homebrew/bin'}`;
     process.env.GBRAIN_MCP_TOKEN = BAD_TOKEN;
 
@@ -88,18 +88,18 @@ describeE2E('/setup-gbrain Path 4 — bad token STOPs cleanly', () => {
     try {
       const skillPath = path.resolve(import.meta.dir, '..', 'setup-gbrain', 'SKILL.md');
       const result = await runAgentSdkTest({
-        systemPrompt: { type: 'preset', preset: 'claude_code' },
+        systemPrompt: { type: 'preset', preset: 'codex' },
         userPrompt:
           `Read the skill file at ${skillPath} and follow Path 4 (Remote MCP) only. ` +
           `Use this MCP URL: ${stubServer.url}. ` +
           `The bearer token is already in the GBRAIN_MCP_TOKEN env var. ` +
           `If verify fails (Step 4c), follow the skill's STOP rule — surface the error and stop. ` +
           `Do NOT register the MCP if verify failed. ` +
-          `Do NOT modify CLAUDE.md if verify failed.`,
-        workingDirectory: gstackHome,
+          `Do NOT modify AGENTS.md if verify failed.`,
+        workingDirectory: cgstackHome,
         maxTurns: 15,
         allowedTools: ['Read', 'Grep', 'Glob', 'Bash', 'Write', 'Edit'],
-        ...(binary ? { pathToClaudeCodeExecutable: binary } : {}),
+        ...(binary ? { pathToCodexCodeExecutable: binary } : {}),
         canUseTool: async (toolName, input) => {
           if (toolName === 'AskUserQuestion') {
             askUserQuestions.push({ input });
@@ -128,22 +128,22 @@ describeE2E('/setup-gbrain Path 4 — bad token STOPs cleanly', () => {
         /AUTH.*HTTP 401/i.test(modelTextOutput);
       expect(hintShown).toBe(true);
 
-      // Assertion 2: claude mcp add was NEVER called (verify failed → STOP).
+      // Assertion 2: codex mcp add was NEVER called (verify failed → STOP).
       const calls = fs.existsSync(callLog) ? fs.readFileSync(callLog, 'utf-8') : '';
       expect(calls).not.toMatch(/mcp add.*--transport http/);
 
-      // Assertion 3: CLAUDE.md is unchanged (no half-written block).
-      const finalClaudeMd = fs.readFileSync(path.join(gstackHome, 'CLAUDE.md'), 'utf-8');
-      expect(finalClaudeMd).toBe(ORIGINAL_CLAUDE_MD);
+      // Assertion 3: AGENTS.md is unchanged (no half-written block).
+      const finalCodexMd = fs.readFileSync(path.join(cgstackHome, 'AGENTS.md'), 'utf-8');
+      expect(finalCodexMd).toBe(ORIGINAL_CODEX_MD);
 
-      // Assertion 4: the bad token never leaked to CLAUDE.md.
-      expect(finalClaudeMd).not.toContain(BAD_TOKEN);
+      // Assertion 4: the bad token never leaked to AGENTS.md.
+      expect(finalCodexMd).not.toContain(BAD_TOKEN);
     } finally {
-      if (orig.gstackHome === undefined) delete process.env.GSTACK_HOME; else process.env.GSTACK_HOME = orig.gstackHome;
+      if (orig.cgstackHome === undefined) delete process.env.CGSTACK_HOME; else process.env.CGSTACK_HOME = orig.cgstackHome;
       if (orig.pathEnv === undefined) delete process.env.PATH; else process.env.PATH = orig.pathEnv;
       if (orig.mcpToken === undefined) delete process.env.GBRAIN_MCP_TOKEN; else process.env.GBRAIN_MCP_TOKEN = orig.mcpToken;
       await stubServer.close();
-      fs.rmSync(gstackHome, { recursive: true, force: true });
+      fs.rmSync(cgstackHome, { recursive: true, force: true });
       fs.rmSync(fakeBinDir, { recursive: true, force: true });
     }
   }, 240_000);

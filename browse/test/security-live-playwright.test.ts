@@ -36,7 +36,7 @@ import {
 // Check if TestSavantAI model cache exists. If missing, ML tests skip.
 const MODEL_CACHE = path.join(
   os.homedir(),
-  '.gstack',
+  '.cgstack',
   'models',
   'testsavant-small',
   'onnx',
@@ -138,7 +138,7 @@ describe('defense-in-depth — live Playwright fixture', () => {
   test.skipIf(!ML_AVAILABLE)('L4 — security.ts ML classifier flags the combined fixture text', async () => {
     const page = bm.getPage();
     await page.goto(`${baseUrl}/injection-combined.html`, { waitUntil: 'domcontentloaded' });
-    // Use RAW text (not stripped) so the ML layer sees what Claude would see
+    // Use RAW text (not stripped) so the ML layer sees what Codex would see
     // in a naive pipeline — content-security.ts strips hidden content, but
     // we want to assert the ML layer would ALSO catch it independently.
     const rawText = await page.evaluate(() => document.body.innerText);

@@ -2,16 +2,16 @@
 
 **Status:** Approved for v1 implementation
 **Branch:** garrytan/plan-tune-skill
-**Authors:** Garry Tan (user), with AI-assisted reviews from Claude Opus 4.7 + OpenAI Codex gpt-5.4
+**Authors:** Garry Tan (user), with AI-assisted reviews from Codex GPT 4.7 + OpenAI Codex gpt-5.4
 **Date:** 2026-04-16
 
 ## What this document is
 
-A canonical record of what `/plan-tune` v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes the two `~/.gstack/projects/` artifacts (office-hours design doc + CEO plan) which are per-user local records.
+A canonical record of what `/plan-tune` v1 is, what it is NOT, what we considered, and why we made each call. Committed to the repo so future contributors (and future Garry) can trace reasoning without archeology. Supersedes the two `~/.cgstack/projects/` artifacts (office-hours design doc + CEO plan) which are per-user local records.
 
 ## The feature, in one paragraph
 
-gstack's 40+ skills fire AskUserQuestion constantly. Power users answer the same questions the same way repeatedly and have no way to tell gstack "stop asking me this." More fundamentally, gstack has no model of how each user prefers to steer their work — scope-appetite, risk-tolerance, detail-preference, autonomy, architecture-care — so every skill's defaults are middle-of-the-road for everyone. `/plan-tune` v1 builds the schema + observation layer: a typed question registry, per-question explicit preferences, inline "tune:" feedback, and a profile (declared + inferred dimensions) inspectable via plain English. It does not yet adapt skill behavior based on the profile. That comes in v2, after v1 proves the substrate works.
+cgstack's 40+ skills fire AskUserQuestion constantly. Power users answer the same questions the same way repeatedly and have no way to tell cgstack "stop asking me this." More fundamentally, cgstack has no model of how each user prefers to steer their work — scope-appetite, risk-tolerance, detail-preference, autonomy, architecture-care — so every skill's defaults are middle-of-the-road for everyone. `/plan-tune` v1 builds the schema + observation layer: a typed question registry, per-question explicit preferences, inline "tune:" feedback, and a profile (declared + inferred dimensions) inspectable via plain English. It does not yet adapt skill behavior based on the profile. That comes in v2, after v1 proves the substrate works.
 
 ## Why we're building the smaller version
 
@@ -27,16 +27,16 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 
 ## v1 Scope (what we're building now)
 
-1. **Typed question registry** (`scripts/question-registry.ts`). Every AskUserQuestion gstack uses is declared with `{id, skill, category, door_type, options[], signal_key?}`. Schema-governed.
+1. **Typed question registry** (`scripts/question-registry.ts`). Every AskUserQuestion cgstack uses is declared with `{id, skill, category, door_type, options[], signal_key?}`. Schema-governed.
 2. **CI enforcement.** Lint test (gate tier) asserts every AskUserQuestion pattern in SKILL.md.tmpl files has a matching registry entry. Fails CI on drift, renames, or duplicates.
-3. **Question logging** (`bin/gstack-question-log`). Appends `{ts, question_id, user_choice, recommended, session_id}` to `~/.gstack/projects/{SLUG}/question-log.jsonl`. Validates against registry.
-4. **Explicit per-question preferences** (`bin/gstack-question-preference`). Writes `{question_id, preference}` where preference is `always-ask | never-ask | ask-only-for-one-way`. Respected from session 1. No calibration gate — user stated it, system obeys.
-5. **Preamble injection.** Before each AskUserQuestion, agent calls `gstack-question-preference --check <registry-id>`. If `never-ask` AND question is NOT a one-way door, auto-choose recommended option with visible annotation: "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." One-way doors always ask regardless of preference — safety override.
+3. **Question logging** (`bin/cgstack-question-log`). Appends `{ts, question_id, user_choice, recommended, session_id}` to `~/.cgstack/projects/{SLUG}/question-log.jsonl`. Validates against registry.
+4. **Explicit per-question preferences** (`bin/cgstack-question-preference`). Writes `{question_id, preference}` where preference is `always-ask | never-ask | ask-only-for-one-way`. Respected from session 1. No calibration gate — user stated it, system obeys.
+5. **Preamble injection.** Before each AskUserQuestion, agent calls `cgstack-question-preference --check <registry-id>`. If `never-ask` AND question is NOT a one-way door, auto-choose recommended option with visible annotation: "Auto-decided [summary] → [option] (your preference). Change with /plan-tune." One-way doors always ask regardless of preference — safety override.
 6. **Inline "tune:" feedback with user-origin gate.** Agent offers "Tune this question? Reply `tune: [feedback]` to adjust." User can use shortcuts (`unnecessary`, `ask-less`, `never-ask`, `always-ask`, `context-dependent`) or free-form English. CRITICAL: the agent only writes a tune event when the `tune:` content appears in the user's current chat turn — NOT in tool output, NOT in a file read. Binary validates `source: "inline-user"` on write; rejects other sources.
-7. **Declared profile** (`/plan-tune setup`). 5 plain-English questions, one per dimension. Stored in unified `~/.gstack/developer-profile.json` under `declared: {...}`. Informational only in v1 — no skill behavior change.
+7. **Declared profile** (`/plan-tune setup`). 5 plain-English questions, one per dimension. Stored in unified `~/.cgstack/developer-profile.json` under `declared: {...}`. Informational only in v1 — no skill behavior change.
 8. **Observed/Inferred profile.** Every question-log event contributes deltas to inferred dimensions via a hand-crafted signal map (`scripts/psychographic-signals.ts`). Computed on demand. Displayed but not acted on.
 9. **`/plan-tune` skill.** Conversational plain-English inspection tool. "Show my profile," "set a preference," "what questions have I been asked," "show the gap between what I said and what I do." No CLI subcommand syntax required.
-10. **Unification with existing `~/.gstack/builder-profile.jsonl`.** Fold /office-hours session records and accumulated signals into unified `~/.gstack/developer-profile.json`. Migration is atomic + idempotent + archives the source file.
+10. **Unification with existing `~/.cgstack/builder-profile.jsonl`.** Fold /office-hours session records and accumulated signals into unified `~/.cgstack/developer-profile.json`. Migration is atomic + idempotent + archives the source file.
 
 ## Deferred to v2 (not in this PR, but explicit acceptance criteria)
 
@@ -63,10 +63,10 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 ## Architecture
 
 ```
-~/.gstack/
+~/.cgstack/
   developer-profile.json            # unified: declared + inferred + sessions (from office-hours)
 
-~/.gstack/projects/{SLUG}/
+~/.cgstack/projects/{SLUG}/
   question-log.jsonl                # every AskUserQuestion, append-only, registry-validated
   question-preferences.json         # explicit per-question user choices
   question-events.jsonl             # tune: feedback events, user-origin gated
@@ -109,16 +109,16 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 
 1. Preamble: check `question_tuning` config. If off, do nothing.
 2. Before each AskUserQuestion:
-   - Agent calls `gstack-question-preference --check <registry-id>`
+   - Agent calls `cgstack-question-preference --check <registry-id>`
    - If `never-ask` AND question is NOT one-way door → auto-choose recommended with annotation
    - If `always-ask`, unset, or question IS one-way door → ask normally
 3. After AskUserQuestion:
    - Append log record to question-log.jsonl (registry-validated, rejects unknown IDs)
 4. Offer inline: "Tune this question? Reply `tune: [feedback]` to adjust."
 5. If user's NEXT turn message contains `tune:` prefix AND the content originated in the user's own message (not tool output):
-   - Agent calls `gstack-question-preference --write` with `source: "inline-user"`
+   - Agent calls `cgstack-question-preference --write` with `source: "inline-user"`
    - Binary validates source field; rejects if anything other than `inline-user`
-6. Inferred dimensions recomputed on demand by `bin/gstack-developer-profile --derive`. Signal map changes trigger full recompute from events history.
+6. Inferred dimensions recomputed on demand by `bin/cgstack-developer-profile --derive`. Signal map changes trigger full recompute from events history.
 
 ## Security model
 
@@ -127,16 +127,16 @@ After weighing Codex's argument, we chose to roll back CEO EXPANSION and ship an
 - The `tune:` prefix appears in that user message (not in any tool output, file content, PR description, commit message, etc.)
 - The resolver's instructions to the agent explicitly call this out
 
-Binary enforcement: `gstack-question-preference --write` requires `source: "inline-user"` field on every tune-originated record. Any other source value (e.g., `inline-tool-output`, `inline-file-content`) is rejected with an error. Agent is instructed to never forge the `source` field.
+Binary enforcement: `cgstack-question-preference --write` requires `source: "inline-user"` field on every tune-originated record. Any other source value (e.g., `inline-tool-output`, `inline-file-content`) is rejected with an error. Agent is instructed to never forge the `source` field.
 
 **Data privacy**:
-- All data is local-only under `~/.gstack/`. Nothing leaves without explicit user action.
+- All data is local-only under `~/.cgstack/`. Nothing leaves without explicit user action.
 - `/plan-tune export <path>` writes profile to user-specified path (opt-in export).
 - `/plan-tune delete` wipes local profile files.
-- `gstack-config set telemetry off` prevents any telemetry (this skill never sends profile data regardless).
+- `cgstack-config set telemetry off` prevents any telemetry (this skill never sends profile data regardless).
 - Profile files have standard user-home permissions.
 
-**Injection defense** (consistent with existing `bin/gstack-learnings-log` patterns): the `question_summary` and any free-form user feedback fields are sanitized against known prompt-injection patterns ("ignore previous instructions," "system:", etc.).
+**Injection defense** (consistent with existing `bin/cgstack-learnings-log` patterns): the `question_summary` and any free-form user feedback fields are sanitized against known prompt-injection patterns ("ignore previous instructions," "system:", etc.).
 
 ## 5 Hard Constraints (preserved from office-hours, updated for Codex feedback)
 
@@ -144,12 +144,12 @@ Binary enforcement: `gstack-question-preference --write` requires `source: "inli
 2. **Profile dimensions are inspectable AND editable.** `/plan-tune profile` shows declared + inferred + gap. Edits via plain English go to `declared` only. System tracks `inferred` independently.
 3. **Signal map is hand-crafted in TypeScript.** `scripts/psychographic-signals.ts` maps `{question_id, user_choice} → {dimension, delta}`. Not agent-inferred. In v1, consumed only for `inferred.values` display — not for driving decisions.
 4. **No psychographic-driven auto-decide in v1.** Only explicit per-question preferences act. This sidesteps the "calibration gate can be gamed" critique (Codex #13) entirely — v1 doesn't have a gate to pass.
-5. **Per-project preferences beat global preferences.** `~/.gstack/projects/{SLUG}/question-preferences.json` wins over any future global preference file. Global profile (`~/.gstack/developer-profile.json`) is a starting point for diversity across projects.
+5. **Per-project preferences beat global preferences.** `~/.cgstack/projects/{SLUG}/question-preferences.json` wins over any future global preference file. Global profile (`~/.cgstack/developer-profile.json`) is a starting point for diversity across projects.
 
 ## Why event-sourced + dual-track
 
 **Why event-sourced for the inferred profile**:
-- Signal map can change between gstack versions. Recompute from events, no data migration needed.
+- Signal map can change between cgstack versions. Recompute from events, no data migration needed.
 - Auditable: `/plan-tune profile --trace autonomy` shows every event that contributed to the value.
 - Future-proof: new dimensions can be derived from existing history.
 
@@ -191,9 +191,9 @@ Power users can type shortcuts (`narrative`, `vibe`, `reset`, `stats`, `enable`,
 - `scripts/psychographic-signals.ts` — hand-crafted signal map for inferred computation.
 
 ### Binaries
-- `bin/gstack-question-log` — append log record, validate against registry.
-- `bin/gstack-question-preference` — read/write/check/clear explicit preferences.
-- `bin/gstack-developer-profile` — supersedes `bin/gstack-builder-profile`. Subcommands: `--read` (legacy compat), `--derive`, `--gap`, `--profile`.
+- `bin/cgstack-question-log` — append log record, validate against registry.
+- `bin/cgstack-question-preference` — read/write/check/clear explicit preferences.
+- `bin/cgstack-developer-profile` — supersedes `bin/cgstack-builder-profile`. Subcommands: `--read` (legacy compat), `--derive`, `--gap`, `--profile`.
 
 ### Resolvers
 - `scripts/resolvers/question-tuning.ts` — three generators: `generateQuestionPreferenceCheck(ctx)` (pre-question check), `generateQuestionLog(ctx)` (post-question log), `generateInlineTuneFeedback(ctx)` (post-question tune: prompt with user-origin gate instructions).
@@ -208,7 +208,7 @@ Power users can type shortcuts (`narrative`, `vibe`, `reset`, `stats`, `enable`,
 
 - `scripts/resolvers/index.ts` — register 3 new resolvers.
 - `scripts/resolvers/preamble.ts` — `_QUESTION_TUNING` config read; inject 3 resolvers for tier >= 2.
-- `bin/gstack-builder-profile` — legacy shim delegates to `bin/gstack-developer-profile --read`.
+- `bin/cgstack-builder-profile` — legacy shim delegates to `bin/cgstack-developer-profile --read`.
 - Migration script — folds existing builder-profile.jsonl into unified developer-profile.json. Atomic, idempotent, archives source as `.migrated-YYYY-MM-DD`.
 
 ## NOT touched in v1
@@ -319,7 +319,7 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 
 **Integration point first (revised):** Build typed registry + CI lint first. Prove the integration works before building infrastructure on top.
 - Pros: Foundation is proven. Infrastructure has something durable to rely on.
-- Cons: Requires auditing every existing AskUserQuestion in gstack — substantial up-front work.
+- Cons: Requires auditing every existing AskUserQuestion in cgstack — substantial up-front work.
 
 **Chosen: integration point first.** Codex's argument was decisive. The audit is exactly the point — it forces us to catalog what we actually have before building adaptation on top.
 
@@ -330,10 +330,10 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 - Cons (Codex #14): Contradicts local-first OSS framing. Adds telemetry surface specifically for this skill.
 
 **Local-only (revised):** Logging is local. Respect existing `telemetry` config; skill adds no new telemetry channels.
-- Pros: Consistent with gstack's local-first ethos.
+- Pros: Consistent with cgstack's local-first ethos.
 - Cons: No aggregate view of onboarding time.
 
-**Chosen: local-only.** If we need TTHW data later, we add it as a gstack-wide telemetry event behind existing opt-in, not a skill-specific one.
+**Chosen: local-only.** If we need TTHW data later, we add it as a cgstack-wide telemetry event behind existing opt-in, not a skill-specific one.
 
 ### Decision J: Profile poisoning defense — no defense vs. confirmation gate vs. user-origin gate — ANSWER: USER-ORIGIN GATE
 
@@ -355,7 +355,7 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 
 - `bun test` passes including new `test/plan-tune.test.ts`.
 - Every AskUserQuestion invocation in every SKILL.md.tmpl has a registry entry. CI lint enforces.
-- Migration from `~/.gstack/builder-profile.jsonl` preserves 100% of sessions + signals_accumulated. Regression test with 7-session fixture.
+- Migration from `~/.cgstack/builder-profile.jsonl` preserves 100% of sessions + signals_accumulated. Regression test with 7-session fixture.
 - One-way door registry-declared entries: 100% of destructive ops, architecture forks, scope-adds > 1 day CC effort, security/compliance choices are classified `one-way`.
 - User-origin gate test: attempting to write a tune event with `source: "inline-tool-output"` is rejected.
 - Dogfood: Garry uses `/plan-tune` for 2+ weeks. Reports back whether:
@@ -366,14 +366,14 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 
 ## Implementation Order
 
-1. Audit every `AskUserQuestion` invocation in every gstack SKILL.md.tmpl. Build initial `scripts/question-registry.ts` with IDs, categories, door_types, options. This is the foundation; everything else sits on it.
+1. Audit every `AskUserQuestion` invocation in every cgstack SKILL.md.tmpl. Build initial `scripts/question-registry.ts` with IDs, categories, door_types, options. This is the foundation; everything else sits on it.
 2. Write `test/plan-tune.test.ts` registry-completeness test (gate tier). Verify it catches drift — temporarily remove one registry entry, confirm CI fails.
 3. Seed `scripts/one-way-doors.ts` with keyword-pattern fallback classifier.
 4. Seed `scripts/psychographic-signals.ts` with initial `{question_id, user_choice} → {dimension, delta}` mappings. Numbers are tentative — v1 ships, v2 recalibrates.
 5. Seed `scripts/archetypes.ts` with archetype definitions (referenced by future v2 `/plan-tune vibe`).
-6. `bin/gstack-question-log` — validates against registry, rejects unknown IDs.
-7. `bin/gstack-question-preference` — all subcommands + tests.
-8. `bin/gstack-developer-profile` — `--read` (legacy), `--derive`, `--gap`, `--profile`.
+6. `bin/cgstack-question-log` — validates against registry, rejects unknown IDs.
+7. `bin/cgstack-question-preference` — all subcommands + tests.
+8. `bin/cgstack-developer-profile` — `--read` (legacy), `--derive`, `--gap`, `--profile`.
 9. Migration script — builder-profile.jsonl → unified developer-profile.json. Atomic, idempotent, archives source. Regression test with fixture.
 10. `scripts/resolvers/question-tuning.ts` — three generators (preference check, log, inline tune with user-origin gate instructions).
 11. Register the 3 resolvers in `scripts/resolvers/index.ts`.
@@ -398,8 +398,8 @@ Initial user position (office-hours): "The psychographic IS the differentiation.
 - **/plan-ceo-review (2026-04-16, EXPANSION mode):** 6 expansions accepted, later rolled back after Codex review.
 - **/plan-devex-review (2026-04-16, POLISH mode):** Plain-English interaction model; this survived to v1.
 - **/plan-eng-review (2026-04-16):** Test plan and completeness checks; partially superseded by registry-first rewrite.
-- **/codex (2026-04-16, gpt-5.4 high reasoning):** 20-point critique drove the rollback. 15+ legitimate findings the Claude reviews missed.
+- **Codex CLI (2026-04-16, gpt-5.4 high reasoning):** 20-point critique drove the rollback. 15+ legitimate findings the Codex reviews missed.
 
 ## Credits and caveats
 
-This plan was developed through an iterative AI-collaboration loop over ~6 hours of planning. The author (Garry Tan) directed every scope decision; AI voices (Claude Opus 4.7 and OpenAI Codex gpt-5.4) challenged and refined the plan. Without Codex's outside voice, a much larger and less-defensible plan would have shipped. The value of cross-model review on high-stakes architectural changes is real and measurable.
+This plan was developed through an iterative AI-collaboration loop over ~6 hours of planning. The author (Garry Tan) directed every scope decision; AI voices (Codex GPT 4.7 and OpenAI Codex gpt-5.4) challenged and refined the plan. Without Codex's outside voice, a much larger and less-defensible plan would have shipped. The value of independent Codex review on high-stakes architectural changes is real and measurable.

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# cgstack-paths — output portable state-root paths for skill bash blocks
+# Usage: eval "$(cgstack-paths)"  → sets CGSTACK_STATE_ROOT, PLAN_ROOT, TMP_ROOT
+# Or:    cgstack-paths            → prints CGSTACK_STATE_ROOT=... etc.
+#
+# Resolves three roots with explicit fallback chains so skills work the same
+# whether installed as a Codex plugin (CODEX_PLUGIN_DATA / CODEX_PLANS_DIR
+# set), a global ~/.codex/skills/cgstack/ install, or a local checkout under
+# CI / container env where HOME may be unset.
+#
+# Chains:
+#   CGSTACK_STATE_ROOT: CGSTACK_HOME -> CODEX_PLUGIN_DATA -> $HOME/.cgstack -> .cgstack
+#   PLAN_ROOT:         CGSTACK_PLAN_DIR -> CODEX_PLANS_DIR -> $HOME/.codex/plans -> .codex/plans
+#   TMP_ROOT:          TMPDIR -> TMP -> .cgstack/tmp (and mkdir -p, best-effort)
+#
+# Security: output values are not sanitized — callers may receive paths with
+# shell-special characters if env vars contain them. Skills should always quote
+# expansions ("$CGSTACK_STATE_ROOT", not $CGSTACK_STATE_ROOT).
+set -u
+
+# State root: where cgstack writes projects/, sessions/, analytics/.
+if [ -n "${CGSTACK_HOME:-}" ]; then
+  _state_root="$CGSTACK_HOME"
+elif [ -n "${CODEX_PLUGIN_DATA:-}" ]; then
+  _state_root="$CODEX_PLUGIN_DATA"
+elif [ -n "${HOME:-}" ]; then
+  _state_root="$HOME/.cgstack"
+else
+  _state_root=".cgstack"
+fi
+
+# Plan root: where /context-save and Codex review flows write plan files.
+if [ -n "${CGSTACK_PLAN_DIR:-}" ]; then
+  _plan_root="$CGSTACK_PLAN_DIR"
+elif [ -n "${CODEX_PLANS_DIR:-}" ]; then
+  _plan_root="$CODEX_PLANS_DIR"
+elif [ -n "${HOME:-}" ]; then
+  _plan_root="$HOME/.codex/plans"
+else
+  _plan_root=".codex/plans"
+fi
+
+# Tmp root: where ephemeral files (codex stderr captures, etc.) live.
+# Honor TMPDIR / TMP for Windows + container compat; fall back to a
+# project-local .cgstack/tmp so we never write to a system /tmp that may
+# be read-only or shared.
+if [ -n "${TMPDIR:-}" ]; then
+  _tmp_root="$TMPDIR"
+elif [ -n "${TMP:-}" ]; then
+  _tmp_root="$TMP"
+else
+  _tmp_root=".cgstack/tmp"
+fi
+
+# Best-effort mkdir; if it fails (read-only fs, permission denied), the caller
+# will discover that on their own write attempt. Don't fail the eval here.
+mkdir -p "$_tmp_root" 2>/dev/null || true
+
+echo "CGSTACK_STATE_ROOT=$_state_root"
+echo "PLAN_ROOT=$_plan_root"
+echo "TMP_ROOT=$_tmp_root"

@@ -1,12 +1,12 @@
 # Sidebar Flow
 
-How the GStack Browser sidebar actually works. Read this before touching
+How the CGStack Browser sidebar actually works. Read this before touching
 `sidepanel.js`, `background.js`, `content.js`, `terminal-agent.ts`, or
 sidebar-related server endpoints.
 
 The sidebar has one primary surface — the **Terminal** pane, an interactive
-`claude` PTY. Activity / Refs / Inspector survive as debug overlays behind
-the `debug` toggle in the footer. The chat queue path (one-shot `claude -p`,
+`codex` PTY. Activity / Refs / Inspector survive as debug overlays behind
+the `debug` toggle in the footer. The chat queue path (one-shot `codex -p`,
 sidebar-agent.ts) was ripped once the PTY proved out — the Terminal pane is
 strictly more capable.
 
@@ -20,11 +20,11 @@ strictly more capable.
 └─────────────────┘     └──────────────┘     └──────────────────┘
         ▲                       │                      │
         │  ws://127.0.0.1:<termPort>/ws (Sec-WebSocket-Protocol auth)
-        └───────────────────────┼──────────────────────▶│ Bun.spawn(claude)
+        └───────────────────────┼──────────────────────▶│ Bun.spawn(codex)
                                 │                      │  terminal: {data}
                                 │                      ▼
                                 │              ┌──────────────────┐
-                                │              │  claude PTY      │
+                                │              │  codex PTY      │
                                 │              └──────────────────┘
             POST /pty-session   │
             (Bearer AUTH_TOKEN) │
@@ -46,7 +46,7 @@ strictly more capable.
 
 The compiled browse server can't `posix_spawn` external executables —
 `terminal-agent.ts` runs as a separate non-compiled `bun run` process and
-owns the `claude` subprocess.
+owns the `codex` subprocess.
 
 ## Startup + first-keystroke timeline
 
@@ -59,25 +59,25 @@ T+500ms   terminal-agent.ts boots
             ├── Bun.serve on 127.0.0.1:0 (random port)
             ├── Writes <stateDir>/terminal-port (server reads it for /health)
             ├── Writes <stateDir>/terminal-internal-token (loopback handshake)
-            └── Probes claude → writes claude-available.json
+            └── Probes codex → writes codex-available.json
 
 T+1-3s    Extension loads, sidebar opens
-            ├── sidepanel-terminal.js: setState(IDLE), shows "Starting Claude Code..."
-            └── tryAutoConnect() polls until window.gstackServerPort + token are set
+            ├── sidepanel-terminal.js: setState(IDLE), shows "Starting Codex..."
+            └── tryAutoConnect() polls until window.cgstackServerPort + token are set
 
 T+ready   tryAutoConnect calls connect()
             ├── POST /pty-session (Authorization: Bearer AUTH_TOKEN)
             │   └── server mints session token, posts /internal/grant to agent
             │   └── responds with {terminalPort, ptySessionToken}
-            ├── GET /claude-available (preflight)
+            ├── GET Codex CLI-available (preflight)
             ├── new WebSocket(`ws://127.0.0.1:<terminalPort>/ws`,
-            │                 [`gstack-pty.<token>`])
+            │                 [`cgstack-pty.<token>`])
             │   └── Browser sends Sec-WebSocket-Protocol + Origin
             │   └── Agent validates Origin AND token BEFORE upgrading
             │   └── Agent echoes the protocol back (REQUIRED — browser
             │       closes the connection without it)
             ├── On open: send {type:"resize"} then a single \n byte
-            └── Agent message handler sees the byte → spawnClaude()
+            └── Agent message handler sees the byte → spawnCodex()
 ```
 
 ## Auth: WebSocket can't send Authorization headers
@@ -89,13 +89,13 @@ protocols)`. We exploit that:
 1. `POST /pty-session` (auth: Bearer AUTH_TOKEN) → server mints a
    short-lived session token, pushes it to the agent over loopback,
    returns it in the JSON body.
-2. Extension calls `new WebSocket(url, ['gstack-pty.<token>'])`.
-3. Agent reads `Sec-WebSocket-Protocol`, strips `gstack-pty.`, validates
+2. Extension calls `new WebSocket(url, ['cgstack-pty.<token>'])`.
+3. Agent reads `Sec-WebSocket-Protocol`, strips `cgstack-pty.`, validates
    against `validTokens`, echoes the protocol back. Echo is mandatory —
    without it Chromium closes the connection on receipt of the upgrade
    response.
 
-A `Set-Cookie: gstack_pty=...` header is also returned for non-browser
+A `Set-Cookie: cgstack_pty=...` header is also returned for non-browser
 callers (curl, integration tests). The cookie path was the original v1
 design but `SameSite=Strict` cookies don't survive the cross-port jump
 from server.ts:34567 → agent:<random> from a chrome-extension origin.
@@ -106,7 +106,7 @@ The protocol-token path is what the browser actually uses.
 | Token | Lives in | Used for | Lifetime |
 |-------|----------|----------|----------|
 | `AUTH_TOKEN` | `<stateDir>/browse.json`; in-memory in server.ts | `/pty-session` POST (mint cookie + token) | server lifetime |
-| `gstack-pty.<...>` (Sec-WebSocket-Protocol) | Browser memory only; agent `validTokens` Set | `/ws` upgrade auth | 30 min, auto-revoked on WS close |
+| `cgstack-pty.<...>` (Sec-WebSocket-Protocol) | Browser memory only; agent `validTokens` Set | `/ws` upgrade auth | 30 min, auto-revoked on WS close |
 | `INTERNAL_TOKEN` | `<stateDir>/terminal-internal-token`; in agent memory | server → agent loopback `/internal/grant` | agent lifetime |
 
 `AUTH_TOKEN` is **never** valid for `/ws` directly. The session token is
@@ -117,7 +117,7 @@ access.
 ## Threat model
 
 The Terminal pane **bypasses the prompt-injection security stack** on
-purpose — the user is typing directly to claude, there's no untrusted
+purpose — the user is typing directly to codex, there's no untrusted
 page content in the loop. Trust source is the keyboard, same as any
 local terminal.
 
@@ -141,11 +141,11 @@ Drop any one of those three and the whole tab becomes unsafe.
 - **Eager auto-connect.** Sidebar opens → tryAutoConnect polls for the
   bootstrap globals and connects as soon as they're set. No keypress
   required.
-- **One PTY per WS.** Closing the WebSocket SIGINTs claude, then SIGKILLs
+- **One PTY per WS.** Closing the WebSocket SIGINTs codex, then SIGKILLs
   after 3s. The session token is revoked so a stolen token can't be
   replayed.
 - **No auto-reconnect on close.** The user sees "Session ended, click to
-  start a new session." Auto-reconnect would burn a fresh claude session
+  start a new session." Auto-reconnect would burn a fresh codex session
   on every reload. v1.1 may add session resumption keyed on tab/session
   id (see TODOS).
 - **Manual restart anytime.** A `↻ Restart` button lives in the always-
@@ -159,12 +159,12 @@ of the Terminal pane:
 
 | Button | Behavior |
 |--------|----------|
-| 🧹 Cleanup | `window.gstackInjectToTerminal(prompt)` — pipes a "remove ads/banners" instruction into the live PTY. claude in the terminal sees it and acts. |
+| 🧹 Cleanup | `window.cgstackInjectToTerminal(prompt)` — pipes a "remove ads/banners" instruction into the live PTY. codex in the terminal sees it and acts. |
 | 📸 Screenshot | `POST /command screenshot` — direct browse-server call, no PTY involvement. |
 | 🍪 Cookies | Navigates to the `/cookie-picker` page. |
 
-The Inspector's "Send to Code" button uses the same `gstackInjectToTerminal`
-path to forward CSS inspector data into claude.
+The Inspector's "Send to Code" button uses the same `cgstackInjectToTerminal`
+path to forward CSS inspector data into codex.
 
 ## Debug surfaces (Activity / Refs / Inspector)
 
@@ -196,5 +196,5 @@ to `display:flex`, so sidepanel-terminal.js runs a `MutationObserver` on
 | State file | `<stateDir>/browse.json` | Filesystem |
 | Terminal port | `<stateDir>/terminal-port` | Filesystem |
 | Internal token | `<stateDir>/terminal-internal-token` | Filesystem |
-| Claude probe | `<stateDir>/claude-available.json` | Filesystem |
-| Active tab | `<stateDir>/active-tab.json` | Filesystem (claude reads) |
+| Codex probe | `<stateDir>Codex CLI-available.json` | Filesystem |
+| Active tab | `<stateDir>/active-tab.json` | Filesystem (codex reads) |

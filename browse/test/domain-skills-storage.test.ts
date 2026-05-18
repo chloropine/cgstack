@@ -3,10 +3,10 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const TMP_HOME = path.join(os.tmpdir(), `gstack-test-${process.pid}-${Date.now()}`);
-process.env.GSTACK_HOME = TMP_HOME;
+const TMP_HOME = path.join(os.tmpdir(), `cgstack-test-${process.pid}-${Date.now()}`);
+process.env.CGSTACK_HOME = TMP_HOME;
 
-// Re-import after env var set so module reads updated GSTACK_HOME
+// Re-import after env var set so module reads updated CGSTACK_HOME
 async function freshImport() {
   // Bun caches modules; force reload by appending a query-string-like hack via dynamic import URL
   // Simplest: just import once after env is set. All tests in this file share the TMP_HOME.
@@ -109,7 +109,7 @@ describe('domain-skills: state machine (T6)', () => {
 
   // domain-skill-commands.ts:140 (handleSave) writes classifier_score=0 with
   // the comment "L4 deferred to load-time" — but sidebar-agent (the deferred
-  // scanner) was ripped per CLAUDE.md "Sidebar architecture." Without an
+  // scanner) was ripped per AGENTS.md "Sidebar architecture." Without an
   // explicit gate, three benign uses promote any quarantined skill, including
   // one authored under a poisoned page, into prompt context permanently.
   it('does NOT auto-promote when classifier_score is 0 (production handleSave shape)', async () => {

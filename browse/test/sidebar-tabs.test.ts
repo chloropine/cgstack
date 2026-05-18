@@ -2,7 +2,7 @@
  * Regression: sidebar layout invariants after the chat-tab rip.
  *
  * The Chrome side panel used to host two surfaces: Chat (one-shot
- * `claude -p` queue) and Terminal (interactive PTY). Chat was ripped
+ * `codex -p` queue) and Terminal (interactive PTY). Chat was ripped
  * once the PTY proved out — sidebar-agent.ts is gone, the chat queue
  * endpoints are gone, and the primary-tab nav (Terminal | Chat) is
  * gone. Terminal is now the sole primary surface.
@@ -88,18 +88,18 @@ describe('sidepanel.js: chat helpers ripped, terminal-injection helper survives'
   });
 
   test('Cleanup runs through the live PTY (no /sidebar-command POST)', () => {
-    // The new Cleanup handler injects the prompt straight into claude's
-    // PTY via gstackInjectToTerminal. The dead code path was a POST to
-    // /sidebar-command which kicked off a fresh claude -p subprocess.
+    // The new Cleanup handler injects the prompt straight into codex's
+    // PTY via cgstackInjectToTerminal. The dead code path was a POST to
+    // /sidebar-command which kicked off a fresh codex -p subprocess.
     const cleanup = JS.slice(JS.indexOf('async function runCleanup'));
-    expect(cleanup).toContain('window.gstackInjectToTerminal');
+    expect(cleanup).toContain('window.cgstackInjectToTerminal');
     expect(cleanup).not.toContain('/sidebar-command');
     expect(cleanup).not.toContain('addChatEntry');
   });
 
   test('Inspector "Send to Code" routes through the live PTY', () => {
     const sendBtn = JS.slice(JS.indexOf('inspectorSendBtn.addEventListener'));
-    expect(sendBtn).toContain('window.gstackInjectToTerminal');
+    expect(sendBtn).toContain('window.cgstackInjectToTerminal');
     expect(sendBtn).not.toContain("type: 'sidebar-command'");
   });
 
@@ -110,16 +110,16 @@ describe('sidepanel.js: chat helpers ripped, terminal-injection helper survives'
     expect(update).not.toContain('pollChat');
     expect(update).not.toContain('pollTabs');
     // BUT must still expose the bootstrap globals for sidepanel-terminal.js.
-    expect(update).toContain('window.gstackServerPort');
-    expect(update).toContain('window.gstackAuthToken');
+    expect(update).toContain('window.cgstackServerPort');
+    expect(update).toContain('window.cgstackAuthToken');
   });
 });
 
 describe('sidepanel-terminal.js: eager auto-connect + injection API', () => {
-  test('Exposes window.gstackInjectToTerminal for cross-pane use', () => {
-    expect(TERM_JS).toContain('window.gstackInjectToTerminal');
+  test('Exposes window.cgstackInjectToTerminal for cross-pane use', () => {
+    expect(TERM_JS).toContain('window.cgstackInjectToTerminal');
     // Returns false when no live session, true when bytes go out.
-    const inject = TERM_JS.slice(TERM_JS.indexOf('window.gstackInjectToTerminal'));
+    const inject = TERM_JS.slice(TERM_JS.indexOf('window.cgstackInjectToTerminal'));
     expect(inject).toContain('return false');
     expect(inject).toContain('return true');
     expect(inject).toContain('ws.readyState !== WebSocket.OPEN');
@@ -132,7 +132,7 @@ describe('sidepanel-terminal.js: eager auto-connect + injection API', () => {
   });
 
   test('Repaint hook fires when Terminal pane becomes visible', () => {
-    // The chat-tab rip removed gstack:primary-tab-changed; we use a
+    // The chat-tab rip removed cgstack:primary-tab-changed; we use a
     // MutationObserver on #tab-terminal's class attr instead. The
     // observer must call repaintIfLive when the .active class returns.
     expect(TERM_JS).toContain('MutationObserver');

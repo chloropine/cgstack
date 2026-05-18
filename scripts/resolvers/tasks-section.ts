@@ -29,7 +29,7 @@ aggregate across phases.
 \`\`\`markdown
 ## Implementation Tasks
 Synthesized from this review's findings. Each task derives from a specific
-finding above. Run with Claude Code or Codex; checkbox as you ship.
+finding above. Run with Codex or Codex; checkbox as you ship.
 
 - [ ] **T1 (P1, human: ~2h / CC: ~15min)** — <component> — <imperative title>
   - Surfaced by: <section name> — <specific finding text or line reference>
@@ -42,7 +42,7 @@ Rules:
 - P1 blocks ship; P2 should land same branch; P3 is a follow-up TODO.
 - If a finding produced no actionable task, do not invent one.
 - If a section had zero findings, emit \`_No new tasks from <section>._\`
-- Effort uses the AI-compression table from CLAUDE.md.
+- Effort uses the AI-compression table from AGENTS.md.
 
 ### JSONL artifact (always write, even if zero tasks)
 
@@ -51,8 +51,8 @@ Rules:
 backslashes serialize cleanly — never use hand-rolled \`echo\` / \`printf\`.
 
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
-TASKS_DIR="\${HOME}/.gstack/projects/\${SLUG:-unknown}"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
+TASKS_DIR="\${HOME}/.cgstack/projects/\${SLUG:-unknown}"
 mkdir -p "$TASKS_DIR"
 TASKS_FILE="$TASKS_DIR/tasks-${phase}-$(date +%Y%m%d-%H%M%S).jsonl"
 COMMIT=$(git rev-parse HEAD 2>/dev/null || echo unknown)
@@ -97,8 +97,8 @@ Before rendering the Final Approval Gate output block below, aggregate the
 per-phase task lists each review skill wrote.
 
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)"
-TASKS_DIR="\${HOME}/.gstack/projects/\${SLUG:-unknown}"
+eval "$(~/.codex/skills/cgstack/bin/cgstack-slug 2>/dev/null)"
+TASKS_DIR="\${HOME}/.cgstack/projects/\${SLUG:-unknown}"
 BRANCH=$(git branch --show-current 2>/dev/null || echo unknown)
 # Commit window: last 5 commits on this branch. Drops stale standalone reviews.
 COMMITS_RECENT=$(git log --format=%H -n 5 2>/dev/null | tr '\\n' '|' | sed 's/|$//')
