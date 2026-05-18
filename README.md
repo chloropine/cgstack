@@ -97,7 +97,7 @@ For live browser work, launch the visible browser integration:
 
 ## Install
 
-Requirements: OpenAI Codex CLI, Git, Bun v1.0+, and Node.js on Windows.
+Requirements: OpenAI Codex CLI, Git, and Bun v1.0+.
 
 ```bash
 git clone --single-branch --depth 1 https://github.com/chloropine/cgstack.git ~/.cgstack/repos/cgstack
@@ -107,6 +107,17 @@ cd ~/.cgstack/repos/cgstack
 
 The installer builds the browser binary, generates Codex-format skills under
 `.agents/skills/`, and installs runtime links under `~/.codex/skills/`.
+
+## Compatibility
+
+cgstack supports macOS, Linux, and Windows.
+
+- **macOS and Linux**: full local setup and test workflow are supported with
+  Codex CLI, Git, and Bun.
+- **Windows**: supported through the Windows-safe path. Install Node.js as well
+  as Bun; the browser server uses a Node-compatible bundle on Windows.
+- **Codex only**: cgstack does not support Claude Code or other AI coding
+  runtimes.
 
 ## Team Mode
 
