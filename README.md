@@ -21,6 +21,26 @@ The port includes Codex skill generation, `~/.codex/skills/` installation,
 `AGENTS.md` project guidance, Codex CLI invocation paths, and a Codex-focused
 browser/terminal integration.
 
+## What Changed From gstack?
+
+cgstack is not a compatibility layer. It is a Codex-only fork.
+
+- **Claude Code support was removed**: skills, setup paths, docs, and runtime
+  assumptions now target Codex only.
+- **Codex skill installation is first-class**: generated skills install under
+  `~/.codex/skills/`, with flat slash-command names like `/review` and `/qa`.
+- **Project guidance moved to `AGENTS.md`**: cgstack uses Codex's project
+  instruction file instead of `CLAUDE.md`.
+- **Invocation paths were rewritten for Codex**: model handoffs, review flows,
+  probes, and benchmark adapters call Codex CLI behavior rather than Claude
+  Code behavior.
+- **The browser sidebar is terminal-first**: the old chat/agent sidebar surface
+  was removed; the visible browser integration now pairs with a Codex terminal.
+- **Legacy host abstraction was dropped**: there is no multi-host matrix to keep
+  in sync. Codex is the supported runtime.
+- **Docs and tests were regenerated around cgstack**: README, architecture docs,
+  generated skills, and validation tests now describe the Codex port.
+
 ## Why cgstack?
 
 Codex is strong at implementation, but real software work needs more than raw
