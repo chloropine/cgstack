@@ -78,9 +78,9 @@ describeE2E('$autoplan chain ordering (periodic)', () => {
         let evidence = '';
 
         try {
-          await Bun.sleep(8000);
+          await session.waitForComposerReady({ timeoutMs: 45_000 });
           const since = session.mark();
-          session.send('$autoplan\r');
+          await session.submit('$autoplan', { dismissAutocomplete: true });
 
           const budgetMs = 900_000; // 15 min
           const start = Date.now();

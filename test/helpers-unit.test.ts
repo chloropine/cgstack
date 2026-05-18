@@ -14,7 +14,14 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { parseNumberedOptions } from './helpers/codex-pty-runner';
+import {
+  assertCodexTuiArgsSupported,
+  findUnsupportedCodexTuiArgs,
+  formatCodexPtyDebugSnapshot,
+  isComposerReadyVisible,
+  parseNumberedOptions,
+  summarizeCodexPtyVisibleState,
+} from './helpers/codex-pty-runner';
 import {
   assertNoBudgetRegression,
   findBudgetRegressions,
@@ -23,6 +30,79 @@ import {
 } from './helpers/eval-store';
 
 // --- parseNumberedOptions ---
+
+describe('isComposerReadyVisible', () => {
+  test('detects current Codex composer prompt shape', () => {
+    const visible = '›Use /skills to list available skillsgpt-5.4-mini high · ~/projects/cgstack';
+    expect(isComposerReadyVisible(visible)).toBe(true);
+  });
+
+  test('does not treat booting MCP status as ready', () => {
+    const visible = '•Booting MCP server: codex_apps(0s • esc to interrupt)';
+    expect(isComposerReadyVisible(visible)).toBe(false);
+  });
+
+  test('does not treat queued composer state as ready', () => {
+    const visible = '›Prompt text.tab to queue message100% context leftgpt-5.4-mini high · ~/projects/cgstack';
+    expect(isComposerReadyVisible(visible)).toBe(false);
+  });
+});
+
+describe('Codex PTY debug evidence', () => {
+  test('summarizes common visible TUI states', () => {
+    expect(summarizeCodexPtyVisibleState('•Booting MCP server: codex_apps(0s • esc to interrupt)')).toContain('booting-mcp');
+    expect(summarizeCodexPtyVisibleState('›Prompt text.tab to queue message100% context leftgpt-5.4-mini high · ~/projects/cgstack')).toContain('composer-queued');
+    expect(summarizeCodexPtyVisibleState('Reply A or B.')).toContain('prose-choice-reply-letter');
+    expect(summarizeCodexPtyVisibleState('❯ 1. Keep scope\n  2. Expand scope')).toContain('numbered-options');
+  });
+
+  test('debug snapshot includes state, expected patterns, visible tail, and escaped raw tail', () => {
+    const debug = formatCodexPtyDebugSnapshot({
+      label: 'Timed out in test',
+      expected: [/ready to execute/i, 'done'],
+      visible: 'Reply A or B.',
+      raw: '\x1b[31mReply A or B.\x1b[0m',
+      pid: 123,
+      exitCode: null,
+      cwd: '/tmp/repo',
+      args: ['--no-alt-screen'],
+    });
+
+    expect(debug).toContain('Timed out in test');
+    expect(debug).toContain('state: prose-choice-reply-letter');
+    expect(debug).toContain('/ready to execute/i');
+    expect(debug).toContain('"done"');
+    expect(debug).toContain('--- visible tail');
+    expect(debug).toContain('--- raw tail');
+    expect(debug).toContain('\\u001b[31m');
+  });
+});
+
+describe('Codex TUI argument support', () => {
+  test('flags disabled-tool arguments as unsupported for the real PTY runner', () => {
+    expect(findUnsupportedCodexTuiArgs(['--disallowedTools', 'AskUserQuestion'])).toEqual([
+      {
+        flag: '--disallowedTools',
+        value: 'AskUserQuestion',
+        reason: 'Codex TUI tests cannot emulate disabled tool registries through CLI flags.',
+      },
+    ]);
+    expect(findUnsupportedCodexTuiArgs(['--disallowed-tools=AskUserQuestion'])).toEqual([
+      {
+        flag: '--disallowed-tools',
+        value: 'AskUserQuestion',
+        reason: 'Codex TUI tests cannot emulate disabled tool registries through CLI flags.',
+      },
+    ]);
+  });
+
+  test('fails fast instead of silently stripping disabled-tool arguments', () => {
+    expect(() => assertCodexTuiArgsSupported(['--disallowedTools', 'AskUserQuestion'])).toThrow(
+      /host-sim with askUserQuestion: "none"/,
+    );
+    expect(() => assertCodexTuiArgsSupported(['--model', 'gpt-5.4'])).not.toThrow();
+  });
+});
 
 describe('parseNumberedOptions', () => {
   test('returns [] for empty input', () => {

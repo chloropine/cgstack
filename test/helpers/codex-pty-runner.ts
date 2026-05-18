@@ -9,10 +9,10 @@ import * as fs from 'fs';
 
 export function stripAnsi(s: string): string {
   return s
-    .replace(/\x1b\[[\d;]*[a-zA-Z]/g, '')
+    .replace(/\x1b\[[?=>]?[0-9;: ]*[a-zA-Z]/g, '')
     .replace(/\x1b\][^\x07\x1b]*(\x07|\x1b\\)/g, '')
     .replace(/\x1b[()][AB012]/g, '')
-    .replace(/\x1b[78=>]/g, '');
+    .replace(/\x1b[78=>M]/g, '');
 }
 
 export function resolveCodexBinary(): string | null {
@@ -56,10 +56,13 @@ export interface CodexPtyOptions {
 export interface CodexPtySession {
   send(data: string): void;
   sendKey(key: 'Enter' | 'Up' | 'Down' | 'Esc' | 'Tab' | 'ShiftTab' | 'CtrlC'): void;
+  submit(text: string, opts?: { dismissAutocomplete?: boolean }): Promise<void>;
   rawOutput(): string;
   visibleText(): string;
+  debugSnapshot(opts?: { label?: string; expected?: Array<RegExp | string>; since?: number; tailBytes?: number }): string;
   mark(): number;
   visibleSince(marker?: number): string;
+  waitForComposerReady(opts?: { timeoutMs?: number; pollMs?: number; since?: number }): Promise<void>;
   waitForAny(
     patterns: Array<RegExp | string>,
     opts?: { timeoutMs?: number; pollMs?: number; since?: number },
@@ -152,7 +155,7 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
     },
     sendKey(key) {
       const map: Record<typeof key, string> = {
-        Enter: '\n',
+        Enter: '\r',
         Up: '\x1b[A',
         Down: '\x1b[B',
         Esc: '\x1b',
@@ -162,11 +165,49 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
       };
       this.send(map[key]);
     },
+    async submit(text: string, submitOpts = {}) {
+      this.send(text);
+      await Bun.sleep(250);
+      if (submitOpts.dismissAutocomplete) {
+        this.sendKey('Esc');
+        await Bun.sleep(250);
+      }
+      this.sendKey('Enter');
+    },
     rawOutput: () => raw,
     visibleText: () => stripAnsi(raw),
+    debugSnapshot(snapshotOpts = {}) {
+      const visible = stripAnsi(raw);
+      return formatCodexPtyDebugSnapshot({
+        label: snapshotOpts.label,
+        expected: snapshotOpts.expected,
+        visible,
+        raw,
+        since: snapshotOpts.since,
+        tailBytes: snapshotOpts.tailBytes,
+        pid: proc.pid,
+        exitCode: code,
+        cwd: opts.cwd || process.cwd(),
+        args,
+      });
+    },
     mark: () => stripAnsi(raw).length,
     visibleSince(marker = 0) {
       return stripAnsi(raw).slice(marker);
+    },
+    async waitForComposerReady(waitOpts = {}) {
+      const timeoutMs = waitOpts.timeoutMs ?? opts.timeoutMs ?? 60_000;
+      const pollMs = waitOpts.pollMs ?? 100;
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        const visible = waitOpts.since == null ? this.visibleText() : this.visibleSince(waitOpts.since);
+        if (isComposerReadyVisible(visible)) return;
+        await Bun.sleep(pollMs);
+      }
+      throw new Error(this.debugSnapshot({
+        label: 'Timed out waiting for Codex composer readiness',
+        since: waitOpts.since,
+      }));
     },
     async waitForAny(patterns, waitOpts = {}) {
       const timeoutMs = waitOpts.timeoutMs ?? opts.timeoutMs ?? 60_000;
@@ -178,7 +219,11 @@ export async function launchCodexPty(opts: CodexPtyOptions = {}): Promise<CodexP
         if (index >= 0) return { matched: patterns[index]!, index };
         await Bun.sleep(pollMs);
       }
-      throw new Error(`Timed out waiting for patterns.\n--- visible tail ---\n${this.visibleText().slice(-2000)}`);
+      throw new Error(this.debugSnapshot({
+        label: 'Timed out waiting for patterns',
+        expected: patterns,
+        since: waitOpts.since,
+      }));
     },
     async waitFor(pattern, waitOpts) {
       await this.waitForAny([pattern], waitOpts);
@@ -208,8 +253,122 @@ export function isPermissionDialogVisible(visible: string): boolean {
     /(command|edit|write|file|tool|bash|exec)/i.test(visible);
 }
 
+export function isComposerReadyVisible(visible: string): boolean {
+  const tail = visible.slice(-3000).replace(/\s+/g, ' ');
+  const promptIndex = tail.lastIndexOf('›');
+  if (promptIndex < 0) return false;
+  const promptTail = tail.slice(promptIndex);
+  if (/tab to queue message/i.test(promptTail)) return false;
+  return /›.{0,240}(?:gpt-|o\d|codex|model:).*?·\s*(?:~|\/|\.)/i.test(promptTail);
+}
+
+export function summarizeCodexPtyVisibleState(visible: string): string {
+  const tail = visible.slice(-4096);
+  const compactTail = tail.replace(/\s+/g, ' ');
+  const signals: string[] = [];
+
+  if (!visible.trim()) signals.push('empty-output');
+  if (/booting MCP server/i.test(tail)) signals.push('booting-mcp');
+  if (/esc to interrupt/i.test(tail)) signals.push('interruptible-status');
+  if (/tab to queue message/i.test(tail)) signals.push('composer-queued');
+  if (isComposerReadyVisible(visible)) signals.push('composer-ready');
+  if (isPermissionDialogVisible(tail)) signals.push('permission-dialog');
+  if (isPlanReadyVisible(tail)) signals.push('plan-ready');
+  if (isNumberedOptionListVisible(tail)) {
+    const labels = parseNumberedOptions(tail).map((option) => `${option.index}:${option.label}`).join(' | ');
+    signals.push(labels ? `numbered-options(${labels})` : 'numbered-options');
+  }
+  if (/\breply\s+(?:with\s+)?[A-Z]\s+or\s+[A-Z]\b/i.test(compactTail)) signals.push('prose-choice-reply-letter');
+  if (/\b(?:completed|done)\b/i.test(tail)) signals.push('completion-word');
+  if (/\b(?:thinking|working|running|reading|writing)\b/i.test(tail)) signals.push('agent-active-text');
+
+  return signals.length > 0 ? signals.join(', ') : 'unknown';
+}
+
+export function formatCodexPtyDebugSnapshot(opts: {
+  label?: string;
+  expected?: Array<RegExp | string>;
+  visible: string;
+  raw: string;
+  since?: number;
+  tailBytes?: number;
+  pid?: number;
+  exitCode?: number | null;
+  cwd?: string;
+  args?: string[];
+}): string {
+  const tailBytes = opts.tailBytes ?? 3000;
+  const visibleWindow = opts.since == null ? opts.visible : opts.visible.slice(opts.since);
+  const expected = opts.expected?.map((pattern) => pattern instanceof RegExp ? pattern.toString() : JSON.stringify(pattern));
+  const header = opts.label ?? 'Codex PTY debug snapshot';
+  return [
+    header,
+    `state: ${summarizeCodexPtyVisibleState(visibleWindow || opts.visible)}`,
+    `pid: ${opts.pid ?? '<unknown>'}`,
+    `exit_code: ${opts.exitCode ?? '<running>'}`,
+    `cwd: ${opts.cwd ?? '<unknown>'}`,
+    `args: ${JSON.stringify(opts.args ?? [])}`,
+    `visible_chars: ${opts.visible.length}`,
+    `raw_chars: ${opts.raw.length}`,
+    opts.since == null ? null : `since_marker: ${opts.since}`,
+    expected && expected.length > 0 ? `expected: ${expected.join(', ')}` : null,
+    `--- visible tail (${tailBytes} chars) ---`,
+    opts.visible.slice(-tailBytes),
+    `--- raw tail (${tailBytes} chars, JSON escaped) ---`,
+    JSON.stringify(opts.raw.slice(-tailBytes)),
+  ].filter((line): line is string => line !== null).join('\n');
+}
+
 export function isNumberedOptionListVisible(visible: string): boolean {
   return parseNumberedOptions(visible).length >= 2 || /(?:^|\n).{0,80}❯\s*\d+\./.test(visible);
+}
+
+export interface UnsupportedCodexTuiArg {
+  flag: string;
+  value?: string;
+  reason: string;
+}
+
+export function findUnsupportedCodexTuiArgs(extraArgs: string[] = []): UnsupportedCodexTuiArg[] {
+  const unsupported: UnsupportedCodexTuiArg[] = [];
+
+  for (let i = 0; i < extraArgs.length; i++) {
+    const arg = extraArgs[i]!;
+    const equalsMatch = arg.match(/^(--disallowedTools|--disallowed-tools)=(.+)$/);
+    if (equalsMatch) {
+      unsupported.push({
+        flag: equalsMatch[1]!,
+        value: equalsMatch[2]!,
+        reason: 'Codex TUI tests cannot emulate disabled tool registries through CLI flags.',
+      });
+      continue;
+    }
+
+    if (arg === '--disallowedTools' || arg === '--disallowed-tools') {
+      unsupported.push({
+        flag: arg,
+        value: extraArgs[i + 1],
+        reason: 'Codex TUI tests cannot emulate disabled tool registries through CLI flags.',
+      });
+      i++;
+    }
+  }
+
+  return unsupported;
+}
+
+export function assertCodexTuiArgsSupported(extraArgs: string[] = []): void {
+  const unsupported = findUnsupportedCodexTuiArgs(extraArgs);
+  if (unsupported.length === 0) return;
+
+  const details = unsupported
+    .map((arg) => arg.value ? `${arg.flag} ${arg.value}` : arg.flag)
+    .join(', ');
+  throw new Error(
+    `Unsupported Codex TUI argument(s): ${details}.\n` +
+      'Do not pass disabled-tool flags to runPlanSkillObservation(); they used to be silently stripped. ' +
+      'Use runner mode host-sim with askUserQuestion: "none" for AskUserQuestion-blocked coverage.',
+  );
 }
 
 export const MODE_RE = /\b(HOLD SCOPE|SCOPE EXPANSION|SELECTIVE EXPANSION|SCOPE REDUCTION)\b/i;
@@ -286,12 +445,7 @@ export async function runPlanSkillObservation(opts: {
 }): Promise<PlanSkillObservation> {
   const start = Date.now();
   const extraArgs = [...(opts.extraArgs || [])];
-  for (let i = 0; i < extraArgs.length; i++) {
-    if (extraArgs[i] === '--disallowedTools') {
-      extraArgs.splice(i, 2);
-      i--;
-    }
-  }
+  assertCodexTuiArgsSupported(extraArgs);
   const session = await launchCodexPty({
     cwd: opts.cwd,
     env: opts.env,
@@ -299,13 +453,20 @@ export async function runPlanSkillObservation(opts: {
     permissionMode: opts.inPlanMode ? 'plan' : undefined,
     extraArgs,
   });
+  let stage = 'launching Codex TUI';
+  let submittedMarker: number | undefined;
   try {
-    await Bun.sleep(8000);
-    session.send(`$${opts.skillName}\r`);
+    stage = 'waiting for composer readiness';
+    await session.waitForComposerReady({ timeoutMs: 45_000 });
+    submittedMarker = session.mark();
+    stage = `submitting $${opts.skillName}`;
+    await session.submit(`$${opts.skillName}`, { dismissAutocomplete: true });
+    stage = `waiting for $${opts.skillName} terminal signal`;
     const hit = await session.waitForAny([/❯\s*1\./, /ready to execute/i, /completed|done/i], {
       timeoutMs: opts.timeoutMs ?? 120_000,
+      since: submittedMarker,
     });
-    const evidence = session.visibleText().slice(-3000);
+    const evidence = session.visibleSince(submittedMarker).slice(-3000);
     if (String(hit.matched).includes('ready')) {
       return { outcome: 'plan_ready', summary: 'plan-ready prompt observed', elapsedMs: Date.now() - start, evidence };
     }
@@ -314,11 +475,18 @@ export async function runPlanSkillObservation(opts: {
     }
     return { outcome: 'completion_summary', summary: 'completion marker observed', elapsedMs: Date.now() - start, evidence };
   } catch (err) {
+    const visible = session.visibleSince(submittedMarker);
+    const state = summarizeCodexPtyVisibleState(visible || session.visibleText());
+    const message = (err as Error).message.split('\n')[0] || String(err);
     return {
       outcome: session.exited() ? 'exited' : 'timeout',
-      summary: (err as Error).message,
+      summary: `${stage}: ${message} (state: ${state})`,
       elapsedMs: Date.now() - start,
-      evidence: session.visibleText().slice(-3000),
+      evidence: session.debugSnapshot({
+        label: `runPlanSkillObservation failed during ${stage}`,
+        since: submittedMarker,
+        expected: [/❯\s*1\./, /ready to execute/i, /completed|done/i],
+      }),
     };
   } finally {
     await session.close();

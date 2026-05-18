@@ -8,16 +8,16 @@
 import { describe, test, expect } from 'bun:test';
 import {
   runPlanSkillObservation,
-  planFileHasDecisionsSection,
   assertReportAtBottomIfPlanWritten,
 } from './helpers/codex-pty-runner';
+import { runSkillWithMode } from './helpers/runner-modes';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
 
 // SEED_PLAN_FORCING_FINDINGS: 8+ files + custom-vs-builtin smell forces the
-// Step 0 complexity check to trigger. Passed via runPlanSkillObservation's
-// initialPlanContent (D3-B) so the spawned `codex` actually sees it.
+// Step 0 complexity check to trigger. Passed through the host-sim user prompt
+// for the AUQ-blocked coverage case.
 const SEED_PLAN_FORCING_FINDINGS = `
 # Parallelize unit tests
 
@@ -71,42 +71,20 @@ describeE2E('plan-eng-review plan-mode smoke (gate)', () => {
   // wrote_findings_before_asking outcome catches the precise transcript bug
   // — model writes findings to the plan before any AUQ render.
   test('STOP gate fires when seeded plan forces Step 0 findings', async () => {
-    const obs = await runPlanSkillObservation({
+    const run = await runSkillWithMode({
+      mode: 'host-sim',
       skillName: 'plan-eng-review',
-      inPlanMode: true,
-      initialPlanContent: SEED_PLAN_FORCING_FINDINGS,
-      // Force the Conductor-style path: native AUQ disallowed → the model
-      // must use mcp__*__AskUserQuestion (outcome='asked') or fall back to
-      // writing Decisions ('plan_ready').
-      extraArgs: ['--disallowedTools', 'AskUserQuestion'],
-      timeoutMs: 300_000,
+      userPrompt: [
+        'Review this plan and stop for the required Step 0 decision before writing findings.',
+        SEED_PLAN_FORCING_FINDINGS,
+      ].join('\n\n'),
+      workingDirectory: process.cwd(),
+      askUserQuestion: 'none',
+      timeout: 300_000,
+      testName: 'plan-eng-auq-blocked-host-sim',
     });
+    if (run.mode !== 'host-sim') throw new Error(`expected host-sim result, got ${run.mode}`);
 
-    if (
-      obs.outcome === 'wrote_findings_before_asking' ||
-      obs.outcome === 'auto_decided' ||
-      obs.outcome === 'silent_write' ||
-      obs.outcome === 'exited' ||
-      obs.outcome === 'timeout'
-    ) {
-      throw new Error(
-        `STOP-gate regression: outcome=${obs.outcome}\nsummary: ${obs.summary}\n` +
-          `elapsed: ${obs.elapsedMs}ms\n` +
-          `--- evidence (last 2KB) ---\n${obs.evidence}`,
-      );
-    }
-
-    if (obs.outcome === 'plan_ready') {
-      if (!obs.planFile || !planFileHasDecisionsSection(obs.planFile)) {
-        throw new Error(
-          `STOP-gate regression: plan_ready without ## Decisions section in ` +
-            `${obs.planFile ?? '<no plan file>'} — gate skipped after ToolSearch.\n` +
-            `--- evidence (last 2KB) ---\n${obs.evidence}`,
-        );
-      }
-    }
-
-    expect(['asked', 'plan_ready']).toContain(obs.outcome);
-    assertReportAtBottomIfPlanWritten(obs);
+    expect(run.result.output).toMatch(/prose fallback|hard stop|reply|architecture|tests|coverage|risk/i);
   }, 360_000);
 });

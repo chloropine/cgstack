@@ -77,10 +77,9 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
       });
 
       try {
-        // Boot grace + auto trust-dialog handler.
-        await Bun.sleep(8000);
+        await session.waitForComposerReady({ timeoutMs: 45_000 });
         const since = session.mark();
-        session.send('$plan-ceo-review\r');
+        await session.submit('$plan-ceo-review', { dismissAutocomplete: true });
 
         // Wait for a SKILL AskUserQuestion. Strategy: poll the visible buffer until it
         // contains both a numbered-option list AND the format markers we

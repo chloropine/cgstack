@@ -103,10 +103,11 @@ describe('selectTests', () => {
     // also depends on plan-ceo-review/** (autoplan-auto-mode test was
     // removed in v1.28 — see commit message for the rationale).
     expect(result.selected).toContain('auto-decide-preserved');
+    expect(result.selected).toContain('auto-decide-preserved-host-sim');
     // v1.27+ gate-tier reviewCount-floor regression for transcript bug
     expect(result.selected).toContain('plan-ceo-finding-floor');
-    expect(result.selected.length).toBe(21);
-    expect(result.skipped.length).toBe(Object.keys(E2E_TOUCHFILES).length - 21);
+    expect(result.selected.length).toBe(22);
+    expect(result.skipped.length).toBe(Object.keys(E2E_TOUCHFILES).length - 22);
   });
 
   test('global touchfile triggers ALL tests', () => {

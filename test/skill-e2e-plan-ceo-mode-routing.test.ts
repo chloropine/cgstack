@@ -154,9 +154,9 @@ describeE2E('$plan-ceo-review mode routing (gate)', () => {
           timeoutMs: 540_000,
         });
         try {
-          await Bun.sleep(8000);
+          await session.waitForComposerReady({ timeoutMs: 45_000 });
           const since = session.mark();
-          session.send('$plan-ceo-review\r');
+          await session.submit('$plan-ceo-review', { dismissAutocomplete: true });
 
           const { modeIndex } = await navigateToModeAskUserQuestion(session, since, c.mode);
 

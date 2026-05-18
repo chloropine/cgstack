@@ -52,13 +52,13 @@ describeE2E('$plan-design-review with UI scope (gate)', () => {
       let debugBuffer = ''; // captured at end so timeout error has data
 
       try {
-        await Bun.sleep(8000);
+        await session.waitForComposerReady({ timeoutMs: 45_000 });
         const since = session.mark();
         // Send the skill mention alone first; then provide the UI-heavy
         // plan content as a follow-up message.
-        session.send('$plan-design-review\r');
-        await Bun.sleep(3000);
-        session.send(
+        await session.submit('$plan-design-review', { dismissAutocomplete: true });
+        await session.waitForComposerReady({ timeoutMs: 45_000, since });
+        await session.submit(
           `Please review this plan for UI scope:\n\n` +
           `Title: User Dashboard Page\n` +
           `New React page UserDashboard.tsx with three subcomponents: ` +
@@ -66,7 +66,7 @@ describeE2E('$plan-design-review with UI scope (gate)', () => {
           `Tailwind CSS responsive layout (mobile/desktop breakpoints), ` +
           `loading skeletons, empty states, hover states on every interactive element, ` +
           `modal dialog for "mark all read", toast notifications for action feedback. ` +
-          `Reference plan file: ${fixtureRelPath}\r`
+          `Reference plan file: ${fixtureRelPath}`
         );
 
         const budgetMs = 360_000;

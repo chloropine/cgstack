@@ -104,6 +104,9 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // transitively by the entries above). Two new standalone files exist for
   // skills with no prior plan-mode test:
   'office-hours-auto-mode':       ['office-hours/**', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'test/helpers/codex-pty-runner.ts'],
+  'office-hours-auq-blocked-host-sim': ['office-hours/**', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'test/helpers/runner-modes.ts', 'test/helpers/session-runner.ts'],
+  'plan-eng-auq-blocked-host-sim': ['plan-eng-review/**', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/review.ts', 'test/helpers/runner-modes.ts', 'test/helpers/session-runner.ts'],
+  'plan-devex-auq-blocked-host-sim': ['plan-devex-review/**', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/review.ts', 'test/helpers/runner-modes.ts', 'test/helpers/session-runner.ts'],
   'office-hours-phase4-fork':     ['office-hours/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/question-tuning.ts', 'test/helpers/llm-judge.ts', 'test/skill-e2e-office-hours-phase4.test.ts'],
   'llm-judge-recommendation':     ['test/helpers/llm-judge.ts', 'test/llm-judge-recommendation.test.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'bin/cgstack-codex-probe', 'scripts/resolvers/review.ts'],
   // v1.21+ AUTO_DECIDE preserve eval (periodic). Verifies the Tool resolution
@@ -112,6 +115,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // surfacing the question. Touches the question-tuning + preference
   // infrastructure plus the resolvers that own the AUTO_DECIDE preamble.
   'auto-decide-preserved':        ['scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'plan-ceo-review/**', 'bin/cgstack-question-preference', 'bin/cgstack-config', 'bin/cgstack-slug', 'test/helpers/codex-pty-runner.ts'],
+  'auto-decide-preserved-host-sim': ['scripts/resolvers/question-tuning.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'plan-ceo-review/**', 'bin/cgstack-question-preference', 'bin/cgstack-config', 'bin/cgstack-slug', 'test/helpers/runner-modes.ts', 'test/helpers/session-runner.ts'],
 
   // Real-PTY E2E batch (#6 new tests on the harness).
   // Each one tests behavior the SDK harness can't observe (rendered TTY,
@@ -431,7 +435,11 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'plan-mode-no-op': 'gate',
   // v1.21+ auto-mode regression tests
   'office-hours-auto-mode': 'gate',
+  'office-hours-auq-blocked-host-sim': 'gate',
+  'plan-eng-auq-blocked-host-sim': 'gate',
+  'plan-devex-auq-blocked-host-sim': 'gate',
   'auto-decide-preserved': 'periodic',
+  'auto-decide-preserved-host-sim': 'periodic',
   'e2e-harness-audit': 'gate',
 
   // Real-PTY E2E batch — tier classification:

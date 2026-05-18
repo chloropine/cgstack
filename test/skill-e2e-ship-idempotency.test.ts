@@ -167,9 +167,9 @@ describeE2E('$ship idempotency E2E (periodic, real-PTY)', () => {
       let evidence = '';
 
       try {
-        await Bun.sleep(8000);
+        await session.waitForComposerReady({ timeoutMs: 45_000 });
         const since = session.mark();
-        session.send('$ship\r');
+        await session.submit('$ship', { dismissAutocomplete: true });
 
         const budgetMs = 600_000;
         const start = Date.now();

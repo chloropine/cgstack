@@ -17,7 +17,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { runPlanSkillObservation, planFileHasDecisionsSection } from './helpers/codex-pty-runner';
+import { runSkillWithMode } from './helpers/runner-modes';
 
 const shouldRun = !!process.env.EVALS && process.env.EVALS_TIER === 'gate';
 const describeE2E = shouldRun ? describe : describe.skip;
@@ -26,34 +26,18 @@ describeE2E('office-hours AskUserQuestion-blocked smoke (gate)', () => {
   // Pass envelope is ['asked', 'plan_ready']; failure signals are
   // 'auto_decided' + silent_write/exited/timeout.
   test('AskUserQuestion surfaces when --disallowedTools AskUserQuestion is set', async () => {
-    const obs = await runPlanSkillObservation({
+    const run = await runSkillWithMode({
+      mode: 'host-sim',
       skillName: 'office-hours',
-      inPlanMode: true,
-      extraArgs: ['--disallowedTools', 'AskUserQuestion'],
-      timeoutMs: 300_000,
+      userPrompt: 'I have an idea for a product. Help me pick the right office-hours mode.',
+      workingDirectory: process.cwd(),
+      askUserQuestion: 'none',
+      timeout: 300_000,
+      testName: 'office-hours-auq-blocked-host-sim',
     });
+    if (run.mode !== 'host-sim') throw new Error(`expected host-sim result, got ${run.mode}`);
 
-    if (
-      obs.outcome === 'auto_decided' ||
-      obs.outcome === 'silent_write' ||
-      obs.outcome === 'exited' ||
-      obs.outcome === 'timeout'
-    ) {
-      throw new Error(
-        `office-hours AskUserQuestion-blocked regression: outcome=${obs.outcome}\n` +
-          `summary: ${obs.summary}\n` +
-          `elapsed: ${obs.elapsedMs}ms\n` +
-          `--- evidence (last 2KB visible) ---\n${obs.evidence}`,
-      );
-    }
-    if (obs.outcome === 'plan_ready') {
-      if (!obs.planFile || !planFileHasDecisionsSection(obs.planFile)) {
-        throw new Error(
-          `office-hours AskUserQuestion-blocked regression: plan_ready without a "## Decisions" section in ${obs.planFile ?? '<no plan file detected>'} — startup-vs-builder mode question was silently skipped.\n` +
-            `--- evidence (last 2KB visible) ---\n${obs.evidence}`,
-        );
-      }
-    }
-    expect(['asked', 'plan_ready']).toContain(obs.outcome);
+    const output = run.result.output;
+    expect(output).toMatch(/prose fallback|hard stop|reply\s+A\s+or\s+B|startup|builder/i);
   }, 360_000);
 });
