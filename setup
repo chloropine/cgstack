@@ -175,6 +175,15 @@ if ! ensure_playwright_browser; then
   exit 1
 fi
 
+if [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] && [ -x "$SOURCE_CGSTACK_DIR/bin/cgstack-bubblewrap-doctor" ]; then
+  _BWRAP_DOCTOR_OUT="$(mktemp "${TMPDIR:-/tmp}/cgstack-bwrap-doctor.XXXXXX")"
+  if ! "$SOURCE_CGSTACK_DIR/bin/cgstack-bubblewrap-doctor" >"$_BWRAP_DOCTOR_OUT" 2>&1; then
+    echo "warning: cgstack bubblewrap preflight failed; nested Codex E2E tests may fail." >&2
+    sed 's/^/  /' "$_BWRAP_DOCTOR_OUT" >&2
+  fi
+  rm -f "$_BWRAP_DOCTOR_OUT"
+fi
+
 create_codex_runtime_root() {
   local cgstack_dir="$1"
   local codex_cgstack="$2"

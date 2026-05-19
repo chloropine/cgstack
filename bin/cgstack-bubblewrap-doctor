@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# cgstack-bubblewrap-doctor — preflight nested Codex bubblewrap sandboxing.
+set -u
+
+usage() {
+  cat <<'EOF'
+Usage: cgstack-bubblewrap-doctor [--help]
+
+Checks whether bubblewrap can create the user and network namespaces Codex uses
+for sandboxed nested E2E runs.
+
+Environment:
+  CGSTACK_BWRAP_BIN  Path to bwrap. Defaults to the first bwrap on PATH.
+EOF
+}
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  usage
+  exit 0
+fi
+
+if [ "${1:-}" != "" ]; then
+  echo "cgstack-bubblewrap-doctor: unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
+if [ "$(uname -s 2>/dev/null || echo unknown)" != "Linux" ]; then
+  echo "cgstack bubblewrap preflight: skipped (non-Linux)"
+  exit 0
+fi
+
+sysctl_value() {
+  local key="$1"
+  local value
+  value="$(sysctl -n "$key" 2>/dev/null || true)"
+  if [ -z "$value" ]; then
+    echo "unavailable"
+  else
+    echo "$value"
+  fi
+}
+
+BWRAP="${CGSTACK_BWRAP_BIN:-}"
+if [ -z "$BWRAP" ]; then
+  BWRAP="$(command -v bwrap 2>/dev/null || true)"
+fi
+
+CMD_DISPLAY="bwrap --unshare-user --unshare-net --dev-bind / / sh -c 'true'"
+APPARMOR_RESTRICT="$(sysctl_value kernel.apparmor_restrict_unprivileged_userns)"
+UNPRIV_USERNS="$(sysctl_value kernel.unprivileged_userns_clone)"
+MAX_USERNS="$(sysctl_value user.max_user_namespaces)"
+
+TMP_ERR="$(mktemp "${TMPDIR:-/tmp}/cgstack-bwrap.XXXXXX")" || exit 1
+cleanup() {
+  rm -f "$TMP_ERR"
+}
+trap cleanup EXIT
+
+if [ -z "$BWRAP" ] || [ ! -x "$BWRAP" ]; then
+  BWRAP_STDERR="bwrap not found or not executable. Set CGSTACK_BWRAP_BIN or install bubblewrap."
+  STATUS=127
+else
+  "$BWRAP" --unshare-user --unshare-net --dev-bind / / sh -c 'true' 2>"$TMP_ERR"
+  STATUS=$?
+  BWRAP_STDERR="$(cat "$TMP_ERR" 2>/dev/null || true)"
+fi
+
+if [ "$STATUS" -eq 0 ]; then
+  echo "cgstack bubblewrap preflight: ok"
+  exit 0
+fi
+
+cat <<EOF
+cgstack bubblewrap preflight: failed
+
+bwrap command:
+  $CMD_DISPLAY
+
+bwrap stderr:
+$(printf '%s\n' "${BWRAP_STDERR:-<empty>}" | sed 's/^/  /')
+
+kernel diagnostics:
+  kernel.apparmor_restrict_unprivileged_userns=$APPARMOR_RESTRICT
+  kernel.unprivileged_userns_clone=$UNPRIV_USERNS
+  user.max_user_namespaces=$MAX_USERNS
+EOF
+
+if [ "$APPARMOR_RESTRICT" = "1" ]; then
+  cat <<'EOF'
+
+AppArmor appears to restrict unprivileged user namespaces. That can break
+nested Codex E2E tests that rely on bubblewrap.
+
+System-wide fix:
+  sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+  echo 'kernel.apparmor_restrict_unprivileged_userns=0' | sudo tee /etc/sysctl.d/99-cgstack-bubblewrap.conf
+  sudo sysctl --system
+
+Security note:
+  This enables unprivileged user namespaces on the machine. That is useful for
+  developer sandboxes such as bubblewrap, but it relaxes a kernel hardening
+  setting. Apply it only on development machines where that tradeoff is
+  acceptable.
+EOF
+fi
+
+exit 1

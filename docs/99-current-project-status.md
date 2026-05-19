@@ -8,7 +8,7 @@ Updated: 2026-05-18
 - Branch: `main`
 - Remote tracking: `origin/main`
 - Working tree before this file: clean
-- Package version: `1.50.0.0`
+- Package version: `1.50.1.0`
 - Runtime target: OpenAI Codex only
 - Primary purpose: Codex skills, browser tooling, and role-based engineering workflows for planning, review, QA, release, documentation, security, retrospectives, and context handoff.
 

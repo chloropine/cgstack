@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.50.1.0
+
+- Added `cgstack-bubblewrap-doctor` to diagnose Linux bubblewrap/AppArmor user
+  namespace failures that break nested Codex E2E tests.
+- Setup now runs the bubblewrap preflight nonfatally on Linux and prints the
+  actionable fix when the host kernel blocks nested sandboxing.
+- Codex E2E runs now fail fast with the shared diagnostic for sandboxed Linux
+  runs instead of waiting for nested Codex to fail while writing files.
+- Relaxed Codex plan-format assertions to accept the skill's current
+  recommendation and completeness-score wording, and fixed eval recording so
+  tests only record pass after assertions pass.
+
 ## 1.50.0.0
 
 - Set the cgstack port version to `1.50.0.0` to reflect the Codex-only fork's

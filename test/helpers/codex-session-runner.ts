@@ -16,6 +16,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
+const REPO_ROOT = path.resolve(import.meta.dir, '..', '..');
+
 // --- Interfaces ---
 
 export interface CodexResult {
@@ -95,6 +97,43 @@ export function parseCodexJSONL(lines: string[]): ParsedCodexJSONL {
   };
 }
 
+function runBubblewrapPreflightIfNeeded(sandbox: string, startTime: number): CodexResult | null {
+  if (os.platform() !== 'linux' || sandbox === 'danger-full-access') {
+    return null;
+  }
+
+  const doctor = path.join(REPO_ROOT, 'bin', 'cgstack-bubblewrap-doctor');
+  if (!fs.existsSync(doctor)) {
+    return null;
+  }
+
+  const result = Bun.spawnSync([doctor], {
+    cwd: REPO_ROOT,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: process.env,
+  });
+  if (result.exitCode === 0) {
+    return null;
+  }
+
+  const stdout = new TextDecoder().decode(result.stdout ?? new Uint8Array());
+  const stderr = new TextDecoder().decode(result.stderr ?? new Uint8Array());
+  const diagnostic = [stdout, stderr].filter((part) => part.trim()).join('\n').trim();
+
+  return {
+    output: diagnostic,
+    reasoning: [],
+    toolCalls: [],
+    tokens: 0,
+    exitCode: 125,
+    durationMs: Date.now() - startTime,
+    sessionId: null,
+    rawLines: [],
+    stderr: diagnostic,
+  };
+}
+
 // --- Skill installation helper ---
 
 /**
@@ -170,6 +209,11 @@ export async function runCodexSkill(opts: {
       rawLines: [],
       stderr: '',
     };
+  }
+
+  const preflightFailure = runBubblewrapPreflightIfNeeded(sandbox, startTime);
+  if (preflightFailure) {
+    return preflightFailure;
   }
 
   // Set up temp HOME with skill installed

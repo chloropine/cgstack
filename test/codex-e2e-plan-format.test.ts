@@ -98,6 +98,16 @@ function recordCodexResult(testName: string, result: CodexResult, passed: boolea
   });
 }
 
+function recordAssertions(testName: string, result: CodexResult, assertions: () => void) {
+  try {
+    assertions();
+    recordCodexResult(testName, result, true);
+  } catch (error) {
+    recordCodexResult(testName, result, false);
+    throw error;
+  }
+}
+
 afterAll(async () => {
   if (evalCollector) {
     await evalCollector.finalize();
@@ -154,9 +164,10 @@ function captureInstruction(outFile: string): string {
 }
 
 // --- Regex predicates ---
-// Match RECOMMENDATION lenient to markdown bolding around it.
-const RECOMMENDATION_RE = /RECOMMENDATION:[*\s]*Choose/;
-const COMPLETENESS_RE = /Completeness:\s*\d{1,2}\/10/;
+// Match current skill shape: "Recommendation: <choice> because..." with
+// optional "Choose" and optional markdown bolding around the label.
+const RECOMMENDATION_RE = /\*{0,2}Recommendation\*{0,2}:\s*(?:Choose\s+)?[^\n.]+?\bbecause\b/i;
+const COMPLETENESS_RE = /Completeness:\s*(?:(?:[A-Z]\s*=\s*)?\d{1,2}\/10)(?:\s*,\s*[A-Z]\s*=\s*\d{1,2}\/10)*/i;
 const KIND_NOTE_RE = /options differ in kind/i;
 // ELI10 signal: some plain-English explanation must exist. Weak proxy: >= 200 chars
 // of narrative prose between the re-ground and the options, AND at least one of the
@@ -187,22 +198,25 @@ describeCodex('Codex Plan Format — CEO Mode Selection', () => {
       sandbox: 'workspace-write',
     });
 
-    recordCodexResult('codex-plan-ceo-format-mode', result, result.exitCode === 0);
     console.log(`codex-plan-ceo-format-mode: ${result.tokens}t, ${Math.round(result.durationMs/1000)}s, exit=${result.exitCode}`);
 
     // Codex may timeout — accept as non-fatal (same pattern as existing codex-e2e tests)
     if (result.exitCode === 124 || result.exitCode === 137) {
       console.warn(`codex timed out (exit ${result.exitCode}) — skipping assertions`);
+      recordCodexResult('codex-plan-ceo-format-mode', result, false);
       return;
     }
 
-    expect(fs.existsSync(outFile)).toBe(true);
-    const captured = fs.readFileSync(outFile, 'utf-8');
-    expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
-    expect(captured).toMatch(RECOMMENDATION_RE);
-    // kind-differentiated: no fabricated score, must have note
-    expect(captured).not.toMatch(COMPLETENESS_RE);
-    expect(captured).toMatch(KIND_NOTE_RE);
+    recordAssertions('codex-plan-ceo-format-mode', result, () => {
+      expect(result.exitCode).toBe(0);
+      expect(fs.existsSync(outFile)).toBe(true);
+      const captured = fs.readFileSync(outFile, 'utf-8');
+      expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
+      expect(captured).toMatch(RECOMMENDATION_RE);
+      // kind-differentiated: no fabricated score, must have note
+      expect(captured).not.toMatch(COMPLETENESS_RE);
+      expect(captured).toMatch(KIND_NOTE_RE);
+    });
   }, 360_000);
 });
 
@@ -227,19 +241,22 @@ describeCodex('Codex Plan Format — CEO Approach Menu', () => {
       sandbox: 'workspace-write',
     });
 
-    recordCodexResult('codex-plan-ceo-format-approach', result, result.exitCode === 0);
     console.log(`codex-plan-ceo-format-approach: ${result.tokens}t, ${Math.round(result.durationMs/1000)}s, exit=${result.exitCode}`);
 
     if (result.exitCode === 124 || result.exitCode === 137) {
       console.warn(`codex timed out (exit ${result.exitCode}) — skipping assertions`);
+      recordCodexResult('codex-plan-ceo-format-approach', result, false);
       return;
     }
 
-    expect(fs.existsSync(outFile)).toBe(true);
-    const captured = fs.readFileSync(outFile, 'utf-8');
-    expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
-    expect(captured).toMatch(RECOMMENDATION_RE);
-    expect(captured).toMatch(COMPLETENESS_RE);
+    recordAssertions('codex-plan-ceo-format-approach', result, () => {
+      expect(result.exitCode).toBe(0);
+      expect(fs.existsSync(outFile)).toBe(true);
+      const captured = fs.readFileSync(outFile, 'utf-8');
+      expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
+      expect(captured).toMatch(RECOMMENDATION_RE);
+      expect(captured).toMatch(COMPLETENESS_RE);
+    });
   }, 360_000);
 });
 
@@ -264,19 +281,22 @@ describeCodex('Codex Plan Format — Eng Coverage Issue', () => {
       sandbox: 'workspace-write',
     });
 
-    recordCodexResult('codex-plan-eng-format-coverage', result, result.exitCode === 0);
     console.log(`codex-plan-eng-format-coverage: ${result.tokens}t, ${Math.round(result.durationMs/1000)}s, exit=${result.exitCode}`);
 
     if (result.exitCode === 124 || result.exitCode === 137) {
       console.warn(`codex timed out (exit ${result.exitCode}) — skipping assertions`);
+      recordCodexResult('codex-plan-eng-format-coverage', result, false);
       return;
     }
 
-    expect(fs.existsSync(outFile)).toBe(true);
-    const captured = fs.readFileSync(outFile, 'utf-8');
-    expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
-    expect(captured).toMatch(RECOMMENDATION_RE);
-    expect(captured).toMatch(COMPLETENESS_RE);
+    recordAssertions('codex-plan-eng-format-coverage', result, () => {
+      expect(result.exitCode).toBe(0);
+      expect(fs.existsSync(outFile)).toBe(true);
+      const captured = fs.readFileSync(outFile, 'utf-8');
+      expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
+      expect(captured).toMatch(RECOMMENDATION_RE);
+      expect(captured).toMatch(COMPLETENESS_RE);
+    });
   }, 360_000);
 });
 
@@ -301,20 +321,23 @@ describeCodex('Codex Plan Format — Eng Kind Issue', () => {
       sandbox: 'workspace-write',
     });
 
-    recordCodexResult('codex-plan-eng-format-kind', result, result.exitCode === 0);
     console.log(`codex-plan-eng-format-kind: ${result.tokens}t, ${Math.round(result.durationMs/1000)}s, exit=${result.exitCode}`);
 
     if (result.exitCode === 124 || result.exitCode === 137) {
       console.warn(`codex timed out (exit ${result.exitCode}) — skipping assertions`);
+      recordCodexResult('codex-plan-eng-format-kind', result, false);
       return;
     }
 
-    expect(fs.existsSync(outFile)).toBe(true);
-    const captured = fs.readFileSync(outFile, 'utf-8');
-    expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
-    expect(captured).toMatch(RECOMMENDATION_RE);
-    // kind-differentiated: no fabricated score
-    expect(captured).not.toMatch(COMPLETENESS_RE);
-    expect(captured).toMatch(KIND_NOTE_RE);
+    recordAssertions('codex-plan-eng-format-kind', result, () => {
+      expect(result.exitCode).toBe(0);
+      expect(fs.existsSync(outFile)).toBe(true);
+      const captured = fs.readFileSync(outFile, 'utf-8');
+      expect(captured.length).toBeGreaterThan(ELI10_LENGTH_FLOOR);
+      expect(captured).toMatch(RECOMMENDATION_RE);
+      // kind-differentiated: no fabricated score
+      expect(captured).not.toMatch(COMPLETENESS_RE);
+      expect(captured).toMatch(KIND_NOTE_RE);
+    });
   }, 360_000);
 });
