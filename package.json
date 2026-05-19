@@ -1,6 +1,6 @@
 {
   "name": "cgstack",
-  "version": "1.40.0.2",
+  "version": "1.50.0.0",
   "description": "CGStack — Codex skills + fast headless browser. One repo, one install, entire AI engineering workflow.",
   "license": "MIT",
   "type": "module",

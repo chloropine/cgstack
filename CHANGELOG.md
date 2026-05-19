@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.50.0.0
+
+- Set the cgstack port version to `1.50.0.0` to reflect the Codex-only fork's
+  divergence from the original gstack `1.40.0.0` line.
+- Clarified the upgrade caveat for early cgstack installs: installs created
+  before the runtime `VERSION` link fix may not auto-detect this update. Run
+  `cd ~/.cgstack/repos/cgstack && git pull --ff-only && ./setup` once to repair
+  the installed Codex runtime root; `$cgstack-upgrade` should work normally
+  after that.
+
 ## 1.40.0.2
 
 - Fixed setup so the Codex runtime root includes `VERSION`, allowing
