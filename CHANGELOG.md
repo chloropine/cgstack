@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.40.0.2
+
+- Fixed setup so the Codex runtime root includes `VERSION`, allowing
+  `$cgstack-upgrade` update checks launched from `~/.codex/skills/cgstack/bin`
+  to compare installed and remote versions correctly.
+
 ## 1.40.0.1
 
 - Added Codex AskUserQuestion fallback handling so workflows can ask via MCP,

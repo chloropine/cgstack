@@ -198,6 +198,7 @@ create_codex_runtime_root() {
   for f in checklist.md design-checklist.md greptile-triage.md TODOS-format.md; do
     [ -f "$cgstack_dir/review/$f" ] && _link_or_copy "$cgstack_dir/review/$f" "$codex_cgstack/review/$f"
   done
+  [ -f "$cgstack_dir/VERSION" ] && _link_or_copy "$cgstack_dir/VERSION" "$codex_cgstack/VERSION"
   [ -f "$cgstack_dir/ETHOS.md" ] && _link_or_copy "$cgstack_dir/ETHOS.md" "$codex_cgstack/ETHOS.md"
 }
 
@@ -243,7 +244,7 @@ create_agents_sidecar() {
   local repo_root="$1"
   local agents_cgstack="$repo_root/.agents/skills/cgstack"
   mkdir -p "$agents_cgstack"
-  for asset in bin browse design make-pdf review qa ETHOS.md; do
+  for asset in bin browse design make-pdf review qa VERSION ETHOS.md; do
     local src="$SOURCE_CGSTACK_DIR/$asset"
     local dst="$agents_cgstack/$asset"
     if [ -e "$src" ] && { [ -L "$dst" ] || [ ! -e "$dst" ]; }; then
